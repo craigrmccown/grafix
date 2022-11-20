@@ -1,7 +1,5 @@
 # Build artifacts
 build/
-lib/
-bin/
 
 # OS-specific files
 .DS_Store
