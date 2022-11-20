@@ -10,6 +10,8 @@ include_directories(/usr/local/include ./include)
 
 add_executable(grafix
     src/main.cpp
+    src/shaders.cpp
+    src/triangle.cpp
     src/glad/glad.c)
 
 if (APPLE)

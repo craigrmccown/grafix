@@ -1,6 +1,8 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "shaders.hpp"
+#include "triangle.hpp"
 
 int kill(const char *message) {
     std::cerr << message << std::endl;
@@ -52,12 +54,21 @@ int main()
         return kill("Failed to initialize GLAD");
     }
 
+    unsigned int shaderProgramId = compileAndLinkShaders();
+    Triangle triangle;
+    triangle.Load();
+
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
 
+        // fill background color
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // draw triangle
+        glUseProgram(shaderProgramId);
+        triangle.Draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
