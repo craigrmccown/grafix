@@ -8,7 +8,8 @@ float vertices[] = {
     0.0f, 0.5f, 0.0f,
 };
 
-void Triangle::Load() {
+void Triangle::load()
+{
     // create and bind VAO
     glGenVertexArrays(1, &vaoId);  
     glBindVertexArray(vaoId);
@@ -26,7 +27,7 @@ void Triangle::Load() {
     glEnableVertexAttribArray(0);  
 }
 
-void Triangle::Draw()
+void Triangle::draw()
 {
     glBindVertexArray(vaoId);
     glDrawArrays(GL_TRIANGLES, 0, 3);

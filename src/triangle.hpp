@@ -1,11 +1,12 @@
 #pragma once
 
-class Triangle {
+class Triangle
+{
     private:
     unsigned int vaoId;
 
     public:
-    void Load();
+    void load();
 
-    void Draw();
+    void draw();
 };

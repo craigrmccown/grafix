@@ -1,8 +1,25 @@
 #include <iostream>
+#include <string>
+#include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "shaders.hpp"
+#include "shader.hpp"
 #include "triangle.hpp"
+
+// TODO: Find a better way to embed shader source
+const std::string vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const std::string fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
 
 int kill(const char *message) {
     std::cerr << message << std::endl;
@@ -45,7 +62,7 @@ int main()
     GLFWwindow *window = openWindowedFullscreenWindow("Grafix Demo");
     if (window == NULL)
     {
-        return kill("failed to create window");
+        return kill("Failed to create window");
     }
     glfwMakeContextCurrent(window);
 
@@ -54,9 +71,16 @@ int main()
         return kill("Failed to initialize GLAD");
     }
 
-    unsigned int shaderProgramId = compileAndLinkShaders();
+    std::vector<ShaderSrc> srcs {
+        {GL_VERTEX_SHADER, vertexShaderSource},
+        {GL_FRAGMENT_SHADER, fragmentShaderSource},
+    };
+
+    Shader shader;
+    shader.build(srcs);
+
     Triangle triangle;
-    triangle.Load();
+    triangle.load();
 
     while(!glfwWindowShouldClose(window))
     {
@@ -67,8 +91,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw triangle
-        glUseProgram(shaderProgramId);
-        triangle.Draw();
+        shader.use();
+        triangle.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
