@@ -1,5 +1,8 @@
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <glad/glad.h>
@@ -87,19 +90,17 @@ unsigned int GlProgramLinker::getId()
     return id;
 }
 
+Shader::Shader() {
+    program = std::make_unique<GlProgramLinker>();
+}
+
 void Shader::build(std::vector<ShaderSrc> srcs)
 {
-    // only build shader program once
-    if (isBuilt())
-    {
-        return;
-    }
-
     // Map shader source code to compiled OpenGL objects. Once the program is linked,
     // these objects will fall out of scope and be deallocated.
     std::vector<std::unique_ptr<GlShaderCompiler>> compilers;
     for (ShaderSrc src : srcs) {
-        std::unique_ptr<GlShaderCompiler> compiler(new GlShaderCompiler(src.type));
+        auto compiler = std::make_unique<GlShaderCompiler>(src.type);
 
         // TODO: Report all compilation errors instead of first
         compiler->compile(src.code.c_str());
@@ -115,20 +116,46 @@ void Shader::build(std::vector<ShaderSrc> srcs)
         shaders.push_back(comp->getId());
     }
 
-    program = std::make_unique<GlProgramLinker>();
     program->link(shaders);
 }
 
 void Shader::use()
 {
-    if (!isBuilt())
-    {
-        throw std::logic_error("Must call build before calling use");
-    }
     glUseProgram(program->getId());
 }
 
-bool Shader::isBuilt()
+GLenum mapPathToShaderType(std::string path)
 {
-    return !!program;
+    std::filesystem::path fsPath = path;
+    std::string ext = fsPath.extension();
+
+    if (ext == ".vert")
+    {
+        return GL_VERTEX_SHADER;
+    }
+    else if (ext == ".frag")
+    {
+        return GL_FRAGMENT_SHADER;
+    }
+    else
+    {
+        throw std::logic_error("Unsupported file type: " + path);
+    }
+}
+
+ShaderSrc loadShaderSrc(std::string path)
+{
+    GLenum type = mapPathToShaderType(path);
+
+    // Open file for reading
+    std::ifstream file(path);
+    if (file.fail()) {
+        throw std::runtime_error("Could not open file: " + path);
+    }
+
+    // Read the entire file into memory
+    std::stringstream buf;
+    buf << file.rdbuf();
+
+    return ShaderSrc(type, buf.str());
 }

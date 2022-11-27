@@ -6,21 +6,6 @@
 #include "shader.hpp"
 #include "triangle.hpp"
 
-// TODO: Find a better way to embed shader source
-const std::string vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-
-const std::string fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\0";
-
 int kill(const char *message) {
     std::cerr << message << std::endl;
     glfwTerminate();
@@ -72,8 +57,8 @@ int main()
     }
 
     std::vector<ShaderSrc> srcs {
-        {GL_VERTEX_SHADER, vertexShaderSource},
-        {GL_FRAGMENT_SHADER, fragmentShaderSource},
+        loadShaderSrc("./src/shaders/shader.vert"),
+        loadShaderSrc("./src/shaders/shader.frag"),
     };
 
     Shader shader;

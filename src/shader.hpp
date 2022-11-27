@@ -45,6 +45,8 @@ struct ShaderSrc
 {
     GLenum type;
     std::string code;
+
+    ShaderSrc(GLenum type, std::string code) : type(type), code(code) { }
 };
 
 /**
@@ -56,12 +58,19 @@ struct ShaderSrc
 class Shader
 {
     public:
+    Shader();
+
     void build(std::vector<ShaderSrc> srcs);
 
     void use();
 
     private:
     std::unique_ptr<GlProgramLinker> program;
-
-    bool isBuilt();
 };
+
+/**
+ * Loads shader source code and classifies its type based on extension
+ *
+ * Supported extensions are .vert and .frag
+ */
+ShaderSrc loadShaderSrc(std::string path);
