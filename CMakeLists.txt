@@ -10,10 +10,13 @@ link_directories(/usr/local/lib)
 include_directories(/usr/local/include ./include)
 
 add_executable(grafix
+    src/image.cpp
     src/main.cpp
+    src/rectangle.cpp
     src/shader.cpp
-    src/triangle.cpp
-    src/glad/glad.c)
+    src/texture.cpp
+    src/glad/glad.c
+    src/stb/stb_image.cpp)
 
 if (APPLE)
     target_link_libraries(grafix

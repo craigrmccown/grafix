@@ -3,8 +3,9 @@
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "image.hpp"
+#include "rectangle.hpp"
 #include "shader.hpp"
-#include "triangle.hpp"
 
 int kill(const char *message) {
     std::cerr << message << std::endl;
@@ -64,8 +65,8 @@ int main()
     Shader shader;
     shader.build(srcs);
 
-    Triangle triangle;
-    triangle.load();
+    Rectangle rectangle("./assets/textures/crate.png");
+    rectangle.load();
 
     while(!glfwWindowShouldClose(window))
     {
@@ -77,7 +78,7 @@ int main()
 
         // draw triangle
         shader.use();
-        triangle.draw();
+        rectangle.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
