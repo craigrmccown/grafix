@@ -7,6 +7,7 @@
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/type_ptr.hpp>
 #include "shader.hpp"
 
 const int info_log_buf_size = 512;
@@ -122,6 +123,11 @@ void Shader::build(std::vector<ShaderSrc> srcs)
 void Shader::use()
 {
     glUseProgram(program->getId());
+}
+
+void Shader::setUniformMat4(std::string name, glm::mat4 mat) {
+    unsigned int uniformId = glGetUniformLocation(program->getId(), name.c_str());
+    glUniformMatrix4fv(uniformId, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 GLenum mapPathToShaderType(std::string path)

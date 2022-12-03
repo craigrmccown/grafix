@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 
 /**
  * Compiles shader source and manages OpenGL objects
@@ -63,6 +64,8 @@ class Shader
     void build(std::vector<ShaderSrc> srcs);
 
     void use();
+
+    void setUniformMat4(std::string name, glm::mat4 mat);
 
     private:
     std::unique_ptr<GlProgramLinker> program;

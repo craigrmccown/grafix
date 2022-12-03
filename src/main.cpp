@@ -3,6 +3,7 @@
 #include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include "image.hpp"
 #include "rectangle.hpp"
 #include "shader.hpp"
@@ -41,6 +42,17 @@ void processInput(GLFWwindow *window)
     }
 }
 
+glm::mat4 rotateAndScale(float rotate, float scale) {
+    // Begin with the identiy matrix
+    glm::mat4 transform(1.0f);
+
+    // Rotate around the z axis
+    transform = glm::rotate(transform, rotate, glm::vec3(0, 0, 1));
+
+    // Scale last to avoid scaling rotation
+    return glm::scale(transform, glm::vec3(scale));
+}
+
 int main()
 {
     initializeGLFW();
@@ -72,12 +84,16 @@ int main()
     {
         processInput(window);
 
-        // fill background color
+        // Compute transformation matrix
+        float t = glfwGetTime();
+        glm::mat4 transform = rotateAndScale(glfwGetTime(), (t - int(t)) / 2);
+
+        // Fill background color first
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // draw triangle
         shader.use();
+        shader.setUniformMat4("transform", transform);
         rectangle.draw();
 
         glfwSwapBuffers(window);
