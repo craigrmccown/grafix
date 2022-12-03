@@ -12,7 +12,7 @@ include_directories(/usr/local/include ./include)
 add_executable(grafix
     src/image.cpp
     src/main.cpp
-    src/rectangle.cpp
+    src/model.cpp
     src/shader.cpp
     src/texture.cpp
     src/glad/glad.c

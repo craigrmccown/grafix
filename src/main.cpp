@@ -5,24 +5,78 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "image.hpp"
-#include "rectangle.hpp"
+#include "model.hpp"
 #include "shader.hpp"
 
-int kill(const char *message) {
+// TODO: Load vertex data from model file
+float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
+
+int kill(const char *message)
+{
     std::cerr << message << std::endl;
     glfwTerminate();
     return -1;
 }
 
 // Set OpenGL version and core profile
-void initializeGLFW() {
+void initializeGLFW()
+{
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
-GLFWwindow *openWindowedFullscreenWindow(const char *title) {
+const GLFWvidmode *getVideoMode()
+{
+    GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+    return glfwGetVideoMode(monitor);
+}
+
+GLFWwindow *openWindowedFullscreenWindow(const char *title)
+{
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode *mode = glfwGetVideoMode(monitor);
 
@@ -42,17 +96,6 @@ void processInput(GLFWwindow *window)
     }
 }
 
-glm::mat4 rotateAndScale(float rotate, float scale) {
-    // Begin with the identiy matrix
-    glm::mat4 transform(1.0f);
-
-    // Rotate around the z axis
-    transform = glm::rotate(transform, rotate, glm::vec3(0, 0, 1));
-
-    // Scale last to avoid scaling rotation
-    return glm::scale(transform, glm::vec3(scale));
-}
-
 int main()
 {
     initializeGLFW();
@@ -64,10 +107,14 @@ int main()
     }
     glfwMakeContextCurrent(window);
 
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         return kill("Failed to initialize GLAD");
     }
+    glEnable(GL_DEPTH_TEST);
 
     std::vector<ShaderSrc> srcs {
         loadShaderSrc("./src/shaders/shader.vert"),
@@ -77,24 +124,31 @@ int main()
     Shader shader;
     shader.build(srcs);
 
-    Rectangle rectangle("./assets/textures/crate.png");
-    rectangle.load();
+    Model cube(
+        std::vector<float>(std::begin(vertices), std::end(vertices)),
+        "./assets/textures/crate.png"
+    );
+    cube.load();
 
     while(!glfwWindowShouldClose(window))
     {
         processInput(window);
 
         // Compute transformation matrix
-        float t = glfwGetTime();
-        glm::mat4 transform = rotateAndScale(glfwGetTime(), (t - int(t)) / 2);
+        glm::mat4 identity(1.0f);
+        glm::mat4 modelMat = glm::rotate(identity, (float)glfwGetTime() * glm::radians(30.0f), glm::vec3(1, 1, 0));
+        glm::mat4 viewMat = glm::translate(identity, glm::vec3(0, 0, -3));
+        glm::mat4 projectionMat = glm::perspective(glm::radians(45.0f), (float)windowWidth / windowHeight, 0.1f, 100.0f);
 
         // Fill background color first
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
-        shader.setUniformMat4("transform", transform);
-        rectangle.draw();
+        shader.setUniformMat4("model", modelMat);
+        shader.setUniformMat4("view", viewMat);
+        shader.setUniformMat4("projection", projectionMat);
+        cube.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

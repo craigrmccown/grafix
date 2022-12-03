@@ -2,22 +2,12 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "rectangle.hpp"
+#include "model.hpp"
 #include "texture.hpp"
 
-float vertices[] = {
-    // positions            // texture coords
-    -0.5f, 0.5f, 0.0f,      0.0f, 1.0f,     // top left
-    0.5f, 0.5f, 0.0f,       1.0f, 1.0f,     // top right
-    0.5f, -0.5f, 0.0f,      1.0f, 0.0f,     // bottom right
-    -0.5f, -0.5f, 0.0f,     0.0f, 0.0f,     // bottom left
-};
-unsigned int indices[] = {
-    0, 1, 2,    // first triangle
-    0, 2, 3     // second triangle
-};
-
-Rectangle::Rectangle(std::string texturePath) : texturePath(texturePath)
+Model::Model(std::vector<float> vertices, std::string texturePath)
+    : texturePath(texturePath)
+    , vertices(vertices)
 {
     texture = std::make_unique<Texture>();
     glGenVertexArrays(1, &vaoId);
@@ -25,24 +15,22 @@ Rectangle::Rectangle(std::string texturePath) : texturePath(texturePath)
     glGenBuffers(1, &eboId);
 }
 
-Rectangle::~Rectangle()
+Model::~Model()
 {
     glDeleteVertexArrays(1, &vaoId);
     glDeleteBuffers(1, &vboId);
     glDeleteBuffers(1, &eboId);
 }
 
-void Rectangle::load()
+void Model::load()
 {
     texture->load(texturePath);
 
     glBindVertexArray(vaoId);
 
-    // Load vertices and element indices
+    // Load vertices
     glBindBuffer(GL_ARRAY_BUFFER, vboId);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
 
     // Set vertex attributes to be interpreted by shader:
     // attribute location, number of elements, data type, whether to normalize,
@@ -56,9 +44,9 @@ void Rectangle::load()
     glEnableVertexAttribArray(1);
 }
 
-void Rectangle::draw()
+void Model::draw()
 {
     texture->use();
     glBindVertexArray(vaoId);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 }

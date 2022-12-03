@@ -2,14 +2,15 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include "texture.hpp"
 
-class Rectangle
+class Model
 {
     public:
-    Rectangle(std::string texturePath);
+    Model(std::vector<float> vertices, std::string texturePath);
 
-    ~Rectangle();
+    ~Model();
 
     void load();
 
@@ -25,6 +26,8 @@ class Rectangle
     // Vertex Buffer Object
     unsigned int vboId;
 
-    // Element Buffer Object
+    // Element Buffer Object (not currently used)
     unsigned int eboId;
+
+    std::vector<float> vertices;
 };
