@@ -10,6 +10,8 @@ link_directories(/usr/local/lib)
 include_directories(/usr/local/include ./include)
 
 add_executable(grafix
+    src/camera.cpp
+    src/clock.cpp
     src/image.cpp
     src/main.cpp
     src/model.cpp

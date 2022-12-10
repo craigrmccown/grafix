@@ -16,7 +16,7 @@ class GlShaderCompiler
 
     ~GlShaderCompiler();
 
-    void compile(const char *src);
+    void compile(std::string src);
 
     unsigned int getId();
 

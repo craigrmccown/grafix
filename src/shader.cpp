@@ -25,10 +25,12 @@ GlShaderCompiler::~GlShaderCompiler()
     glDeleteShader(id);
 }
 
-void GlShaderCompiler::compile(const char *src)
+void GlShaderCompiler::compile(std::string src)
 {
+    const char *srcPtr = src.c_str();
+
     // Pass NULL as final arg because we assume shader source is null-terminated
-    glShaderSource(id, 1, &src, NULL); 
+    glShaderSource(id, 1, &srcPtr, NULL);
     glCompileShader(id);
 
     char logBuf[info_log_buf_size];
