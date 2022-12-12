@@ -18,7 +18,18 @@ class Camera
 
     private:
     Clock &clock;
+
+    // Translated position from origin
     glm::vec3 pos;
 
-    void pan(glm::vec3 dir);
+    // Euler angles expressed in degrees
+    float yaw;
+    float pitch;
+
+    // View transformation matrix that is recomputed when input is processed
+    glm::mat4 view;
+
+    void move(glm::vec3 dir);
+    void incYaw(float delta);
+    void incPitch(float delta);
 };

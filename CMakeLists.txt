@@ -15,6 +15,7 @@ add_executable(grafix
     src/image.cpp
     src/main.cpp
     src/model.cpp
+    src/mouse.cpp
     src/shader.cpp
     src/texture.cpp
     src/glad/glad.c

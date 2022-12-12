@@ -8,6 +8,7 @@
 #include "clock.hpp"
 #include "image.hpp"
 #include "model.hpp"
+#include "mouse.hpp"
 #include "shader.hpp"
 
 // TODO: Load vertex data from model file
@@ -117,6 +118,7 @@ int main()
         return kill("Failed to initialize GLAD");
     }
     glEnable(GL_DEPTH_TEST);
+    listenForMouseMovement(window);
 
     std::vector<ShaderSrc> srcs {
         loadShaderSrc("./src/shaders/shader.vert"),

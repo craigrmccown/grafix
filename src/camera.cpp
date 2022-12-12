@@ -6,30 +6,52 @@
 
 namespace constants
 {
-    // TODO: Recompute front and right vectors on each frame when camera rotation is
-    // introduced
-    const glm::vec3 front(0.0f, 0.0f, -1.0f), right(1.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
-    const float speed = 3.0f;
+    const glm::vec3 up(0.0f, 1.0f, 0.0f);
+    const float speed = 3.0f, hSensitivity = 0.2f, vSensitivity = 0.08f, maxPitchDeg = 85.0f;
 }
 
-Camera::Camera(Clock &clock, glm::vec3 initPos) : clock(clock), pos(initPos) {}
+Camera::Camera(Clock &clock, glm::vec3 initPos)
+    : clock(clock)
+    , pos(initPos)
+    , yaw(0.0f)
+    , pitch(0.0f)
+    , view(glm::mat4(1.0f))
+    {}
 
+// TODO: Avoid unnecessary work if no input is received
 void Camera::processInput(GLFWwindow *window)
 {
+    glm::vec2 mouseDelta = clock.getMouseDelta();
+
+    // Mouse coordinates use inverted y-axis, so multiply by -1
+    incPitch(-mouseDelta.y * constants::vSensitivity);
+    incYaw(mouseDelta.x * constants::hSensitivity);
+
+    // Compute a unit vector that points in the direction of the camera.
+    glm::vec3 lookDir(sin(glm::radians(yaw)), sin(glm::radians(pitch)), -cos(glm::radians(yaw)));
+
+    // Ignore the y-component when calculating camera translations so we stay on the
+    // ground.
+    glm::vec3 front(lookDir.x, 0.0f, lookDir.z);
+
+    // The right vector is always orthoganal to the front and up vectors
+    glm::vec3 right = glm::cross(front, constants::up);
+
     // Compute a vector representing the direction of camera movement. We only care
     // about the direction component; magnitude of the translation will be computed
     // based on the clock value and movement speed.
-    glm::vec3 dir(0.0f, 0.0f, 0.0f);
+    glm::vec3 moveDir(0.0f, 0.0f, 0.0f);
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) dir += constants::front;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) dir -= constants::right;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) dir -= constants::front;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) dir += constants::right;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) moveDir += front;
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) moveDir -= right;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) moveDir -= front;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) moveDir += right;
 
-    pan(dir);
+    move(moveDir);
+    view = glm::lookAt(pos, pos + lookDir, constants::up);
 }
 
-void Camera::pan(glm::vec3 dir)
+void Camera::move(glm::vec3 dir)
 {
     // Early exit if vector has undefined direction
     if (dir.x == 0 && dir.y == 0 && dir.z == 0) return;
@@ -43,7 +65,23 @@ void Camera::pan(glm::vec3 dir)
     pos += translation;
 }
 
+void Camera::incYaw(float delta)
+{
+    // Use modular arithmetic to cycle yaw to prevent eventual overflow
+    yaw += delta;
+    int whole = yaw;
+    yaw = whole % 360 + yaw - whole;
+}
+
+void Camera::incPitch(float delta)
+{
+    // Clamp pitch between reasonable values to avoid vertical flipping
+    pitch += delta;
+    if (pitch > constants::maxPitchDeg) pitch = constants::maxPitchDeg;
+    else if (pitch < -constants::maxPitchDeg) pitch = -constants::maxPitchDeg;
+}
+
 glm::mat4 Camera::getViewMatrix()
 {
-    return glm::lookAt(pos, pos + constants::front, constants::up);
+    return view;
 }
