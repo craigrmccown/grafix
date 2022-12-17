@@ -120,13 +120,15 @@ int main()
     glEnable(GL_DEPTH_TEST);
     listenForMouseMovement(window);
 
-    std::vector<ShaderSrc> srcs {
-        loadShaderSrc("./src/shaders/shader.vert"),
-        loadShaderSrc("./src/shaders/shader.frag"),
-    };
-
-    Shader shader;
-    shader.build(srcs);
+    Shader objShader, lightShader;
+    objShader.build(std::vector<ShaderSrc> {
+        loadShaderSrc("./src/shaders/obj.vert"),
+        loadShaderSrc("./src/shaders/obj.frag"),
+    });
+    lightShader.build(std::vector<ShaderSrc> {
+        loadShaderSrc("./src/shaders/light.vert"),
+        loadShaderSrc("./src/shaders/light.frag"),
+    });
 
     Model cube(
         std::vector<float>(std::begin(vertices), std::end(vertices)),
@@ -136,6 +138,10 @@ int main()
 
     Clock clock;
     Camera camera(clock, glm::vec3(0.0f, 0.0f, 5.0f));
+
+    glm::vec3 modelPos(0.0f);
+    glm::vec3 lightPos(10.0f, 6.0f, 3.0f);
+    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
     // 45 degree field of view
@@ -152,24 +158,30 @@ int main()
         glm::mat4 pvm = projection * camera.getViewMatrix();
 
         // Fill background color first
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shader.use();
+        // Create model matrix and translate to camera perspective
+        glm::mat4 transform(1.0f);
+        transform = glm::translate(transform, modelPos);
+        transform = pvm * transform;
 
-        // Draw 10 cubes in a circle
-        for (int i = 0; i < 10; i ++)
-        {
-            // Compute model matrix to describe transform for each model
-            glm::mat4 model(1.0f);
-            model = glm::rotate(model, glm::radians(36.0f) * i, glm::vec3(0.0, 1.0, 0.0));
-            model = glm::translate(model, glm::vec3(3.0f, 0.0f, 0.0f));
+        // Set obj shader uniforms and draw model
+        objShader.use();
+        objShader.setUniformMat4("transform", transform);
+        objShader.setUniformVec3("lightColor", lightColor);
+        cube.draw();
 
-            // Transform model matrix to camera perspective
-            shader.setUniformMat4("transform", pvm * model);
+        // Create light matrix and reuse camera transformation
+        transform = glm::mat4(1.0f);
+        transform = glm::scale(transform, glm::vec3(0.2f));
+        transform = glm::translate(transform, lightPos);
+        transform = pvm * transform;
 
-            cube.draw();
-        }
+        // Set light shader uniforms and draw light
+        lightShader.use();
+        lightShader.setUniformMat4("transform", transform);
+        cube.draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

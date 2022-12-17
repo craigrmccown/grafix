@@ -132,6 +132,11 @@ void Shader::setUniformMat4(std::string name, glm::mat4 mat) {
     glUniformMatrix4fv(uniformId, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
+void Shader::setUniformVec3(std::string name, glm::vec3 vec) {
+    unsigned int uniformId = glGetUniformLocation(program->getId(), name.c_str());
+    glUniform3f(uniformId, vec.x, vec.y, vec.z);
+}
+
 GLenum mapPathToShaderType(std::string path)
 {
     std::filesystem::path fsPath = path;
