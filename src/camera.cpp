@@ -7,7 +7,7 @@
 namespace constants
 {
     const glm::vec3 up(0.0f, 1.0f, 0.0f);
-    const float speed = 3.0f, hSensitivity = 0.2f, vSensitivity = 0.08f, maxPitchDeg = 85.0f;
+    const float speed = 3.0f, hSensitivity = 0.2f, vSensitivity = 0.08f, maxPitchDeg = 89.0f;
 }
 
 Camera::Camera(Clock &clock, glm::vec3 initPos)
@@ -30,9 +30,10 @@ void Camera::processInput(GLFWwindow *window)
     // Compute a unit vector that points in the direction of the camera.
     glm::vec3 lookDir(sin(glm::radians(yaw)), sin(glm::radians(pitch)), -cos(glm::radians(yaw)));
 
-    // Ignore the y-component when calculating camera translations so we stay on the
-    // ground.
-    glm::vec3 front(lookDir.x, 0.0f, lookDir.z);
+    // We can set the y-component to 0 if we want to stay on the ground. Setting
+    // the front vector equal to the look direction gives us a "fly" style
+    // camera.
+    glm::vec3 front(lookDir.x, lookDir.y, lookDir.z);
 
     // The right vector is always orthoganal to the front and up vectors
     glm::vec3 right = glm::cross(front, constants::up);
