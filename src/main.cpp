@@ -146,7 +146,7 @@ int main()
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
     // 45 degree field of view
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)windowWidth / windowHeight, 0.1f, 100.0f);
+    glm::mat4 projectionMat = glm::perspective(glm::radians(45.0f), (float)windowWidth / windowHeight, 0.1f, 100.0f);
 
     while(!glfwWindowShouldClose(window))
     {
@@ -154,9 +154,7 @@ int main()
 
         processInput(window);
         camera.processInput(window);
-
-        // Compute projection-view matrix
-        glm::mat4 pvm = projection * camera.getViewMatrix();
+        glm::mat4 viewMat = camera.getViewMatrix();
 
         // Fill background color first
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -164,23 +162,29 @@ int main()
 
         // Create model matrix and transform to camera perspective
         glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), modelPos);
-        glm::mat4 transformMat = pvm * modelMat;
+        glm::mat4 modelViewMat = viewMat * modelMat;
+        glm::mat4 transformMat = projectionMat * modelViewMat;
+
+        // Transform light position to view space - we use view space in the
+        // shader for lighting calculations
+        glm::vec3 viewLightPos(viewMat * glm::vec4(lightPos, 1.0f));
 
         // Set obj shader uniforms and draw model
         // TODO: Pass normal matrix instead of model matrix to account for
         // non-uniform scaling
         objShader.use();
         objShader.setUniformMat4("transformMat", transformMat);
-        objShader.setUniformMat4("modelMat", modelMat);
+        objShader.setUniformMat4("modelViewMat", modelViewMat);
         objShader.setUniformVec3("lightColor", lightColor);
-        objShader.setUniformVec3("lightPos", lightPos);
+        objShader.setUniformVec3("lightPos", viewLightPos);
         cube.draw();
 
         // Create light matrix and reuse camera transformation
-        transformMat = glm::mat4(1.0f);
-        transformMat = glm::scale(transformMat, glm::vec3(0.2f));
-        transformMat = glm::translate(transformMat, lightPos);
-        transformMat = pvm * transformMat;
+        modelMat = glm::mat4(1.0f);
+        modelMat = glm::scale(modelMat, glm::vec3(0.2f));
+        modelMat = glm::translate(modelMat, lightPos);
+        modelViewMat = viewMat * modelMat;
+        transformMat = projectionMat * modelViewMat;
 
         // Set light shader uniforms and draw light
         lightShader.use();

@@ -9,14 +9,15 @@ out vec3 normal;
 out vec3 fragPos;
 
 uniform mat4 transformMat;
-uniform mat4 modelMat;
+uniform mat4 modelViewMat;
 
 void main()
 {
     gl_Position = transformMat * vec4(_coord, 1.0);
     texCoord = _texCoord;
-    normal = _normal;
 
-    // Compute fragment position in world-space by applying model transformation
-    fragPos = vec3(modelMat * vec4(_coord, 1.0));
+    // Compute fragment position and normal direction in view-space by applying
+    // model-view transformation
+    normal = vec3(modelViewMat * vec4(_normal, 0.0));
+    fragPos = vec3(modelViewMat * vec4(_coord, 1.0));
 }
