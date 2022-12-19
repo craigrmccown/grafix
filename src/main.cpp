@@ -141,7 +141,7 @@ int main()
     Camera camera(clock, glm::vec3(0.0f, 0.0f, 5.0f));
 
     glm::vec3 modelPos(0.0f);
-    glm::vec3 lightPos(12.0f, 7.0f, 5.0f);
+    glm::vec3 lightPos(3.0f, 0.0f, 0.0f);
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
@@ -160,35 +160,37 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Create model matrix and transform to camera perspective
-        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), modelPos);
-        glm::mat4 modelViewMat = viewMat * modelMat;
-        glm::mat4 transformMat = projectionMat * modelViewMat;
+        // Orbit light around origin
+        glm::mat4 lightMat(1.0f);
+        lightMat = glm::rotate(lightMat, (float)glfwGetTime(), glm::vec3(1.0f, 3.0f, 5.0f));
+        lightMat = glm::translate(lightMat, lightPos);
+        lightMat = glm::scale(lightMat, glm::vec3(0.2f));
+        glm::mat4 lightViewMat = viewMat * lightMat;
+        glm::mat4 lightTransformMat = projectionMat * lightViewMat;
+
+        // Set light shader uniforms and draw light
+        lightShader.use();
+        lightShader.setUniformMat4("transformMat", lightTransformMat);
+        cube.draw();
 
         // Transform light position to view space - we use view space in the
         // shader for lighting calculations
-        glm::vec3 viewLightPos(viewMat * glm::vec4(lightPos, 1.0f));
+        glm::vec3 viewLightPos(lightViewMat * glm::vec4(lightPos, 1.0f));
+
+        // Create model matrix and transform to camera perspective
+        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), modelPos);
+        modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 modelViewMat = viewMat * modelMat;
+        glm::mat4 modelTransformMat = projectionMat * modelViewMat;
 
         // Set obj shader uniforms and draw model
         // TODO: Pass normal matrix instead of model matrix to account for
         // non-uniform scaling
         objShader.use();
-        objShader.setUniformMat4("transformMat", transformMat);
+        objShader.setUniformMat4("transformMat", modelTransformMat);
         objShader.setUniformMat4("modelViewMat", modelViewMat);
         objShader.setUniformVec3("lightColor", lightColor);
         objShader.setUniformVec3("lightPos", viewLightPos);
-        cube.draw();
-
-        // Create light matrix and reuse camera transformation
-        modelMat = glm::mat4(1.0f);
-        modelMat = glm::scale(modelMat, glm::vec3(0.2f));
-        modelMat = glm::translate(modelMat, lightPos);
-        modelViewMat = viewMat * modelMat;
-        transformMat = projectionMat * modelViewMat;
-
-        // Set light shader uniforms and draw light
-        lightShader.use();
-        lightShader.setUniformMat4("transformMat", transformMat);
         cube.draw();
 
         glfwSwapBuffers(window);

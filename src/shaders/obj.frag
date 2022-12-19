@@ -22,7 +22,17 @@ void main()
     float cosTheta = dot(normalize(normal), lightDir);
     float diffuse = max(cosTheta, 0.0);
 
+    // Calculate specular by taking the dot product between the view direction
+    // and the direction of the light's reflection. Because we are working in
+    // view space already, the origin is always (0,0,0). The shininess controls
+    // the spread of the glare, and the brightness controls the intensity.
+    float shininess = 32;
+    float brightness = 0.6;
+    vec3 viewDir = normalize(-fragPos);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess) * brightness;
+
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
-    color = vec4(texColor * (ambient + diffuse) * lightColor, 1.0);
+    color = vec4(texColor * (ambient + diffuse + specular) * lightColor, 1.0);
 }
