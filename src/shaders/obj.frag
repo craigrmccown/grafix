@@ -26,11 +26,16 @@ void main()
     // and the direction of the light's reflection. Because we are working in
     // view space already, the origin is always (0,0,0). The shininess controls
     // the spread of the glare, and the brightness controls the intensity.
-    float shininess = 32;
-    float brightness = 0.6;
+    float shininess = 64;
+    float brightness = 0.8;
     vec3 viewDir = normalize(-fragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
-    float specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess) * brightness;
+
+    // Multiply by diffuse lighting so that we only get specular highlights on
+    // surfaces that aren't supposed to reflect light. This enforces that we
+    // won't show specular highlights unless there is already some diffuse
+    // light reflecting from a surface.
+    float specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess) * brightness * diffuse;
 
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
