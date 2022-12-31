@@ -22,20 +22,28 @@ void main()
     float cosTheta = dot(normalize(normal), lightDir);
     float diffuse = max(cosTheta, 0.0);
 
-    // Calculate specular by taking the dot product between the view direction
-    // and the direction of the light's reflection. Because we are working in
-    // view space already, the origin is always (0,0,0). The shininess controls
-    // the spread of the glare, and the brightness controls the intensity.
+    // Calculate specular by using the angle between the camera and the
+    // direction of the light's reflection. Because we are working in view space
+    // already, the origin is always (0,0,0). The shininess controls the spread
+    // of the glare, and the brightness controls the intensity of the reflected
+    // light.
+    //
+    // To efficently compute the angle between the camera and the light's
+    // reflection, we can create a bisector by averaging the direction from the
+    // fragment to the light with the direction from the fragment to the camera.
+    // Then, this vector can be compared to the surface normal using a dot
+    // product. The closer the direction of the bisector to the direction of the
+    // surface normal, the closer the camera is to the light's reflection.
     float shininess = 64;
-    float brightness = 0.8;
+    float brightness = 1.2;
     vec3 viewDir = normalize(-fragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
+    vec3 bisector = normalize((lightDir + viewDir) / 2);
 
     // Multiply by diffuse lighting so that we only get specular highlights on
     // surfaces that aren't supposed to reflect light. This enforces that we
     // won't show specular highlights unless there is already some diffuse
     // light reflecting from a surface.
-    float specular = pow(max(dot(viewDir, reflectDir), 0.0), shininess) * brightness * diffuse;
+    float specular = pow(max(dot(bisector, normal), 0.0), shininess) * brightness * diffuse;
 
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
