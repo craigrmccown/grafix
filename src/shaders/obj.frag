@@ -40,9 +40,7 @@ void main()
     vec3 bisector = normalize((lightDir + viewDir) / 2);
 
     // Multiply by diffuse lighting so that we only get specular highlights on
-    // surfaces that aren't supposed to reflect light. This enforces that we
-    // won't show specular highlights unless there is already some diffuse
-    // light reflecting from a surface.
+    // surfaces that are supposed to reflect light.
     float specular = pow(max(dot(bisector, normal), 0.0), shininess) * brightness * diffuse;
 
     // Sample texture and apply lighting to get final color values
