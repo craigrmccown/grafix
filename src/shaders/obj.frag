@@ -6,21 +6,34 @@ in vec3 fragPos;
 
 out vec4 color;
 
+struct Light {
+    vec3 color;
+    vec3 position;
+
+    float ambient;
+    float diffuse;
+    float specular;
+};
+
+struct Material {
+    float shininess;
+};
+
 uniform sampler2D tex;
-uniform vec3 lightColor;
-uniform vec3 lightPos;
+uniform Light light;
+uniform Material material;
 
 void main()
 {
     // Use simple constant for ambient lighting
-    float ambient = 0.2;
+    float ambient = light.ambient;
 
     // Calculate diffuse by taking the dot product between unit vectors to
     // obtain cos(theta) where theta is the angle between the normal vector and
     // the light direction. The more direct the light, the brighter the color.
-    vec3 lightDir = normalize(lightPos - fragPos);
-    float cosTheta = dot(normalize(normal), lightDir);
-    float diffuse = max(cosTheta, 0.0);
+    vec3 lightDir = normalize(light.position - fragPos);
+    float reflectionAngle = max(dot(normalize(normal), lightDir), 0.0);
+    float diffuse = light.diffuse * reflectionAngle;
 
     // Calculate specular by using the angle between the camera and the
     // direction of the light's reflection. Because we are working in view space
@@ -34,16 +47,14 @@ void main()
     // Then, this vector can be compared to the surface normal using a dot
     // product. The closer the direction of the bisector to the direction of the
     // surface normal, the closer the camera is to the light's reflection.
-    float shininess = 64;
-    float brightness = 1.2;
     vec3 viewDir = normalize(-fragPos);
     vec3 bisector = normalize((lightDir + viewDir) / 2);
 
-    // Multiply by diffuse lighting so that we only get specular highlights on
+    // Multiply by reflection angle so that we only get specular highlights on
     // surfaces that are supposed to reflect light.
-    float specular = pow(max(dot(bisector, normal), 0.0), shininess) * brightness * diffuse;
+    float specular = pow(max(dot(bisector, normal), 0.0), material.shininess) * light.specular * reflectionAngle;
 
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
-    color = vec4(texColor * (ambient + diffuse + specular) * lightColor, 1.0);
+    color = vec4(texColor * (ambient + diffuse + specular) * light.color, 1.0);
 }

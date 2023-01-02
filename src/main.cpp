@@ -239,8 +239,12 @@ int main()
             objShader.use();
             objShader.setUniformMat4("transformMat", modelTransformMat);
             objShader.setUniformMat4("modelViewMat", modelViewMat);
-            objShader.setUniformVec3("lightColor", lightColor);
-            objShader.setUniformVec3("lightPos", viewLightPos);
+            objShader.setUniformVec3("light.color", lightColor);
+            objShader.setUniformVec3("light.position", viewLightPos);
+            objShader.setUniformFloat("light.ambient", 0.25f);
+            objShader.setUniformFloat("light.diffuse", 0.8f);
+            objShader.setUniformFloat("light.specular", 0.8f);
+            objShader.setUniformFloat("material.shininess", 64.0f);
             cube.draw();
         }
 
