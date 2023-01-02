@@ -243,7 +243,10 @@ int main()
             objShader.setUniformVec3("light.position", viewLightPos);
             objShader.setUniformFloat("light.ambient", 0.25f);
             objShader.setUniformFloat("light.diffuse", 0.8f);
-            objShader.setUniformFloat("light.specular", 0.8f);
+            objShader.setUniformFloat("light.specular", 1.5f);
+            objShader.setUniformFloat("light.constant", 1.0f);
+            objShader.setUniformFloat("light.linear", 0.22f);
+            objShader.setUniformFloat("light.specular", 0.2f);
             objShader.setUniformFloat("material.shininess", 64.0f);
             cube.draw();
         }

@@ -13,6 +13,10 @@ struct Light {
     float ambient;
     float diffuse;
     float specular;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
 struct Material {
@@ -25,13 +29,19 @@ uniform Material material;
 
 void main()
 {
+    // Attenuation reduces the intensity of lighting effects as an object gets
+    // farther from the light source
+    vec3 lightVec = light.position - fragPos;
+    vec3 lightDir = normalize(lightVec);
+    float lightDistance = length(lightVec);
+    float attenuation = 1.0 / (light.constant + light.linear * lightDistance + light.quadratic * lightDistance * lightDistance);
+
     // Use simple constant for ambient lighting
     float ambient = light.ambient;
 
     // Calculate diffuse by taking the dot product between unit vectors to
     // obtain cos(theta) where theta is the angle between the normal vector and
     // the light direction. The more direct the light, the brighter the color.
-    vec3 lightDir = normalize(light.position - fragPos);
     float reflectionAngle = max(dot(normalize(normal), lightDir), 0.0);
     float diffuse = light.diffuse * reflectionAngle;
 
@@ -56,5 +66,5 @@ void main()
 
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
-    color = vec4(texColor * (ambient + diffuse + specular) * light.color, 1.0);
+    color = vec4(attenuation * (ambient + diffuse + specular) * light.color * texColor, 1.0);
 }
