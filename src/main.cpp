@@ -57,6 +57,55 @@ float vertices[] = {
     -0.5f,  0.5f, -0.5f,    0.0f, 1.0f,     0.0f,  1.0f,  0.0f,
 };
 
+struct Position {
+    glm::vec3 worldCoords;
+    glm::vec3 rotationAxis;
+    float rotationDeg;
+};
+
+Position positions[] = {
+    {
+        .worldCoords = glm::vec3(0.0f, 0.0f, 0.0f),
+        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
+        .rotationDeg = 45.0f,
+    },
+    {
+        .worldCoords = glm::vec3(8.0f, 3.0f, 8.0f),
+        .rotationAxis = glm::vec3(0.15f, -0.6f, 0.5f),
+        .rotationDeg = 60.0f,
+    },
+    {
+        .worldCoords = glm::vec3(1.0f, 8.0f, 7.0f),
+        .rotationAxis = glm::vec3(0.75f, 0.9f, 0.75f),
+        .rotationDeg = 15.0f,
+    },
+    {
+        .worldCoords = glm::vec3(6.0f, -6.0f, -1.0f),
+        .rotationAxis = glm::vec3(-0.85f, 0.5f, -0.3f),
+        .rotationDeg = 0.0f,
+    },
+    {
+        .worldCoords = glm::vec3(-3.0f, -8.0f, -6.0f),
+        .rotationAxis = glm::vec3(0.65f, 0.15f, -1.0f),
+        .rotationDeg = 30.0f,
+    },
+    {
+        .worldCoords = glm::vec3(-7.0f, -1.0f, -3.0f),
+        .rotationAxis = glm::vec3(0.2f, -0.25f, 0.1f),
+        .rotationDeg = 85.0f,
+    },
+    {
+        .worldCoords = glm::vec3(-5.0f, 5.0f, 4.0f),
+        .rotationAxis = glm::vec3(0.7f, -0.45f, 0.25f),
+        .rotationDeg = 75.0f,
+    },
+    {
+        .worldCoords = glm::vec3(4.0f, -2.0f, 6.0f),
+        .rotationAxis = glm::vec3(0.1f, 0.2f, -0.9f),
+        .rotationDeg = 25.0f,
+    },
+};
+
 int kill(const char *message)
 {
     std::cerr << message << std::endl;
@@ -138,9 +187,8 @@ int main()
     cube.load();
 
     Clock clock;
-    Camera camera(clock, glm::vec3(0.0f, 0.0f, 5.0f));
+    Camera camera(clock, glm::vec3(0.0f, 0.0f, 10.0f));
 
-    glm::vec3 modelPos(0.0f);
     glm::vec3 lightPos(3.0f, 0.0f, 0.0f);
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
@@ -177,21 +225,24 @@ int main()
         // shader for lighting calculations
         glm::vec3 viewLightPos(lightViewMat * glm::vec4(lightPos, 1.0f));
 
-        // Create model matrix and transform to camera perspective
-        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), modelPos);
-        modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        glm::mat4 modelViewMat = viewMat * modelMat;
-        glm::mat4 modelTransformMat = projectionMat * modelViewMat;
+        for (int i = 0; i < sizeof(positions) / sizeof(Position); i ++)
+        {
+            // Create model matrix and transform to camera perspective
+            glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), positions[i].worldCoords);
+            modelMat = glm::rotate(modelMat, glm::radians(positions[i].rotationDeg), positions[i].rotationAxis);
+            glm::mat4 modelViewMat = viewMat * modelMat;
+            glm::mat4 modelTransformMat = projectionMat * modelViewMat;
 
-        // Set obj shader uniforms and draw model
-        // TODO: Pass normal matrix instead of model matrix to account for
-        // non-uniform scaling
-        objShader.use();
-        objShader.setUniformMat4("transformMat", modelTransformMat);
-        objShader.setUniformMat4("modelViewMat", modelViewMat);
-        objShader.setUniformVec3("lightColor", lightColor);
-        objShader.setUniformVec3("lightPos", viewLightPos);
-        cube.draw();
+            // Set obj shader uniforms and draw model
+            // TODO: Pass normal matrix instead of model matrix to account for
+            // non-uniform scaling
+            objShader.use();
+            objShader.setUniformMat4("transformMat", modelTransformMat);
+            objShader.setUniformMat4("modelViewMat", modelViewMat);
+            objShader.setUniformVec3("lightColor", lightColor);
+            objShader.setUniformVec3("lightPos", viewLightPos);
+            cube.draw();
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
