@@ -6,13 +6,24 @@ in vec3 fragPos;
 
 out vec4 color;
 
+struct Reflection {
+    float ambient;
+    float diffuse;
+    float specular;
+};
+
+struct GlobalLight {
+    vec3 color;
+    vec3 direction;
+
+    Reflection reflection;
+};
+
 struct PointLight {
     vec3 color;
     vec3 position;
 
-    float ambient;
-    float diffuse;
-    float specular;
+    Reflection reflection;
 
     float constant;
     float linear;
@@ -26,26 +37,20 @@ struct Material {
 #define NUM_POINT_LIGHTS 4
 
 uniform sampler2D tex;
+uniform GlobalLight globalLight;
 uniform PointLight pointLights[NUM_POINT_LIGHTS];
 uniform Material material;
 
-vec3 computePointLighting(PointLight light, vec3 fragPos, vec3 normal)
+float computeLighting(Reflection reflection, vec3 lightDir, vec3 fragPos, vec3 normal)
 {
-    // Attenuation reduces the intensity of lighting effects as an object gets
-    // farther from the light source
-    vec3 lightVec = light.position - fragPos;
-    vec3 lightDir = normalize(lightVec);
-    float lightDistance = length(lightVec);
-    float attenuation = 1.0 / (light.constant + light.linear * lightDistance + light.quadratic * lightDistance * lightDistance);
-
     // Use simple constant for ambient lighting
-    float ambient = light.ambient;
+    float ambient = reflection.ambient;
 
     // Calculate diffuse by taking the dot product between unit vectors to
     // obtain cos(theta) where theta is the angle between the normal vector and
     // the light direction. The more direct the light, the brighter the color.
     float reflectionAngle = max(dot(normalize(normal), lightDir), 0.0);
-    float diffuse = light.diffuse * reflectionAngle;
+    float diffuse = reflection.diffuse * reflectionAngle;
 
     // Calculate specular by using the angle between the camera and the
     // direction of the light's reflection. Because we are working in view space
@@ -64,15 +69,32 @@ vec3 computePointLighting(PointLight light, vec3 fragPos, vec3 normal)
 
     // Multiply by reflection angle so that we only get specular highlights on
     // surfaces that are supposed to reflect light.
-    float specular = pow(max(dot(bisector, normal), 0.0), material.shininess) * light.specular * reflectionAngle;
+    float specular = pow(max(dot(bisector, normal), 0.0), material.shininess) * reflection.specular * reflectionAngle;
 
-    // Compute final lighting values based on light properties
-    return attenuation * (ambient + diffuse + specular) * light.color;
+    return ambient + diffuse + specular;
+}
+
+vec3 computeGlobalLighting(GlobalLight light, vec3 fragPos, vec3 normal)
+{
+    vec3 lightDir = normalize(-light.direction);
+    return computeLighting(light.reflection, lightDir, fragPos, normal) * light.color;
+}
+
+vec3 computePointLighting(PointLight light, vec3 fragPos, vec3 normal)
+{
+    // Attenuation reduces the intensity of lighting effects as an object gets
+    // farther from the light source
+    vec3 lightVec = light.position - fragPos;
+    vec3 lightDir = normalize(lightVec);
+    float lightDistance = length(lightVec);
+    float attenuation = 1.0 / (light.constant + light.linear * lightDistance + light.quadratic * lightDistance * lightDistance);
+
+    return attenuation * computeLighting(light.reflection, lightDir, fragPos, normal) * light.color;
 }
 
 void main()
 {
-    vec3 lighting = vec3(0.0, 0.0, 0.0);
+    vec3 lighting = computeGlobalLighting(globalLight, fragPos, normal);
 
     for (int i = 0; i < NUM_POINT_LIGHTS; i++)
     {

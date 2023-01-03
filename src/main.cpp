@@ -211,7 +211,9 @@ int main()
 
     Clock clock;
     Camera camera(clock, glm::vec3(0.0f, 0.0f, 10.0f));
-    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 globalLightColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 pointLightColor(0.5f, 0.0, 1.0f);
+
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
     // 45 degree field of view
@@ -249,21 +251,27 @@ int main()
 
             // Set light shader uniforms and draw light
             lightShader.setUniformMat4("transformMat", lightTransformMat);
+            lightShader.setUniformVec3("lightColor", pointLightColor);
             cube.draw();
         }
 
         // Now draw the rest of the objects
         objShader.use();
         objShader.setUniformFloat("material.shininess", 64.0f);
+        objShader.setUniformVec3("globalLight.color", globalLightColor);
+        objShader.setUniformVec3("globalLight.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+        objShader.setUniformFloat("globalLight.reflection.ambient", 0.1f);
+        objShader.setUniformFloat("globalLight.reflection.diffuse", 0.5f);
+        objShader.setUniformFloat("globalLight.reflection.specular", 0.5f);
 
         // Set light uniforms before processing each object individually
         for (int i = 0; i < numLights; i ++)
         {
-            objShader.setUniformVec3Element("pointLights", "color", i, lightColor);
+            objShader.setUniformVec3Element("pointLights", "color", i, pointLightColor);
             objShader.setUniformVec3Element("pointLights", "position", i, lightViewCoords[i]);
-            objShader.setUniformFloatElement("pointLights", "ambient", i, 0.25f);
-            objShader.setUniformFloatElement("pointLights", "diffuse", i, 0.8f);
-            objShader.setUniformFloatElement("pointLights", "specular", i, 1.2f);
+            objShader.setUniformFloatElement("pointLights", "reflection.ambient", i, 0.05f);
+            objShader.setUniformFloatElement("pointLights", "reflection.diffuse", i, 0.8f);
+            objShader.setUniformFloatElement("pointLights", "reflection.specular", i, 1.2f);
             objShader.setUniformFloatElement("pointLights", "constant", i, 1.0f);
             objShader.setUniformFloatElement("pointLights", "linear", i, 0.09f);
             objShader.setUniformFloatElement("pointLights", "quadratic", i, 0.032f);
