@@ -68,6 +68,8 @@ class Shader
     void setUniformMat4(std::string name, glm::mat4 mat);
     void setUniformVec3(std::string name, glm::vec3 vec);
     void setUniformFloat(std::string name, float f);
+    void setUniformVec3Element(std::string name, std::string property, int idx, glm::vec3 vec);
+    void setUniformFloatElement(std::string name, std::string property, int idx, float f);
 
     private:
     std::unique_ptr<GlProgramLinker> program;

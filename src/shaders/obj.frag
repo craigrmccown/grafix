@@ -6,7 +6,7 @@ in vec3 fragPos;
 
 out vec4 color;
 
-struct Light {
+struct PointLight {
     vec3 color;
     vec3 position;
 
@@ -23,11 +23,13 @@ struct Material {
     float shininess;
 };
 
+#define NUM_POINT_LIGHTS 4
+
 uniform sampler2D tex;
-uniform Light light;
+uniform PointLight pointLights[NUM_POINT_LIGHTS];
 uniform Material material;
 
-void main()
+vec3 computePointLighting(PointLight light, vec3 fragPos, vec3 normal)
 {
     // Attenuation reduces the intensity of lighting effects as an object gets
     // farther from the light source
@@ -64,7 +66,20 @@ void main()
     // surfaces that are supposed to reflect light.
     float specular = pow(max(dot(bisector, normal), 0.0), material.shininess) * light.specular * reflectionAngle;
 
+    // Compute final lighting values based on light properties
+    return attenuation * (ambient + diffuse + specular) * light.color;
+}
+
+void main()
+{
+    vec3 lighting = vec3(0.0, 0.0, 0.0);
+
+    for (int i = 0; i < NUM_POINT_LIGHTS; i++)
+    {
+        lighting += computePointLighting(pointLights[i], fragPos, normal);
+    }
+
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
-    color = vec4(attenuation * (ambient + diffuse + specular) * light.color * texColor, 1.0);
+    color = vec4(lighting * texColor, 1.0);
 }

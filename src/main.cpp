@@ -63,7 +63,7 @@ struct Position {
     float rotationDeg;
 };
 
-Position positions[] = {
+Position objPositions[] = {
     {
         .worldCoords = glm::vec3(0.0f, 0.0f, 0.0f),
         .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
@@ -103,6 +103,29 @@ Position positions[] = {
         .worldCoords = glm::vec3(4.0f, -2.0f, 6.0f),
         .rotationAxis = glm::vec3(0.1f, 0.2f, -0.9f),
         .rotationDeg = 25.0f,
+    },
+};
+
+Position lightPositions[] = {
+    {
+        .worldCoords = glm::vec3(6.0f, 4.0f, -1.0f),
+        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
+        .rotationDeg = 0.0f,
+    },
+    {
+        .worldCoords = glm::vec3(7.0f, 1.0f, -8.0f),
+        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
+        .rotationDeg = 0.0f,
+    },
+    {
+        .worldCoords = glm::vec3(-2.0f, 3.0f, 2.0f),
+        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
+        .rotationDeg = 0.0f,
+    },
+    {
+        .worldCoords = glm::vec3(-4.0f, -6.0f, 5.0f),
+        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
+        .rotationDeg = 0.0f,
     },
 };
 
@@ -188,8 +211,6 @@ int main()
 
     Clock clock;
     Camera camera(clock, glm::vec3(0.0f, 0.0f, 10.0f));
-
-    glm::vec3 lightPos(3.0f, 0.0f, 0.0f);
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
@@ -208,46 +229,59 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Orbit light around origin
-        glm::mat4 lightMat(1.0f);
-        lightMat = glm::rotate(lightMat, (float)glfwGetTime(), glm::vec3(1.0f, 3.0f, 5.0f));
-        lightMat = glm::translate(lightMat, lightPos);
-        lightMat = glm::scale(lightMat, glm::vec3(0.2f));
-        glm::mat4 lightViewMat = viewMat * lightMat;
-        glm::mat4 lightTransformMat = projectionMat * lightViewMat;
-
-        // Set light shader uniforms and draw light
+        // Draw lights first. Cache the view coordinates to avoid computing
+        // twice.
+        int numLights = sizeof(lightPositions) / sizeof(Position);
+        glm::vec3 lightViewCoords[numLights];
         lightShader.use();
-        lightShader.setUniformMat4("transformMat", lightTransformMat);
-        cube.draw();
 
-        // Transform light position to view space - we use view space in the
-        // shader for lighting calculations
-        glm::vec3 viewLightPos(lightViewMat * glm::vec4(lightPos, 1.0f));
+        for (int i = 0; i < numLights; i ++)
+        {
+            glm::mat4 lightMat(1.0f);
+            lightMat = glm::translate(lightMat, lightPositions[i].worldCoords);
+            lightMat = glm::scale(lightMat, glm::vec3(0.2f));
+            glm::mat4 lightViewMat = viewMat * lightMat;
+            glm::mat4 lightTransformMat = projectionMat * lightViewMat;
 
-        for (int i = 0; i < sizeof(positions) / sizeof(Position); i ++)
+            // Transform the light's position to view space for later use - we
+            // use view space in the shader for lighting calculations
+            lightViewCoords[i] = lightViewMat * glm::vec4(lightPositions[i].worldCoords, 1.0f);
+
+            // Set light shader uniforms and draw light
+            lightShader.setUniformMat4("transformMat", lightTransformMat);
+            cube.draw();
+        }
+
+        // Now draw the rest of the objects
+        objShader.use();
+        objShader.setUniformFloat("material.shininess", 64.0f);
+
+        // Set light uniforms before processing each object individually
+        for (int i = 0; i < numLights; i ++)
+        {
+            objShader.setUniformVec3Element("pointLights", "color", i, lightColor);
+            objShader.setUniformVec3Element("pointLights", "position", i, lightViewCoords[i]);
+            objShader.setUniformFloatElement("pointLights", "ambient", i, 0.25f);
+            objShader.setUniformFloatElement("pointLights", "diffuse", i, 0.8f);
+            objShader.setUniformFloatElement("pointLights", "specular", i, 1.2f);
+            objShader.setUniformFloatElement("pointLights", "constant", i, 1.0f);
+            objShader.setUniformFloatElement("pointLights", "linear", i, 0.09f);
+            objShader.setUniformFloatElement("pointLights", "quadratic", i, 0.032f);
+        }
+
+        for (int i = 0; i < sizeof(objPositions) / sizeof(Position); i ++)
         {
             // Create model matrix and transform to camera perspective
-            glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), positions[i].worldCoords);
-            modelMat = glm::rotate(modelMat, glm::radians(positions[i].rotationDeg), positions[i].rotationAxis);
+            glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), objPositions[i].worldCoords);
+            modelMat = glm::rotate(modelMat, glm::radians(objPositions[i].rotationDeg), objPositions[i].rotationAxis);
             glm::mat4 modelViewMat = viewMat * modelMat;
             glm::mat4 modelTransformMat = projectionMat * modelViewMat;
 
             // Set obj shader uniforms and draw model
             // TODO: Pass normal matrix instead of model matrix to account for
             // non-uniform scaling
-            objShader.use();
             objShader.setUniformMat4("transformMat", modelTransformMat);
             objShader.setUniformMat4("modelViewMat", modelViewMat);
-            objShader.setUniformVec3("light.color", lightColor);
-            objShader.setUniformVec3("light.position", viewLightPos);
-            objShader.setUniformFloat("light.ambient", 0.25f);
-            objShader.setUniformFloat("light.diffuse", 0.8f);
-            objShader.setUniformFloat("light.specular", 1.5f);
-            objShader.setUniformFloat("light.constant", 1.0f);
-            objShader.setUniformFloat("light.linear", 0.22f);
-            objShader.setUniformFloat("light.specular", 0.2f);
-            objShader.setUniformFloat("material.shininess", 64.0f);
             cube.draw();
         }
 

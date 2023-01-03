@@ -12,6 +12,12 @@
 
 const int info_log_buf_size = 512;
 
+std::string buildIndexedUniformName(std::string name, std::string property, int idx)
+{
+    // Example: myname[0].myproperty
+    return name + "[" + std::to_string(idx) + "]." + property;
+}
+
 GlShaderCompiler::GlShaderCompiler(GLenum type)
 {
     id = glCreateShader(type);
@@ -137,9 +143,17 @@ void Shader::setUniformVec3(std::string name, glm::vec3 vec) {
     glUniform3f(uniformId, vec.x, vec.y, vec.z);
 }
 
+void Shader::setUniformVec3Element(std::string name, std::string property, int idx, glm::vec3 vec) {
+    setUniformVec3(buildIndexedUniformName(name, property, idx), vec);
+}
+
 void Shader::setUniformFloat(std::string name, float f) {
     unsigned int uniformId = glGetUniformLocation(program->getId(), name.c_str());
     glUniform1f(uniformId, f);
+}
+
+void Shader::setUniformFloatElement(std::string name, std::string property, int idx, float f) {
+    setUniformFloat(buildIndexedUniformName(name, property, idx), f);
 }
 
 GLenum mapPathToShaderType(std::string path)
