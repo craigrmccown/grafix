@@ -5,10 +5,12 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "camera.hpp"
+#include "circular_write_buffer.hpp"
 #include "clock.hpp"
 #include "image.hpp"
 #include "model.hpp"
 #include "mouse.hpp"
+#include "point_light.hpp"
 #include "shader.hpp"
 
 // TODO: Load vertex data from model file
@@ -106,27 +108,11 @@ Position objPositions[] = {
     },
 };
 
-Position lightPositions[] = {
-    {
-        .worldCoords = glm::vec3(6.0f, 4.0f, -1.0f),
-        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
-        .rotationDeg = 0.0f,
-    },
-    {
-        .worldCoords = glm::vec3(7.0f, 1.0f, -8.0f),
-        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
-        .rotationDeg = 0.0f,
-    },
-    {
-        .worldCoords = glm::vec3(-2.0f, 3.0f, 2.0f),
-        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
-        .rotationDeg = 0.0f,
-    },
-    {
-        .worldCoords = glm::vec3(-4.0f, -6.0f, 5.0f),
-        .rotationAxis = glm::vec3(0.0f, 1.0f, 0.0f),
-        .rotationDeg = 0.0f,
-    },
+glm::vec3 lightCoords[] = {
+    glm::vec3(6.0f, 4.0f, -1.0f),
+    glm::vec3(7.0f, 1.0f, -8.0f),
+    glm::vec3(-2.0f, 3.0f, 2.0f),
+    glm::vec3(-4.0f, -6.0f, 5.0f),
 };
 
 int kill(const char *message)
@@ -174,6 +160,7 @@ void processInput(GLFWwindow *window)
 
 int main()
 {
+    srand(time(nullptr)); // Initialize RNG
     initializeGLFW();
 
     GLFWwindow *window = openWindowedFullscreenWindow("Grafix Demo");
@@ -212,8 +199,18 @@ int main()
     Clock clock;
     Camera camera(clock, glm::vec3(0.0f, 0.0f, 10.0f));
     glm::vec3 globalLightColor(1.0f, 1.0f, 1.0f);
-    glm::vec3 pointLightColor(0.5f, 0.0, 1.0f);
 
+    // Instantiate light buffer - when one is added, the oldest one will
+    // disappear.
+    int numLights = sizeof(lightCoords) / sizeof(glm::vec3);
+    CircularWriteBuffer<PointLight> pointLights(numLights);
+    for (int i = 0; i < numLights; i ++)
+    {
+        pointLights.write(PointLight()
+            .setPosition(lightCoords[i])
+            .randColor()
+        );
+    }
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
     // 45 degree field of view
@@ -233,25 +230,28 @@ int main()
 
         // Draw lights first. Cache the view coordinates to avoid computing
         // twice.
-        int numLights = sizeof(lightPositions) / sizeof(Position);
-        glm::vec3 lightViewCoords[numLights];
+        glm::vec3 lightViewCoords[pointLights.getSize()];
         lightShader.use();
 
-        for (int i = 0; i < numLights; i ++)
+        for (int i = 0; i < pointLights.getSize(); i ++)
         {
+            PointLight light = pointLights[i];
+            if (light.isHidden()) continue;
+
+            glm::vec3 lightPos = pointLights[i].getPosition();
             glm::mat4 lightMat(1.0f);
-            lightMat = glm::translate(lightMat, lightPositions[i].worldCoords);
+            lightMat = glm::translate(lightMat, lightPos);
             lightMat = glm::scale(lightMat, glm::vec3(0.2f));
             glm::mat4 lightViewMat = viewMat * lightMat;
             glm::mat4 lightTransformMat = projectionMat * lightViewMat;
 
             // Transform the light's position to view space for later use - we
             // use view space in the shader for lighting calculations
-            lightViewCoords[i] = lightViewMat * glm::vec4(lightPositions[i].worldCoords, 1.0f);
+            lightViewCoords[i] = lightViewMat * glm::vec4(lightPos, 1.0f);
 
             // Set light shader uniforms and draw light
             lightShader.setUniformMat4("transformMat", lightTransformMat);
-            lightShader.setUniformVec3("lightColor", pointLightColor);
+            lightShader.setUniformVec3("lightColor", pointLights[i].getColor());
             cube.draw();
         }
 
@@ -259,15 +259,15 @@ int main()
         objShader.use();
         objShader.setUniformFloat("material.shininess", 64.0f);
         objShader.setUniformVec3("globalLight.color", globalLightColor);
-        objShader.setUniformVec3("globalLight.direction", glm::vec3(0.0f, -1.0f, 0.0f));
+        objShader.setUniformVec3("globalLight.direction", glm::vec3(0.5f, -1.0f, 0.5f));
         objShader.setUniformFloat("globalLight.reflection.ambient", 0.1f);
         objShader.setUniformFloat("globalLight.reflection.diffuse", 0.5f);
         objShader.setUniformFloat("globalLight.reflection.specular", 0.5f);
 
         // Set light uniforms before processing each object individually
-        for (int i = 0; i < numLights; i ++)
+        for (int i = 0; i < pointLights.getSize(); i ++)
         {
-            objShader.setUniformVec3Element("pointLights", "color", i, pointLightColor);
+            objShader.setUniformVec3Element("pointLights", "color", i, pointLights[i].getColor());
             objShader.setUniformVec3Element("pointLights", "position", i, lightViewCoords[i]);
             objShader.setUniformFloatElement("pointLights", "reflection.ambient", i, 0.05f);
             objShader.setUniformFloatElement("pointLights", "reflection.diffuse", i, 0.8f);
