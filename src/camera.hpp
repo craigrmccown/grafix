@@ -3,21 +3,19 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include "clock.hpp"
+#include "controls.hpp"
 
 class Camera
 {
     public:
-    Camera(Clock &clock, glm::vec3 initPos);
+    Camera(Controls &ctrl, glm::vec3 initPos);
 
-    // TODO: Create abstraction around input processing to allow for
-    // generic subscription to input on each frame and decoupling from
-    // low level window inputs
-    void processInput(GLFWwindow *window);
+    void computeViewMatrix();
 
     glm::mat4 getViewMatrix();
 
     private:
-    Clock &clock;
+    Controls &ctrl;
 
     // Translated position from origin
     glm::vec3 pos;
@@ -29,7 +27,6 @@ class Camera
     // View transformation matrix that is recomputed when input is processed
     glm::mat4 view;
 
-    void move(glm::vec3 dir);
     void incYaw(float delta);
     void incPitch(float delta);
 };

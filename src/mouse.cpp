@@ -1,33 +1,37 @@
+#include <cmath>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include "mouse.hpp"
 
-static glm::vec2 *mousePos;
+namespace mouse {
+    static glm::vec2 mousePos(NAN);
 
-void mouseListener(GLFWwindow* window, double x, double y)
-{
-    if (!mousePos)
+    const bool hasMoved()
     {
-        mousePos = new glm::vec2;
+        return !std::isnan(mousePos.x + mousePos.y);
     }
-    mousePos->x = x;
-    mousePos->y = y;
-}
 
-void listenForMouseMovement(GLFWwindow *window)
-{
-    // Avoid registering multiple callbacks, even if invoked multiple
-    // times
-    static bool isListening = false;
-    if (isListening) return;
+    void mouseListener(GLFWwindow* window, double x, double y)
+    {
+        mousePos.x = x;
+        mousePos.y = y;
+    }
 
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
-    glfwSetCursorPosCallback(window, mouseListener);
+    void listenForMovement(GLFWwindow *window)
+    {
+        // Avoid registering multiple callbacks, even if invoked multiple
+        // times
+        static bool isListening = false;
+        if (isListening) return;
 
-    isListening = true;
-}
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetCursorPosCallback(window, mouseListener);
 
-const glm::vec2 *getMousePosition()
-{
-    return mousePos;
+        isListening = true;
+    }
+
+    const glm::vec2 getPosition()
+    {
+        return mousePos;
+    }
 }

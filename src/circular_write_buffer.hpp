@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Elements are written to a contiguous block of memory circularly, where the
  * oldest element is always replaced. However, elements are read from a fixed

@@ -7,6 +7,7 @@
 #include "camera.hpp"
 #include "circular_write_buffer.hpp"
 #include "clock.hpp"
+#include "controls.hpp"
 #include "image.hpp"
 #include "model.hpp"
 #include "mouse.hpp"
@@ -150,14 +151,6 @@ GLFWwindow *openWindowedFullscreenWindow(const char *title)
     return glfwCreateWindow(mode->width, mode->height, title, monitor, NULL);
 }
 
-void processInput(GLFWwindow *window)
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-}
-
 int main()
 {
     srand(time(nullptr)); // Initialize RNG
@@ -178,7 +171,7 @@ int main()
         return kill("Failed to initialize GLAD");
     }
     glEnable(GL_DEPTH_TEST);
-    listenForMouseMovement(window);
+    mouse::listenForMovement(window);
 
     Shader objShader, lightShader;
     objShader.build(std::vector<ShaderSrc> {
@@ -197,7 +190,8 @@ int main()
     cube.load();
 
     Clock clock;
-    Camera camera(clock, glm::vec3(0.0f, 0.0f, 10.0f));
+    KeyboardMouseControls ctrl(*window, 0.2f);
+    Camera camera(ctrl, glm::vec3(0.0f, 0.0f, 10.0f));
     glm::vec3 globalLightColor(1.0f, 1.0f, 1.0f);
 
     // Instantiate light buffer - when one is added, the oldest one will
@@ -219,9 +213,14 @@ int main()
     while(!glfwWindowShouldClose(window))
     {
         clock.tick();
+        ctrl.processInput(clock.getElapsedSeconds());
 
-        processInput(window);
-        camera.processInput(window);
+        if (ctrl.queryBinaryAction(Controls::BinaryAction::exit, Controls::BinaryActionState::on))
+        {
+            glfwSetWindowShouldClose(window, true);
+        }
+
+        camera.computeViewMatrix();
         glm::mat4 viewMat = camera.getViewMatrix();
 
         // Fill background color first

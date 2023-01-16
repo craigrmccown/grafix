@@ -1,3 +1,5 @@
+#pragma once
+
 #include <glm/glm.hpp>
 
 // TODO: Abstract game object class hierarchy to share common traits, e.g.

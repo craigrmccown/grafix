@@ -1,17 +1,17 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "clock.hpp"
 #include "camera.hpp"
+#include "controls.hpp"
 
 namespace constants
 {
     const glm::vec3 up(0.0f, 1.0f, 0.0f);
-    const float speed = 3.0f, hSensitivity = 0.2f, vSensitivity = 0.08f, maxPitchDeg = 89.0f;
+    const float speed = 6.0f, maxPitchDeg = 89.0f;
 }
 
-Camera::Camera(Clock &clock, glm::vec3 initPos)
-    : clock(clock)
+Camera::Camera(Controls &ctrl, glm::vec3 initPos)
+    : ctrl(ctrl)
     , pos(initPos)
     , yaw(0.0f)
     , pitch(0.0f)
@@ -19,13 +19,14 @@ Camera::Camera(Clock &clock, glm::vec3 initPos)
     {}
 
 // TODO: Avoid unnecessary work if no input is received
-void Camera::processInput(GLFWwindow *window)
+void Camera::computeViewMatrix()
 {
-    glm::vec2 mouseDelta = clock.getMouseDelta();
+    glm::vec2 primaryMove = ctrl.queryDirectionalAction(Controls::DirectionalAction::primaryMove);
+    glm::vec2 secondaryMove = ctrl.queryDirectionalAction(Controls::DirectionalAction::secondaryMove);
 
     // Mouse coordinates use inverted y-axis, so multiply by -1
-    incPitch(-mouseDelta.y * constants::vSensitivity);
-    incYaw(mouseDelta.x * constants::hSensitivity);
+    incPitch(secondaryMove.y);
+    incYaw(secondaryMove.x);
 
     // Compute a unit vector that points in the direction of the camera.
     glm::vec3 lookDir(sin(glm::radians(yaw)), sin(glm::radians(pitch)), -cos(glm::radians(yaw)));
@@ -38,32 +39,12 @@ void Camera::processInput(GLFWwindow *window)
     // The right vector is always orthoganal to the front and up vectors
     glm::vec3 right = glm::cross(front, constants::up);
 
-    // Compute a vector representing the direction of camera movement. We only care
-    // about the direction component; magnitude of the translation will be computed
-    // based on the clock value and movement speed.
-    glm::vec3 moveDir(0.0f, 0.0f, 0.0f);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) moveDir += front;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) moveDir -= right;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) moveDir -= front;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) moveDir += right;
-
-    move(moveDir);
-    view = glm::lookAt(pos, pos + lookDir, constants::up);
-}
-
-void Camera::move(glm::vec3 dir)
-{
-    // Early exit if vector has undefined direction
-    if (dir.x == 0 && dir.y == 0 && dir.z == 0) return;
-
-    // Convert to unit vector before applying movement speed
-    dir = glm::normalize(dir);
-    glm::vec3 velocity = dir * constants::speed;
-
-    // Compute movement delta and apply to current position
-    glm::vec3 translation = velocity * (float)clock.getElapsedSeconds();
+    // Compute a vector representing the direction and magnitude of camera
+    // movement. Movement is scaled up by the camera's speed.
+    glm::vec3 translation = (front * primaryMove.y + right * primaryMove.x) * constants::speed;
     pos += translation;
+
+    view = glm::lookAt(pos, pos + lookDir, constants::up);
 }
 
 void Camera::incYaw(float delta)
