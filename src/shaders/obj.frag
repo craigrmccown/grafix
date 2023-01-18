@@ -118,7 +118,7 @@ vec3 computeSpotLighting(SpotLight light, vec3 fragPos, vec3 normal)
     vec3 lightDir = normalize(-light.direction);
     vec3 viewDir = normalize(light.position - fragPos);
     float cosTheta = dot(lightDir, viewDir);
-    float brightness = clamp((cosTheta - light.outer) / (light.inner - light.outer), 0.0, 1.0);
+    float brightness = clamp((cosTheta - light.outer) / (light.inner - light.outer), 0.1, 1.0);
 
     return brightness * computeLighting(light.reflection, lightDir, fragPos, normal) * light.color;
 }
