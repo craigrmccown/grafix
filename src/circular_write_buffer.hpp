@@ -51,6 +51,7 @@ class CircularWriteBuffer
         {
             buf[i] = t;
         }
+        size = cap;
     }
 
     private:

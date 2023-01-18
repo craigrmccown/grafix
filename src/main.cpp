@@ -14,6 +14,8 @@
 #include "point_light.hpp"
 #include "shader.hpp"
 
+const int numLights = 4;
+
 // TODO: Load vertex data from model file
 float vertices[] = {
     // vertex               // texture      // normal
@@ -109,13 +111,6 @@ Position objPositions[] = {
     },
 };
 
-glm::vec3 lightCoords[] = {
-    glm::vec3(6.0f, 4.0f, -1.0f),
-    glm::vec3(7.0f, 1.0f, -8.0f),
-    glm::vec3(-2.0f, 3.0f, 2.0f),
-    glm::vec3(-4.0f, -6.0f, 5.0f),
-};
-
 int kill(const char *message)
 {
     std::cerr << message << std::endl;
@@ -196,15 +191,8 @@ int main()
 
     // Instantiate light buffer - when one is added, the oldest one will
     // disappear.
-    int numLights = sizeof(lightCoords) / sizeof(glm::vec3);
     CircularWriteBuffer<PointLight> pointLights(numLights);
-    for (int i = 0; i < numLights; i ++)
-    {
-        pointLights.write(PointLight()
-            .setPosition(lightCoords[i])
-            .randColor()
-        );
-    }
+    pointLights.fill(PointLight().hide());
 
     // Initialize projection matrix outside of render loop. Use an arbitrary
     // 45 degree field of view
