@@ -1,4 +1,5 @@
 #include <cmath>
+#include <utility>
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 #include "controls.hpp"
@@ -34,11 +35,17 @@ KeyboardMouseControls::KeyboardMouseControls(GLFWwindow &window, float sensitivi
     , lastMousePos(NAN)
     {}
 
+const std::pair<int, Controls::BinaryAction> binaryActionMappings[] = {
+    {GLFW_KEY_ESCAPE, Controls::BinaryAction::exit},
+    {GLFW_KEY_SPACE, Controls::BinaryAction::action1},
+    {GLFW_KEY_F, Controls::BinaryAction::action2},
+};
+
 void KeyboardMouseControls::processInput(float elapsed)
 {
-    if (glfwGetKey(&window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    for (const std::pair<int, Controls::BinaryAction> &mapping : binaryActionMappings)
     {
-        binaryState.set(BinaryAction::exit, true);
+        binaryState.set(mapping.second, glfwGetKey(&window, mapping.first) == GLFW_PRESS);
     }
 
     int

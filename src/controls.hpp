@@ -18,6 +18,8 @@ class Controls
      */
     enum class BinaryAction {
         exit,
+        action1,
+        action2,
     };
 
     /**

@@ -203,13 +203,17 @@ int main()
     {
         clock.tick();
         ctrl.processInput(clock.getElapsedSeconds());
+        camera.processInput();
 
         if (ctrl.queryBinaryAction(Controls::BinaryAction::exit, Controls::BinaryActionState::on))
         {
             glfwSetWindowShouldClose(window, true);
         }
+        if (ctrl.queryBinaryAction(Controls::BinaryAction::action1, Controls::BinaryActionState::leading))
+        {
+            pointLights.write(PointLight().randColor().setPosition(camera.getPosition() + camera.getDirection()));
+        }
 
-        camera.computeViewMatrix();
         glm::mat4 viewMat = camera.getViewMatrix();
 
         // Fill background color first

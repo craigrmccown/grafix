@@ -13,13 +13,14 @@ namespace constants
 Camera::Camera(Controls &ctrl, glm::vec3 initPos)
     : ctrl(ctrl)
     , pos(initPos)
+    , dir(glm::vec3(0.0f, 0.0f, 1.0f))
     , yaw(0.0f)
     , pitch(0.0f)
     , view(glm::mat4(1.0f))
     {}
 
 // TODO: Avoid unnecessary work if no input is received
-void Camera::computeViewMatrix()
+void Camera::processInput()
 {
     glm::vec2 primaryMove = ctrl.queryDirectionalAction(Controls::DirectionalAction::primaryMove);
     glm::vec2 secondaryMove = ctrl.queryDirectionalAction(Controls::DirectionalAction::secondaryMove);
@@ -29,12 +30,12 @@ void Camera::computeViewMatrix()
     incYaw(secondaryMove.x);
 
     // Compute a unit vector that points in the direction of the camera.
-    glm::vec3 lookDir(sin(glm::radians(yaw)), sin(glm::radians(pitch)), -cos(glm::radians(yaw)));
+    dir = glm::vec3(sin(glm::radians(yaw)), sin(glm::radians(pitch)), -cos(glm::radians(yaw)));
 
     // We can set the y-component to 0 if we want to stay on the ground. Setting
     // the front vector equal to the look direction gives us a "fly" style
     // camera.
-    glm::vec3 front(lookDir.x, lookDir.y, lookDir.z);
+    glm::vec3 front(dir.x, dir.y, dir.z);
 
     // The right vector is always orthoganal to the front and up vectors
     glm::vec3 right = glm::cross(front, constants::up);
@@ -43,8 +44,6 @@ void Camera::computeViewMatrix()
     // movement. Movement is scaled up by the camera's speed.
     glm::vec3 translation = (front * primaryMove.y + right * primaryMove.x) * constants::speed;
     pos += translation;
-
-    view = glm::lookAt(pos, pos + lookDir, constants::up);
 }
 
 void Camera::incYaw(float delta)
@@ -65,5 +64,15 @@ void Camera::incPitch(float delta)
 
 glm::mat4 Camera::getViewMatrix()
 {
-    return view;
+    return glm::lookAt(pos, pos + dir, constants::up);
+}
+
+glm::vec3 Camera::getPosition()
+{
+    return pos;
+}
+
+glm::vec3 Camera::getDirection()
+{
+    return dir;
 }
