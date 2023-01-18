@@ -189,6 +189,7 @@ int main()
     Camera camera(ctrl, glm::vec3(0.0f, 0.0f, 10.0f));
     glm::vec3 globalLightColor(1.0f, 1.0f, 1.0f);
     glm::vec4 globalLightDir(0.0f, -1.0f, 0.0f, 0.0f);
+    bool isFlashlightOn = false;
 
     // Instantiate light buffer - when one is added, the oldest one will
     // disappear.
@@ -212,6 +213,10 @@ int main()
         if (ctrl.queryBinaryAction(Controls::BinaryAction::action1, Controls::BinaryActionState::leading))
         {
             pointLights.write(PointLight().randColor().setPosition(camera.getPosition() + camera.getDirection()));
+        }
+        if (ctrl.queryBinaryAction(Controls::BinaryAction::action2, Controls::BinaryActionState::leading))
+        {
+            isFlashlightOn = !isFlashlightOn;
         }
 
         glm::mat4 viewMat = camera.getViewMatrix();
@@ -269,7 +274,7 @@ int main()
             objShader.setUniformFloatElement("pointLights", "quadratic", i, 0.032f);
         }
 
-        objShader.setUniformVec3("spotLight.color", glm::vec3(1.0f));
+        objShader.setUniformVec3("spotLight.color", glm::vec3(isFlashlightOn ? 1.0f : 0.0f));
         objShader.setUniformVec3("spotLight.direction", glm::vec3(0.0f, 0.0f, -1.0f));
         objShader.setUniformVec3("spotLight.position", glm::vec3(0.0f));
         objShader.setUniformFloat("spotLight.inner", cos(glm::radians(10.0f)));
