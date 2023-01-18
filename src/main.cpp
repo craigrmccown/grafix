@@ -269,6 +269,15 @@ int main()
             objShader.setUniformFloatElement("pointLights", "quadratic", i, 0.032f);
         }
 
+        objShader.setUniformVec3("spotLight.color", glm::vec3(1.0f));
+        objShader.setUniformVec3("spotLight.direction", glm::vec3(0.0f, 0.0f, -1.0f));
+        objShader.setUniformVec3("spotLight.position", glm::vec3(0.0f));
+        objShader.setUniformFloat("spotLight.inner", cos(glm::radians(10.0f)));
+        objShader.setUniformFloat("spotLight.outer", cos(glm::radians(15.0f)));
+        objShader.setUniformFloat("spotLight.reflection.ambient", 0.1f);
+        objShader.setUniformFloat("spotLight.reflection.diffuse", 0.5f);
+        objShader.setUniformFloat("spotLight.reflection.specular", 0.5f);
+
         for (int i = 0; i < sizeof(objPositions) / sizeof(Position); i ++)
         {
             // Create model matrix and transform to camera perspective

@@ -30,6 +30,22 @@ struct PointLight {
     float quadratic;
 };
 
+struct SpotLight {
+    vec3 color;
+    vec3 direction;
+    vec3 position;
+
+    // cosine of angle between the light direction and a fragment where lesser
+    // angles receive full brightness
+    float inner;
+
+    // cosine of angle between the light direction and a fragment where lesser
+    // angles receive partial brightness, and greater angles receive none
+    float outer;
+
+    Reflection reflection;
+};
+
 struct Material {
     float shininess;
 };
@@ -39,6 +55,7 @@ struct Material {
 uniform sampler2D tex;
 uniform GlobalLight globalLight;
 uniform PointLight pointLights[NUM_POINT_LIGHTS];
+uniform SpotLight spotLight;
 uniform Material material;
 
 float computeLighting(Reflection reflection, vec3 lightDir, vec3 fragPos, vec3 normal)
@@ -92,6 +109,20 @@ vec3 computePointLighting(PointLight light, vec3 fragPos, vec3 normal)
     return attenuation * computeLighting(light.reflection, lightDir, fragPos, normal) * light.color;
 }
 
+vec3 computeSpotLighting(SpotLight light, vec3 fragPos, vec3 normal)
+{
+    // Take the angle between the light direction and the vector from the
+    // fragment to the light. If that angle is less than inner, full brightness
+    // is applied. Brightness fades as the angle approaches outer. All angles
+    // are expected to be represented as cosines, not degrees or radians.
+    vec3 lightDir = normalize(-light.direction);
+    vec3 viewDir = normalize(light.position - fragPos);
+    float cosTheta = dot(lightDir, viewDir);
+    float brightness = clamp((cosTheta - light.outer) / (light.inner - light.outer), 0.0, 1.0);
+
+    return brightness * light.color;
+}
+
 void main()
 {
     vec3 lighting = computeGlobalLighting(globalLight, fragPos, normal);
@@ -100,6 +131,8 @@ void main()
     {
         lighting += computePointLighting(pointLights[i], fragPos, normal);
     }
+
+    lighting += computeSpotLighting(spotLight, fragPos, normal);
 
     // Sample texture and apply lighting to get final color values
     vec3 texColor = vec3(texture(tex, texCoord));
