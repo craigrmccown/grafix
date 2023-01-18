@@ -188,6 +188,7 @@ int main()
     KeyboardMouseControls ctrl(*window, 0.2f);
     Camera camera(ctrl, glm::vec3(0.0f, 0.0f, 10.0f));
     glm::vec3 globalLightColor(1.0f, 1.0f, 1.0f);
+    glm::vec4 globalLightDir(0.0f, -1.0f, 0.0f, 0.0f);
 
     // Instantiate light buffer - when one is added, the oldest one will
     // disappear.
@@ -246,7 +247,7 @@ int main()
         objShader.use();
         objShader.setUniformFloat("material.shininess", 64.0f);
         objShader.setUniformVec3("globalLight.color", globalLightColor);
-        objShader.setUniformVec3("globalLight.direction", glm::vec3(0.5f, -1.0f, 0.5f));
+        objShader.setUniformVec3("globalLight.direction", viewMat * globalLightDir);
         objShader.setUniformFloat("globalLight.reflection.ambient", 0.1f);
         objShader.setUniformFloat("globalLight.reflection.diffuse", 0.5f);
         objShader.setUniformFloat("globalLight.reflection.specular", 0.5f);
