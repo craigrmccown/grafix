@@ -1,6 +1,14 @@
 #include <glm/glm.hpp>
 #include "point_light.hpp"
 
+const glm::vec3 colors[] {
+    glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec3(1.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 1.0f),
+    glm::vec3(1.0f, 0.0f, 1.0f),
+};
+
 float getRandFraction()
 {
     return (float)(rand() % 100) / 100;
@@ -20,7 +28,7 @@ PointLight PointLight::setPosition(glm::vec3 pos)
 
 PointLight PointLight::randColor()
 {
-    color = glm::vec3(getRandFraction(), getRandFraction(), getRandFraction());
+    color = colors[rand() % (sizeof(colors) / sizeof(glm::vec3))];
     return *this;
 }
 
