@@ -12,6 +12,7 @@ include_directories(/usr/local/include ./include)
 add_executable(grafix "")
 
 add_subdirectory(src)
+add_subdirectory(include/imgui)
 
 if (APPLE)
     target_link_libraries(grafix
