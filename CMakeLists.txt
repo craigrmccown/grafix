@@ -9,24 +9,12 @@ project(Grafix
 link_directories(/usr/local/lib)
 include_directories(/usr/local/include ./include)
 
-add_executable(grafix
-    src/camera.cpp
-    src/clock.cpp
-    src/controls.cpp
-    src/image.cpp
-    src/main.cpp
-    src/model.cpp
-    src/mouse.cpp
-    src/point_light.cpp
-    src/shader.cpp
-    src/texture.cpp
-    src/glad/glad.c
-    src/stb/stb_image.cpp)
+add_executable(grafix "")
+
+add_subdirectory(src)
 
 if (APPLE)
     target_link_libraries(grafix
         "-framework Cocoa"
         "-framework IOKit")
 endif()
-
-target_link_libraries(grafix glfw3)
