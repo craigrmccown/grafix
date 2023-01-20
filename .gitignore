@@ -3,3 +3,6 @@ build/
 
 # OS-specific files
 .DS_Store
+
+# Files generated at runtime, e.g. logs, data dumps, etc.
+var/

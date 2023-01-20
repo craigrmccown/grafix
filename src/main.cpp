@@ -4,6 +4,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 #include "camera.hpp"
 #include "circular_write_buffer.hpp"
 #include "clock.hpp"
@@ -127,6 +130,17 @@ void initializeGLFW()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
+void initializeDebugUi(GLFWwindow *window)
+{
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui::GetIO().IniFilename = "var/imgui.ini";
+    ImGui::GetIO().LogFilename = "var/log/imgui.log";
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+}
+
 const GLFWvidmode *getVideoMode()
 {
     GLFWmonitor *monitor = glfwGetPrimaryMonitor();
@@ -146,6 +160,36 @@ GLFWwindow *openWindowedFullscreenWindow(const char *title)
     return glfwCreateWindow(mode->width, mode->height, title, monitor, NULL);
 }
 
+void buildDebugUi()
+{
+    static float f = 0.0f;
+    static int counter = 0;
+
+    ImGui::Begin("Hello, world!");
+
+    ImGui::Text("This is some useful text.");
+
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+
+    if (ImGui::Button("Button"))
+    {
+        counter++;
+    }
+    ImGui::SameLine();
+    ImGui::Text("counter = %d", counter);
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+    ImGui::End();
+}
+
+void cleanupDebugUi()
+{
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
 int main()
 {
     srand(time(nullptr)); // Initialize RNG
@@ -157,6 +201,7 @@ int main()
         return kill("Failed to create window");
     }
     glfwMakeContextCurrent(window);
+    initializeDebugUi(window);
 
     int windowWidth, windowHeight;
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -166,6 +211,7 @@ int main()
         return kill("Failed to initialize GLAD");
     }
     glEnable(GL_DEPTH_TEST);
+
     mouse::listenForMovement(window);
 
     Shader objShader, lightShader;
@@ -202,6 +248,11 @@ int main()
 
     while(!glfwWindowShouldClose(window))
     {
+        // Notify ImGui of each frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
         clock.tick();
         ctrl.processInput(clock.getElapsedSeconds());
         camera.processInput();
@@ -299,10 +350,17 @@ int main()
             cube.draw();
         }
 
+        // Render the debug UI
+        buildDebugUi();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    cleanupDebugUi();
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
