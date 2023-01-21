@@ -10,9 +10,8 @@ namespace constants
     const float speed = 6.0f, maxPitchDeg = 89.0f;
 }
 
-Camera::Camera(Controls &ctrl, glm::vec3 initPos)
-    : ctrl(ctrl)
-    , pos(initPos)
+Camera::Camera(glm::vec3 initPos)
+    : pos(initPos)
     , dir(glm::vec3(0.0f, 0.0f, 1.0f))
     , yaw(0.0f)
     , pitch(0.0f)
@@ -20,14 +19,11 @@ Camera::Camera(Controls &ctrl, glm::vec3 initPos)
     {}
 
 // TODO: Avoid unnecessary work if no input is received
-void Camera::processInput()
+void Camera::move(glm::vec2 translate, glm::vec2 rotate)
 {
-    glm::vec2 primaryMove = ctrl.queryDirectionalAction(Controls::DirectionalAction::primaryMove);
-    glm::vec2 secondaryMove = ctrl.queryDirectionalAction(Controls::DirectionalAction::secondaryMove);
-
     // Mouse coordinates use inverted y-axis, so multiply by -1
-    incPitch(secondaryMove.y);
-    incYaw(secondaryMove.x);
+    incPitch(rotate.y);
+    incYaw(rotate.x);
 
     // Compute a unit vector that points in the direction of the camera.
     dir = glm::vec3(sin(glm::radians(yaw)), sin(glm::radians(pitch)), -cos(glm::radians(yaw)));
@@ -42,7 +38,7 @@ void Camera::processInput()
 
     // Compute a vector representing the direction and magnitude of camera
     // movement. Movement is scaled up by the camera's speed.
-    glm::vec3 translation = (front * primaryMove.y + right * primaryMove.x) * constants::speed;
+    glm::vec3 translation = (front * translate.y + right * translate.x) * constants::speed;
     pos += translation;
 }
 

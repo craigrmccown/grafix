@@ -8,9 +8,9 @@
 class Camera
 {
     public:
-    Camera(Controls &ctrl, glm::vec3 initPos);
+    Camera(glm::vec3 initPos);
 
-    void processInput();
+    void move(glm::vec2 translate, glm::vec2 rotate);
 
     glm::mat4 getViewMatrix();
 
@@ -19,8 +19,6 @@ class Camera
     glm::vec3 getDirection();
 
     private:
-    Controls &ctrl;
-
     // Translated position from origin
     glm::vec3 pos;
 

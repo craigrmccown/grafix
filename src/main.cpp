@@ -232,7 +232,7 @@ int main()
 
     Clock clock;
     KeyboardMouseControls ctrl(*window, 0.2f);
-    Camera camera(ctrl, glm::vec3(0.0f, 0.0f, 10.0f));
+    Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
     glm::vec3 globalLightColor(1.0f, 1.0f, 1.0f);
     glm::vec4 globalLightDir(0.0f, -1.0f, 0.0f, 0.0f);
     bool isFlashlightOn = false;
@@ -255,7 +255,10 @@ int main()
 
         clock.tick();
         ctrl.processInput(clock.getElapsedSeconds());
-        camera.processInput();
+        camera.move(
+            ctrl.queryDirectionalAction(Controls::DirectionalAction::primaryMove),
+            ctrl.queryDirectionalAction(Controls::DirectionalAction::secondaryMove)
+        );
 
         if (ctrl.queryBinaryAction(Controls::BinaryAction::exit, Controls::BinaryActionState::on))
         {
