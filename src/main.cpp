@@ -254,24 +254,18 @@ int main()
         ImGui::NewFrame();
 
         clock.tick();
-        ctrl.processInput(clock.getElapsedSeconds());
+        ctrl.newFrame(clock.getElapsedSeconds());
         camera.move(
-            ctrl.queryDirectionalAction(Controls::DirectionalAction::primaryMove),
-            ctrl.queryDirectionalAction(Controls::DirectionalAction::secondaryMove)
+            glm::vec2(ctrl.getValue(Controls::Signal::moveX), ctrl.getValue(Controls::Signal::moveY)),
+            glm::vec2(ctrl.getValue(Controls::Signal::aimX), ctrl.getValue(Controls::Signal::aimY))
         );
 
-        if (ctrl.queryBinaryAction(Controls::BinaryAction::exit, Controls::BinaryActionState::on))
-        {
-            glfwSetWindowShouldClose(window, true);
-        }
-        if (ctrl.queryBinaryAction(Controls::BinaryAction::action1, Controls::BinaryActionState::leading))
-        {
-            pointLights.write(PointLight().randColor().setPosition(camera.getPosition() + camera.getDirection()));
-        }
-        if (ctrl.queryBinaryAction(Controls::BinaryAction::action2, Controls::BinaryActionState::leading))
-        {
-            isFlashlightOn = !isFlashlightOn;
-        }
+        if (ctrl.isLeading(Controls::Signal::exit)) glfwSetWindowShouldClose(window, true);
+        if (ctrl.isLeading(Controls::Signal::action1)) pointLights.write(PointLight()
+            .randColor()
+            .setPosition(camera.getPosition() + camera.getDirection()
+        ));
+        if (ctrl.isLeading(Controls::Signal::action2)) isFlashlightOn = !isFlashlightOn;
 
         glm::mat4 viewMat = camera.getViewMatrix();
 

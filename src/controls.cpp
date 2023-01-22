@@ -1,32 +1,25 @@
 #include <cmath>
-#include <utility>
 #include "GLFW/glfw3.h"
 #include "glm/glm.hpp"
 #include "controls.hpp"
 #include "history_map.hpp"
 #include "mouse.hpp"
 
-Controls::Controls() : binaryState(false) {}
+Controls::Controls() : signalState(0.0f) {}
 
-bool Controls::queryBinaryAction(BinaryAction action, BinaryActionState state)
+double Controls::getValue(Controls::Signal signal)
 {
-    bool isOn = binaryState.get(action);
-    switch (state)
-    {
-        case BinaryActionState::on:
-            return isOn;
-        case BinaryActionState::off:
-            return !isOn;
-        case BinaryActionState::leading:
-            return isOn && !binaryState.getPrev(action);
-        case BinaryActionState::trailing:
-            return !isOn && binaryState.getPrev(action);
-    }
+    return signalState.get(signal);
 }
 
-glm::vec2 Controls::queryDirectionalAction(DirectionalAction action)
+bool Controls::isLeading(Controls::Signal signal)
 {
-    return directionalState[action];
+    return signalState.get(signal) > 0 && signalState.getPrev(signal) == 0;
+}
+
+bool Controls::isTrailing(Controls::Signal signal)
+{
+    return signalState.get(signal) == 0 && signalState.getPrev(signal) > 0;
 }
 
 KeyboardMouseControls::KeyboardMouseControls(GLFWwindow &window, float sensitivity)
@@ -35,18 +28,11 @@ KeyboardMouseControls::KeyboardMouseControls(GLFWwindow &window, float sensitivi
     , lastMousePos(NAN)
     {}
 
-const std::pair<int, Controls::BinaryAction> binaryActionMappings[] = {
-    {GLFW_KEY_ESCAPE, Controls::BinaryAction::exit},
-    {GLFW_KEY_SPACE, Controls::BinaryAction::action1},
-    {GLFW_KEY_F, Controls::BinaryAction::action2},
-};
-
-void KeyboardMouseControls::processInput(float elapsed)
+void KeyboardMouseControls::newFrame(float elapsed)
 {
-    for (const std::pair<int, Controls::BinaryAction> &mapping : binaryActionMappings)
-    {
-        binaryState.set(mapping.second, glfwGetKey(&window, mapping.first) == GLFW_PRESS);
-    }
+    signalState.set(Signal::exit, (float)(glfwGetKey(&window, GLFW_KEY_ESCAPE) == GLFW_PRESS));
+    signalState.set(Signal::action1, (float)(glfwGetKey(&window, GLFW_KEY_SPACE) == GLFW_PRESS));
+    signalState.set(Signal::action2, (float)(glfwGetKey(&window, GLFW_KEY_F) == GLFW_PRESS));
 
     int
         wPress = glfwGetKey(&window, GLFW_KEY_W) == GLFW_PRESS,
@@ -64,26 +50,21 @@ void KeyboardMouseControls::processInput(float elapsed)
     }
 
     // Multiply velocity vector by elapsed time to get change in distance
-    directionalState[DirectionalAction::primaryMove] = velocity * elapsed;
+    glm::vec2 distance = velocity * elapsed;
+    signalState.set(Signal::moveX, distance.x);
+    signalState.set(Signal::moveY, distance.y);
 
     // Short circuit if we haven't received any mouse movement
     if (!mouse::hasMoved()) return;
 
     // Start tracking mouse deltas only after we have received two mouse
     // positions
-    glm::vec2 mousePos = getMousePos();
+    glm::vec2 mousePos = mouse::getPosition();
     if (!std::isnan(lastMousePos.x + lastMousePos.y))
     {
-        directionalState[DirectionalAction::secondaryMove] = (mousePos - lastMousePos) * sensitivity;
+        glm::vec2 mouseDistance = (mousePos - lastMousePos) * sensitivity;
+        signalState.set(Signal::aimX, mouseDistance.x);
+        signalState.set(Signal::aimY, -mouseDistance.y);
     }
     lastMousePos = mousePos;
-}
-
-glm::vec2 KeyboardMouseControls::getMousePos()
-{
-    double mouseX, mouseY;
-    glfwGetCursorPos(&window, &mouseX, &mouseY);
-
-    // Mouse Y coordinate is inverted, so multiply by -1
-    return glm::vec2(mouseX, -mouseY);
 }
