@@ -3,9 +3,8 @@
         {
             "name": "Mac",
             "includePath": [
-                "/usr/local/include",
-                "${workspaceFolder}/include",
                 "${workspaceFolder}/external/glad",
+                "${workspaceFolder}/external/glfw/include",
                 "${workspaceFolder}/external/glm",
                 "${workspaceFolder}/external/imgui",
                 "${workspaceFolder}/external/stb"

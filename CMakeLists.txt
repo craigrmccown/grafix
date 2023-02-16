@@ -6,8 +6,5 @@ project(grafix
     DESCRIPTION "Graphics rendering engine"
     LANGUAGES CXX C)
 
-link_directories(/usr/local/lib)
-include_directories(/usr/local/include)
-
 add_subdirectory(external)
 add_subdirectory(src)

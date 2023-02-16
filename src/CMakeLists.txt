@@ -17,7 +17,7 @@ target_sources(grafix
 target_link_libraries(grafix
     PRIVATE
         glad
-        glfw3
+        glfw
         glm::glm
         imgui
         stb_image

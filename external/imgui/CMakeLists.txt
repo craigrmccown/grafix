@@ -13,3 +13,4 @@ add_library(imgui STATIC
     imgui/imgui.cpp
 )
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(imgui glfw)
