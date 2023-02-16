@@ -6,6 +6,7 @@
                 "/usr/local/include",
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/external/glad",
+                "${workspaceFolder}/external/glm",
                 "${workspaceFolder}/external/stb"
             ],
             "defines": [],

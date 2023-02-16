@@ -14,9 +14,17 @@ target_sources(grafix
         texture.cpp
 )
 
-target_link_libraries(grafix glad glfw3 stb_image)
+target_link_libraries(grafix
+    PRIVATE
+        glad
+        glfw3
+        glm::glm
+        stb_image
+)
+
 if (APPLE)
     target_link_libraries(grafix
-        "-framework Cocoa"
-        "-framework IOKit")
+        PRIVATE
+            "-framework Cocoa"
+            "-framework IOKit")
 endif()
