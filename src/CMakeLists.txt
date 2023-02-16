@@ -19,6 +19,7 @@ target_link_libraries(grafix
         glad
         glfw3
         glm::glm
+        imgui
         stb_image
 )
 

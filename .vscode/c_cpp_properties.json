@@ -7,6 +7,7 @@
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/external/glad",
                 "${workspaceFolder}/external/glm",
+                "${workspaceFolder}/external/imgui",
                 "${workspaceFolder}/external/stb"
             ],
             "defines": [],
