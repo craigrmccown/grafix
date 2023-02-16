@@ -12,10 +12,9 @@ target_sources(grafix
         point_light.cpp
         shader.cpp
         texture.cpp
-        glad/glad.c
 )
 
-target_link_libraries(grafix glfw3 stb_image)
+target_link_libraries(grafix glad glfw3 stb_image)
 if (APPLE)
     target_link_libraries(grafix
         "-framework Cocoa"

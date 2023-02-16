@@ -5,6 +5,7 @@
             "includePath": [
                 "/usr/local/include",
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/external/glad",
                 "${workspaceFolder}/external/stb"
             ],
             "defines": [],
