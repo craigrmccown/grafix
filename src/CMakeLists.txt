@@ -1,3 +1,5 @@
+add_executable(grafix "")
+
 target_sources(grafix
     PRIVATE
         camera.cpp
@@ -11,7 +13,11 @@ target_sources(grafix
         shader.cpp
         texture.cpp
         glad/glad.c
-        stb/stb_image.cpp
 )
 
-target_link_libraries(grafix glfw3)
+target_link_libraries(grafix glfw3 stb_image)
+if (APPLE)
+    target_link_libraries(grafix
+        "-framework Cocoa"
+        "-framework IOKit")
+endif()
