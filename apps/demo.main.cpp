@@ -7,15 +7,15 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
-#include "camera.hpp"
-#include "circular_write_buffer.hpp"
-#include "clock.hpp"
-#include "controls.hpp"
-#include "image.hpp"
-#include "model.hpp"
-#include "mouse.hpp"
-#include "point_light.hpp"
-#include "shader.hpp"
+#include <core/camera.hpp>
+#include <core/circular_write_buffer.hpp>
+#include <core/clock.hpp>
+#include <core/controls.hpp>
+#include <core/image.hpp>
+#include <core/model.hpp>
+#include <core/mouse.hpp>
+#include <core/point_light.hpp>
+#include <core/shader.hpp>
 
 const int numLights = 4;
 
@@ -216,12 +216,12 @@ int main()
 
     Shader objShader, lightShader;
     objShader.build(std::vector<ShaderSrc> {
-        loadShaderSrc("./src/shaders/obj.vert"),
-        loadShaderSrc("./src/shaders/obj.frag"),
+        loadShaderSrc("./libs/core/src/core/shaders/obj.vert"),
+        loadShaderSrc("./libs/core/src/core/shaders/obj.frag"),
     });
     lightShader.build(std::vector<ShaderSrc> {
-        loadShaderSrc("./src/shaders/light.vert"),
-        loadShaderSrc("./src/shaders/light.frag"),
+        loadShaderSrc("./libs/core/src/core/shaders/light.vert"),
+        loadShaderSrc("./libs/core/src/core/shaders/light.frag"),
     });
 
     Model cube(

@@ -7,4 +7,5 @@ project(grafix
     LANGUAGES CXX C)
 
 add_subdirectory(external)
-add_subdirectory(src)
+add_subdirectory(libs)
+add_subdirectory(apps)
