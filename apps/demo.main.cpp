@@ -226,7 +226,7 @@ int main()
 
     Model cube(
         std::vector<float>(std::begin(vertices), std::end(vertices)),
-        "./assets/textures/crate.png"
+        "./data/textures/crate.png"
     );
     cube.load();
 
