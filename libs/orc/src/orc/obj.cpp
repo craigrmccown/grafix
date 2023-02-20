@@ -24,8 +24,8 @@ namespace orc
 
     void Obj::ComputeMxs(glm::mat4 parentMx)
     {
-        glm::mat4 transformMx = glm::yawPitchRoll(pendingRotation.x, pendingRotation.y, pendingRotation.z);
-        transformMx = glm::translate(transformMx, pendingTranslation);
+        glm::mat4 transformMx = glm::translate(glm::mat4(1.0f), pendingTranslation);
+        transformMx = transformMx * glm::yawPitchRoll(pendingRotation.x, pendingRotation.y, pendingRotation.z);
 
         localMx = transformMx * localMx;
         worldMx = parentMx * localMx;
@@ -39,21 +39,21 @@ namespace orc
 
     glm::vec3 Obj::GetFront() const
     {
-        return GetModelMx() * glm::vec4(0.0, 0.0, 1.0, 0.0);
+        return GetModelMx() * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
     }
 
     glm::vec3 Obj::GetRight() const
     {
-        return GetModelMx() * glm::vec4(0.1, 0.0, 0.0, 0.0);
+        return GetModelMx() * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
     }
 
     glm::vec3 Obj::GetUp() const
     {
-        return GetModelMx() * glm::vec4(0.0, 0.1, 0.0, 0.0);
+        return GetModelMx() * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     }
 
     glm::vec3 Obj::GetPosition() const
     {
-        return GetModelMx() * glm::vec4(0.0, 0.0, 0.0, 1.0);
+        return GetModelMx() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 }
