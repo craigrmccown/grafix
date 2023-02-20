@@ -2,8 +2,9 @@
 build/
 Testing/
 
-# OS-specific files
+# OS and IDE specific files
 .DS_Store
+.vscode/settings.json
 
 # Files generated at runtime, e.g. logs, data dumps, etc.
 var/
