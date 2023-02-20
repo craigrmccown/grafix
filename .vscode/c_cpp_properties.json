@@ -3,6 +3,8 @@
         {
             "name": "Mac",
             "includePath": [
+                "${workspaceFolder}/external/Catch2/src",
+                "${workspaceFolder}/build/external/Catch2/generated-includes",
                 "${workspaceFolder}/external/glad",
                 "${workspaceFolder}/external/glfw/include",
                 "${workspaceFolder}/external/glm",

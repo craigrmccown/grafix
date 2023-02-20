@@ -1,3 +1,4 @@
+add_subdirectory(Catch2)
 add_subdirectory(glad)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)

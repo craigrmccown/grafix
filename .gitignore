@@ -1,5 +1,6 @@
 # Build artifacts
 build/
+Testing/
 
 # OS-specific files
 .DS_Store
