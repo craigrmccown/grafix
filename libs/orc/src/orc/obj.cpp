@@ -6,35 +6,31 @@
 namespace orc
 {
     Obj::Obj()
-        : pendingTranslation(glm::vec3(0.0f))
-        , pendingRotation(glm::vec3(0.0f))
-        , localMx(glm::mat4(1.0f))
-        , worldMx(glm::mat4(1.0f))
+        : translation(glm::vec3(0.0f))
+        , rotation(glm::vec3(0.0f))
+        , modelMx(glm::mat4(1.0f))
         {}
 
     void Obj::Translate(float x, float y, float z)
     {
-        pendingTranslation += glm::vec3(x, y, z);
+        translation += glm::vec3(x, y, z);
     }
 
     void Obj::Rotate(float yaw, float pitch, float roll)
     {
-        pendingRotation += glm::vec3(yaw, pitch, roll);
+        rotation += glm::vec3(yaw, pitch, roll);
     }
 
     void Obj::ComputeMxs(glm::mat4 parentMx)
     {
-        glm::mat4 transformMx = glm::translate(glm::mat4(1.0f), pendingTranslation);
-        transformMx = transformMx * glm::yawPitchRoll(pendingRotation.x, pendingRotation.y, pendingRotation.z);
-
-        localMx = transformMx * localMx;
-        worldMx = parentMx * localMx;
-        pendingTranslation = pendingRotation = glm::vec3(0.0f);
+        modelMx = parentMx *
+            glm::translate(glm::mat4(1.0f), translation) *
+            glm::yawPitchRoll(rotation.x, rotation.y, rotation.z);
     }
 
     glm::mat4 Obj::GetModelMx() const
     {
-        return worldMx;
+        return modelMx;
     }
 
     glm::vec3 Obj::GetFront() const

@@ -26,9 +26,8 @@ namespace orc
         glm::vec3 GetPosition() const;
 
         private:
-        glm::vec3 pendingTranslation;
-        glm::vec3 pendingRotation;
-        glm::mat4 localMx;
-        glm::mat4 worldMx;
+        glm::vec3 translation;
+        glm::vec3 rotation;
+        glm::mat4 modelMx;
     };
 }
