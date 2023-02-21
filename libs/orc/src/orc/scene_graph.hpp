@@ -15,14 +15,26 @@ namespace orc
 
         SceneGraph();
 
+        // Adds an object to the scene graph. A parent ID can be supplied to
+        // establish a parent-child relationship between two objects.
+        // Transformations applied to a parent object forms the coordinate space
+        // for its children.
         Id Add(Id parentId, Obj obj);
 
+        // Removes an object from the graph. If the object does not exist, an
+        // exception is thrown.
         void Remove(Id nodeId);
 
+        // Returns true iff the identified object exists.
         bool Has(Id nodeId) const;
 
+        // Returns a reference to the identified object. If the object does not
+        // exist, an exception is thrown.
         Obj &Get(Id nodeId);
 
+        // Computes the transformation matrices for every object in the graph.
+        // This is an expensive operation that should only be called once per
+        // frame, if possible.
         void ComputeMxs();
 
         private:

@@ -10,8 +10,11 @@ namespace orc
         public:
         Camera(float fieldOfView, float aspectRatio);
 
+        // See Obj.ComputeMxs. Also computes the view-projection matrix.
         void ComputeMxs(glm::mat4 parentMx);
 
+        // Returns the view-projection matrix that can be used to apply camera
+        // perspective to all other objects
         glm::mat4 GetViewProjectionMx() const;
 
         private:

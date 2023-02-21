@@ -18,10 +18,11 @@ namespace orc
 
     void Obj::Rotate(float yaw, float pitch, float roll)
     {
+        // TODO: Divide by 2pi radians to prevent overflow
         rotation += glm::vec3(yaw, pitch, roll);
     }
 
-    void Obj::ComputeMxs(glm::mat4 parentMx)
+    void Obj::ComputeMxs(const glm::mat4 &parentMx)
     {
         modelMx = parentMx *
             glm::translate(glm::mat4(1.0f), translation) *
