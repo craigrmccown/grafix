@@ -5,11 +5,21 @@
 
 namespace orc
 {
-    Scene::Scene() : root(std::make_shared<Obj>()) { }
+    Scene::Scene()
+        : root(std::make_shared<Obj>())
+        , camera(std::make_shared<Camera>(45.0, 16.0/9.0))
+    {
+        root->AttachChild(camera);
+    }
 
     Obj &Scene::GetRoot()
     {
         return *root;
+    }
+
+    Camera &Scene::GetCamera()
+    {
+        return *camera;
     }
 
     void Scene::Update()
