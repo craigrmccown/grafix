@@ -1,12 +1,14 @@
 #pragma once
 
+#include <memory>
+#include <set>
 #include <glm/glm.hpp>
 
 namespace orc
 {
     // The base class for drawable objects. Handles logic to position objects in
     // 3D space.
-    class Obj
+    class Obj : public std::enable_shared_from_this<Obj>
     {
         public:
         // Creates a new object at the origin facing the +Z direction
@@ -28,7 +30,7 @@ namespace orc
         // the other, the model matrix of the parent object can be passed when
         // computing the child's model matrix. An identity matrix can be passed
         // to compute a matrix relative to the world's origin.
-        virtual void ComputeMxs(const glm::mat4 &parentMx);
+        virtual void ComputeMxs();
 
         // Returns the model matrix produced by the last invocation of
         // ComputeMxs
@@ -53,9 +55,18 @@ namespace orc
         // objects are initialized at the origin.
         glm::vec3 GetPosition() const;
 
+        void AttachChild(std::shared_ptr<Obj> child);
+
+        void Detach();
+
+        const std::set<std::shared_ptr<Obj>> &GetChildren() const;
+
         private:
         glm::vec3 translation;
         glm::vec3 rotation;
         glm::mat4 modelMx;
+        std::set<std::shared_ptr<Obj>> children;
+        std::weak_ptr<Obj> parent;
+        bool isAttached;
     };
 }

@@ -88,7 +88,7 @@ TEST_CASE("View-projection matrix", "[orc]") {
 
     // Back the camera up a bit
     camera.Translate(0.0f, 0.0f, -10.0f);
-    camera.ComputeMxs(glm::mat4(1.0f));
+    camera.ComputeMxs();
     translationMx[3][2] = 10.0f;
     REQUIRE(compareMat4(projectionMx * rotationMx * translationMx, camera.GetViewProjectionMx()));
 
@@ -96,7 +96,7 @@ TEST_CASE("View-projection matrix", "[orc]") {
     // towards the origin
     camera.Translate(0.0f, 10.0f, 0.0f);
     camera.Rotate(0.0f, glm::radians(45.0), 0.0f);
-    camera.ComputeMxs(glm::mat4(1.0f));
+    camera.ComputeMxs();
     translationMx[3][1] = -10.0f;
 
     // Because we are viewing at a 45 degree angle, we can pre-compute the unit

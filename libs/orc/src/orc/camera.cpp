@@ -14,12 +14,12 @@ namespace orc
     Camera::Camera(float fieldOfView, float aspectRatio)
         : projectionMx(glm::perspective(glm::radians(fieldOfView), aspectRatio, 0.0f, 100.0f)) // TODO: Configurable frustum distances
     {
-        ComputeMxs(glm::mat4(1.0f));
+        ComputeMxs();
     }
 
-    void Camera::ComputeMxs(glm::mat4 parentMx)
+    void Camera::ComputeMxs()
     {
-        Obj::ComputeMxs(parentMx);
+        Obj::ComputeMxs();
         viewProjectionMx = projectionMx * GetViewMx();
     }
 
