@@ -8,11 +8,11 @@ namespace orc
     class Regular : public Obj
     {
         public:
-        Regular(Id materialId);
+        const Material &GetMaterial() const;
 
-        Id GetMaterialId() const;
+        void SetMaterial(Material *material);
 
         private:
-        Id materialId;
+        Material *material;
     };
 }

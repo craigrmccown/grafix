@@ -5,8 +5,6 @@
 
 namespace orc
 {
-    typedef uint32_t Id;
-
     struct Phong
     {
         float Ambient, Diffuse, Specular;
