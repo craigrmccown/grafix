@@ -7,14 +7,16 @@
 
 namespace orc
 {
-    // The base class for drawable objects. Handles logic to position objects in
-    // 3D space.
+    // The base class for objects that exist in 3D space. Handles positioning
+    // math and implements spatial hierarchy.
     class Obj : public std::enable_shared_from_this<Obj>
     {
         public:
         // Creates a new object at the origin facing the +Z direction
         Obj();
 
+        // Implements the visitor pattern. Each concrete subclass of Obj should
+        // override this method to dispatch the correct request to the visitor.
         virtual void Dispatch(ObjVisitor &visitor) = 0;
 
         // Moves the object in world space by the specified deltas along each
@@ -27,12 +29,8 @@ namespace orc
         void Rotate(float yaw, float pitch, float roll);
 
         // Computes the model matrix based on the current translation and
-        // rotation. A parent matrix can be passed to transform the origin of
-        // this operation. For example, if two objects should be spatially
-        // grouped together so that the movement of one object should apply to
-        // the other, the model matrix of the parent object can be passed when
-        // computing the child's model matrix. An identity matrix can be passed
-        // to compute a matrix relative to the world's origin.
+        // rotation. If attached, calculations are relative to the orientation
+        // of the parent. If detached, they are relative to the world's origin.
         virtual void ComputeMxs();
 
         // Returns the model matrix produced by the last invocation of
@@ -58,10 +56,16 @@ namespace orc
         // objects are initialized at the origin.
         glm::vec3 GetPosition() const;
 
+        // Establishes a parent-child relationship between this Obj and the
+        // specified child. Assumes shared ownership of the child. All child
+        // transformations will be relative to its parent.
         void AttachChild(std::shared_ptr<Obj> child);
 
+        // Detaches a node from another. Detached nodes aren't drawn by the
+        // Scene, but can still be manipulated and reattached at a later point.
         void Detach();
 
+        // Returns an Obj's children
         const std::set<std::shared_ptr<Obj>> &GetChildren() const;
 
         private:
