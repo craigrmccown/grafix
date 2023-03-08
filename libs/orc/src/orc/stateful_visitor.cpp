@@ -26,22 +26,22 @@ namespace orc
         regulars.push_back(regular);
     }
 
-    const std::vector<Camera *> StatefulVisitor::GetCameras() const
+    const std::vector<Camera *> &StatefulVisitor::GetCameras() const
     {
         return cameras;
     }
 
-    const std::vector<OmniLight *> StatefulVisitor::GetOmniLights() const
+    const std::vector<OmniLight *> &StatefulVisitor::GetOmniLights() const
     {
         return omniLights;
     }
 
-    const std::vector<SpotLight *> StatefulVisitor::GetSpotLights() const
+    const std::vector<SpotLight *> &StatefulVisitor::GetSpotLights() const
     {
         return spotLights;
     }
 
-    const std::vector<Regular *> StatefulVisitor::GetRegulars() const
+    const std::vector<Regular *> &StatefulVisitor::GetRegulars() const
     {
         return regulars;
     }

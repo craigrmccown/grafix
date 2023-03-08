@@ -16,10 +16,10 @@ namespace orc
         void VisitSpotLight(SpotLight *light) override;
         void VisitRegular(Regular *regular) override;
 
-        const std::vector<Camera *> GetCameras() const;
-        const std::vector<OmniLight *> GetOmniLights() const;
-        const std::vector<SpotLight *> GetSpotLights() const;
-        const std::vector<Regular *> GetRegulars() const;
+        const std::vector<Camera *> &GetCameras() const;
+        const std::vector<OmniLight *> &GetOmniLights() const;
+        const std::vector<SpotLight *> &GetSpotLights() const;
+        const std::vector<Regular *> &GetRegulars() const;
 
         private:
         std::vector<Camera *> cameras;
