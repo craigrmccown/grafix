@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "camera.hpp"
 #include "obj.hpp"
+#include "visitor.hpp"
 
 namespace orc
 {
@@ -19,7 +20,12 @@ namespace orc
         void Update();
 
         private:
-        std::shared_ptr<Obj> root;
+        class Root : public Obj
+        {
+            void Dispatch(ObjVisitor &visitor) override;
+        };
+
+        std::shared_ptr<Root> root;
         std::shared_ptr<Camera> camera;
     };
 }

@@ -1,5 +1,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "camera.hpp"
+#include "visitor.hpp"
 
 void copyVecToRow(const glm::vec3 &v, glm::mat4 &m, int r)
 {
@@ -15,6 +16,11 @@ namespace orc
         : projectionMx(glm::perspective(glm::radians(fieldOfView), aspectRatio, 0.0f, 100.0f)) // TODO: Configurable frustum distances
     {
         ComputeMxs();
+    }
+
+    void Camera::Dispatch(ObjVisitor &visitor)
+    {
+        visitor.VisitCamera(this);
     }
 
     void Camera::ComputeMxs()

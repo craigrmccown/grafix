@@ -1,5 +1,6 @@
 #include "light.hpp"
 #include "types.hpp"
+#include "visitor.hpp"
 
 namespace orc
 {
@@ -33,6 +34,11 @@ namespace orc
         SetRadius(50.0f);
     }
 
+    void OmniLight::Dispatch(ObjVisitor &visitor)
+    {
+        visitor.VisitOmniLight(this);
+    }
+
     void OmniLight::SetRadius(float radius)
     {
         // TODO: Tweak attenuation function for more realistic lighting effect
@@ -51,6 +57,11 @@ namespace orc
     SpotLight::SpotLight()
     {
         SetBlurAngles(15.0f, 25.0f);
+    }
+
+    void SpotLight::Dispatch(ObjVisitor &visitor)
+    {
+        visitor.VisitSpotLight(this);
     }
 
     void SpotLight::SetBlurAngles(float innerDeg, float outerDeg)

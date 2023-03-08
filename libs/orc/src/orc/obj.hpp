@@ -3,6 +3,7 @@
 #include <memory>
 #include <set>
 #include <glm/glm.hpp>
+#include "visitor.hpp"
 
 namespace orc
 {
@@ -13,6 +14,8 @@ namespace orc
         public:
         // Creates a new object at the origin facing the +Z direction
         Obj();
+
+        virtual void Dispatch(ObjVisitor &visitor) = 0;
 
         // Moves the object in world space by the specified deltas along each
         // axis. This operation has no effect until ComputeMxs is called.

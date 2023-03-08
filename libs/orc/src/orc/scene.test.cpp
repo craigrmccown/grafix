@@ -2,7 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/epsilon.hpp>
-#include "obj.hpp"
+#include "regular.hpp"
 #include "scene.hpp"
 
 bool compareVec3(glm::vec3 a, glm::vec3 b) {
@@ -11,7 +11,7 @@ bool compareVec3(glm::vec3 a, glm::vec3 b) {
 
 TEST_CASE("Orient single object", "[orc]") {
     orc::Scene scene;
-    std::shared_ptr<orc::Obj> o = std::make_shared<orc::Obj>();
+    std::shared_ptr<orc::Regular> o = std::make_shared<orc::Regular>();
 
     scene.GetRoot().AttachChild(o);
     
@@ -29,8 +29,8 @@ TEST_CASE("Orient single object", "[orc]") {
 
 TEST_CASE("Orient child object", "[orc]") {
     orc::Scene scene;
-    std::shared_ptr<orc::Obj> parent = std::make_shared<orc::Obj>();
-    std::shared_ptr<orc::Obj> child = std::make_shared<orc::Obj>();
+    std::shared_ptr<orc::Regular> parent = std::make_shared<orc::Regular>();
+    std::shared_ptr<orc::Regular> child = std::make_shared<orc::Regular>();
     parent->AttachChild(child);
     scene.GetRoot().AttachChild(parent);
 

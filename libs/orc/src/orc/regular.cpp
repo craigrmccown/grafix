@@ -1,5 +1,6 @@
 #include "regular.hpp"
 #include "types.hpp"
+#include "visitor.hpp"
 
 const orc::Material defaultMaterial = orc::Material{
     .Phong = orc::Phong{
@@ -12,6 +13,11 @@ const orc::Material defaultMaterial = orc::Material{
 
 namespace orc
 {
+    void Regular::Dispatch(ObjVisitor &visitor)
+    {
+        visitor.VisitRegular(this);
+    }
+
     const Material &Regular::GetMaterial() const
     {
         if (!material) return defaultMaterial;

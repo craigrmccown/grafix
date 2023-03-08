@@ -1,5 +1,8 @@
+#pragma once
+
 #include "obj.hpp"
 #include "types.hpp"
+#include "visitor.hpp"
 
 namespace orc
 {
@@ -26,6 +29,8 @@ namespace orc
         public:
         OmniLight();
 
+        void Dispatch(ObjVisitor &visitor) override;
+
         void SetRadius(float radius);
 
         Attenuation GetAttenuation() const;
@@ -38,6 +43,8 @@ namespace orc
     {
         public:
         SpotLight();
+
+        void Dispatch(ObjVisitor &visitor) override;
 
         void SetBlurAngles(float innerDeg, float outerDeg);
 

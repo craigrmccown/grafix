@@ -5,6 +5,7 @@ add_library(orc STATIC
     src/orc/obj.cpp
     src/orc/regular.cpp
     src/orc/scene.cpp
+    src/orc/stateful_visitor.cpp
 )
 set(LDEPS glm::glm)
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
