@@ -23,12 +23,12 @@ namespace orc
     {
         root->AttachChild(camera);
         regularShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(regular_vert, sizeof(regular_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(regular_frag, sizeof(regular_frag))),
+            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::regular_vert, sizeof(shaders::regular_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::regular_frag, sizeof(shaders::regular_frag))),
         });
         lightShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(light_vert, sizeof(light_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(light_frag, sizeof(light_frag))),
+            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::light_vert, sizeof(shaders::light_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::light_frag, sizeof(shaders::light_frag))),
         });
     }
 

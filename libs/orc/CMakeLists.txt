@@ -1,27 +1,27 @@
-# Source
-
+# Resources
 # TODO: CMake scripts to DRY up embedded resource configuration
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag.hpp
-  COMMAND binembed orc ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag
 )
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert.hpp
-  COMMAND binembed orc ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert
 )
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.frag.hpp
-  COMMAND binembed orc ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.frag
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.frag
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.frag
 )
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.vert.hpp
-  COMMAND binembed orc ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.vert
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.vert
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/regular.vert
 )
 
+# Source
 add_library(orc STATIC
     src/orc/camera.cpp
     src/orc/light.cpp

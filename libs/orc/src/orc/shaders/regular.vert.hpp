@@ -1,6 +1,6 @@
 #pragma once
 
-namespace orc
+namespace orc::shaders
 {
     extern const char regular_vert[564];
 }

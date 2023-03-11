@@ -1,6 +1,6 @@
 #include "regular.vert.hpp"
 
-namespace orc
+namespace orc::shaders
 {
     const char regular_vert[564] = {
         '\x23','\x76','\x65','\x72','\x73','\x69','\x6f','\x6e','\x20','\x33','\x33','\x30','\x20','\x63','\x6f','\x72',
