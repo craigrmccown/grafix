@@ -5,16 +5,23 @@ add_library(orc STATIC
     src/orc/obj.cpp
     src/orc/regular.cpp
     src/orc/scene.cpp
+    src/orc/shader.cpp
     src/orc/stateful_visitor.cpp
 )
-set(LDEPS glm::glm)
+set(LDEPS glad glm::glm)
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(orc PRIVATE ${LDEPS})
 
 # Tests
 add_executable(orc_test
+    test/main.cpp
     src/orc/camera.test.cpp
     src/orc/scene.test.cpp
 )
-target_link_libraries(orc_test PRIVATE Catch2::Catch2WithMain orc ${LDEPS})
+target_link_libraries(orc_test PRIVATE
+    Catch2::Catch2
+    glfw
+    orc
+    ${LDEPS}
+)
 catch_discover_tests(orc_test)

@@ -6,7 +6,6 @@ add_library(core STATIC
     src/core/model.cpp
     src/core/mouse.cpp
     src/core/point_light.cpp
-    src/core/shader.cpp
     src/core/texture.cpp
 )
 

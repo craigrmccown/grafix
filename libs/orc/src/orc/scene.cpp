@@ -1,11 +1,20 @@
 #include <memory>
 #include <queue>
+#include <vector>
 #include "light.hpp"
 #include "obj.hpp"
 #include "regular.hpp"
 #include "scene.hpp"
 #include "stateful_visitor.hpp"
 #include "visitor.hpp"
+
+// TODO: Improve handling of paths (x-platform and relative path root)
+const std::string shaderSourceDir = "../../../libs/orc/src/orc/shaders";
+
+static std::string buildShaderSrcPath(std::string filename)
+{
+    return shaderSourceDir + "/" + filename;
+}
 
 namespace orc
 {
@@ -14,6 +23,14 @@ namespace orc
         , camera(std::make_shared<Camera>(45.0, 16.0/9.0))
     {
         root->AttachChild(camera);
+        regularShader = LoadShaderFromFiles(std::vector<std::string>{
+            buildShaderSrcPath("regular.vert"),
+            buildShaderSrcPath("regular.frag")
+        });
+        lightShader = LoadShaderFromFiles(std::vector<std::string>{
+            buildShaderSrcPath("light.vert"),
+            buildShaderSrcPath("light.frag")
+        });
     }
 
     Obj &Scene::GetRoot()

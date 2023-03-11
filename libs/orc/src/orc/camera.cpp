@@ -2,7 +2,7 @@
 #include "camera.hpp"
 #include "visitor.hpp"
 
-void copyVecToRow(const glm::vec3 &v, glm::mat4 &m, int r)
+static void copyVecToRow(const glm::vec3 &v, glm::mat4 &m, int r)
 {
     for (int c = 0; c < v.length(); c++)
     {

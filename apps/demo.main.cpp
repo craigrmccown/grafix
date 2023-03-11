@@ -15,7 +15,7 @@
 #include <core/model.hpp>
 #include <core/mouse.hpp>
 #include <core/point_light.hpp>
-#include <core/shader.hpp>
+#include <orc/shader.hpp>
 
 const int numLights = 4;
 
@@ -214,19 +214,22 @@ int main()
 
     mouse::listenForMovement(window);
 
-    Shader objShader, lightShader;
-    objShader.build(std::vector<ShaderSrc> {
-        loadShaderSrc("./libs/core/src/core/shaders/obj.vert"),
-        loadShaderSrc("./libs/core/src/core/shaders/obj.frag"),
-    });
-    lightShader.build(std::vector<ShaderSrc> {
-        loadShaderSrc("./libs/core/src/core/shaders/light.vert"),
-        loadShaderSrc("./libs/core/src/core/shaders/light.frag"),
-    });
+    std::unique_ptr<orc::OpenGLShader> objShader = orc::LoadShaderFromFiles(
+        std::vector<std::string> {
+            "../../libs/orc/src/orc/shaders/regular.vert",
+            "../../libs/orc/src/orc/shaders/regular.frag",
+        }
+    );
+    std::unique_ptr<orc::OpenGLShader> lightShader = orc::LoadShaderFromFiles(
+        std::vector<std::string> {
+            "../../libs/orc/src/orc/shaders/light.vert",
+            "../../libs/orc/src/orc/shaders/light.frag",
+        }
+    );
 
     Model cube(
         std::vector<float>(std::begin(vertices), std::end(vertices)),
-        "./data/textures/crate.png"
+        "../../data/textures/crate.png"
     );
     cube.load();
 
@@ -276,7 +279,7 @@ int main()
         // Draw lights first. Cache the view coordinates to avoid computing
         // twice.
         glm::vec3 lightViewCoords[pointLights.getSize()];
-        lightShader.use();
+        lightShader->Use();
 
         for (int i = 0; i < pointLights.getSize(); i ++)
         {
@@ -295,41 +298,41 @@ int main()
             lightViewCoords[i] = lightViewMat * glm::vec4(lightPos, 1.0f);
 
             // Set light shader uniforms and draw light
-            lightShader.setUniformMat4("transformMat", lightTransformMat);
-            lightShader.setUniformVec3("lightColor", pointLights[i].getColor());
+            lightShader->SetUniformMat4("transformMat", lightTransformMat);
+            lightShader->SetUniformVec3("lightColor", pointLights[i].getColor());
             cube.draw();
         }
 
         // Now draw the rest of the objects
-        objShader.use();
-        objShader.setUniformFloat("material.shininess", 64.0f);
-        objShader.setUniformVec3("globalLight.color", globalLightColor);
-        objShader.setUniformVec3("globalLight.direction", viewMat * globalLightDir);
-        objShader.setUniformFloat("globalLight.reflection.ambient", 0.1f);
-        objShader.setUniformFloat("globalLight.reflection.diffuse", 0.5f);
-        objShader.setUniformFloat("globalLight.reflection.specular", 0.5f);
+        objShader->Use();
+        objShader->SetUniformFloat("material.shininess", 64.0f);
+        objShader->SetUniformVec3("globalLight.color", globalLightColor);
+        objShader->SetUniformVec3("globalLight.direction", viewMat * globalLightDir);
+        objShader->SetUniformFloat("globalLight.reflection.ambient", 0.1f);
+        objShader->SetUniformFloat("globalLight.reflection.diffuse", 0.5f);
+        objShader->SetUniformFloat("globalLight.reflection.specular", 0.5f);
 
         // Set light uniforms before processing each object individually
         for (int i = 0; i < pointLights.getSize(); i ++)
         {
-            objShader.setUniformVec3Element("pointLights", "color", i, pointLights[i].getColor());
-            objShader.setUniformVec3Element("pointLights", "position", i, lightViewCoords[i]);
-            objShader.setUniformFloatElement("pointLights", "reflection.ambient", i, 0.05f);
-            objShader.setUniformFloatElement("pointLights", "reflection.diffuse", i, 0.8f);
-            objShader.setUniformFloatElement("pointLights", "reflection.specular", i, 1.2f);
-            objShader.setUniformFloatElement("pointLights", "constant", i, 1.0f);
-            objShader.setUniformFloatElement("pointLights", "linear", i, 0.09f);
-            objShader.setUniformFloatElement("pointLights", "quadratic", i, 0.032f);
+            objShader->SetUniformVec3Element("pointLights", "color", i, pointLights[i].getColor());
+            objShader->SetUniformVec3Element("pointLights", "position", i, lightViewCoords[i]);
+            objShader->SetUniformFloatElement("pointLights", "reflection.ambient", i, 0.05f);
+            objShader->SetUniformFloatElement("pointLights", "reflection.diffuse", i, 0.8f);
+            objShader->SetUniformFloatElement("pointLights", "reflection.specular", i, 1.2f);
+            objShader->SetUniformFloatElement("pointLights", "constant", i, 1.0f);
+            objShader->SetUniformFloatElement("pointLights", "linear", i, 0.09f);
+            objShader->SetUniformFloatElement("pointLights", "quadratic", i, 0.032f);
         }
 
-        objShader.setUniformVec3("spotLight.color", glm::vec3(isFlashlightOn ? 1.0f : 0.0f));
-        objShader.setUniformVec3("spotLight.direction", glm::vec3(0.0f, 0.0f, -1.0f));
-        objShader.setUniformVec3("spotLight.position", glm::vec3(0.0f));
-        objShader.setUniformFloat("spotLight.inner", cos(glm::radians(10.0f)));
-        objShader.setUniformFloat("spotLight.outer", cos(glm::radians(15.0f)));
-        objShader.setUniformFloat("spotLight.reflection.ambient", 0.1f);
-        objShader.setUniformFloat("spotLight.reflection.diffuse", 0.5f);
-        objShader.setUniformFloat("spotLight.reflection.specular", 0.5f);
+        objShader->SetUniformVec3("spotLight.color", glm::vec3(isFlashlightOn ? 1.0f : 0.0f));
+        objShader->SetUniformVec3("spotLight.direction", glm::vec3(0.0f, 0.0f, -1.0f));
+        objShader->SetUniformVec3("spotLight.position", glm::vec3(0.0f));
+        objShader->SetUniformFloat("spotLight.inner", cos(glm::radians(10.0f)));
+        objShader->SetUniformFloat("spotLight.outer", cos(glm::radians(15.0f)));
+        objShader->SetUniformFloat("spotLight.reflection.ambient", 0.1f);
+        objShader->SetUniformFloat("spotLight.reflection.diffuse", 0.5f);
+        objShader->SetUniformFloat("spotLight.reflection.specular", 0.5f);
 
         for (int i = 0; i < sizeof(objPositions) / sizeof(Position); i ++)
         {
@@ -342,8 +345,8 @@ int main()
             // Set obj shader uniforms and draw model
             // TODO: Pass normal matrix instead of model matrix to account for
             // non-uniform scaling
-            objShader.setUniformMat4("transformMat", modelTransformMat);
-            objShader.setUniformMat4("modelViewMat", modelViewMat);
+            objShader->SetUniformMat4("transformMat", modelTransformMat);
+            objShader->SetUniformMat4("modelViewMat", modelViewMat);
             cube.draw();
         }
 

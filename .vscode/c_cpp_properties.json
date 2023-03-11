@@ -10,7 +10,8 @@
                 "${workspaceFolder}/external/glm",
                 "${workspaceFolder}/external/imgui",
                 "${workspaceFolder}/external/stb",
-                "${workspaceFolder}/libs/core/src"
+                "${workspaceFolder}/libs/core/src",
+                "${workspaceFolder}/libs/orc/src"
             ],
             "defines": [],
             "macFrameworkPath": [

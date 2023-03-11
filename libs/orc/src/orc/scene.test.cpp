@@ -1,3 +1,5 @@
+#include <iostream>
+#include <filesystem>
 #include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
