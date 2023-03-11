@@ -29,5 +29,7 @@ namespace orc
         std::shared_ptr<Root> root;
         std::shared_ptr<Camera> camera;
         std::unique_ptr<OpenGLShader> regularShader, lightShader;
+
+        void Traverse(void (*f)(Obj &obj));
     };
 }

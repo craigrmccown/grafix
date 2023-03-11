@@ -45,29 +45,27 @@ namespace orc
 
     void Scene::Update()
     {
-        StatefulVisitor visitor;
+        Traverse([](Obj &obj) { obj.ComputeMxs(); });
+    }
 
-        // TODO: Implement Obj iterator instead of BFS + GetChildren
+    // No-op
+    void Scene::Root::Dispatch(ObjVisitor &visitor) {}
+
+    void Scene::Traverse(void (*f)(Obj &obj))
+    {
         std::queue<Obj *const> q;
         q.push(root.get());
 
         while (!q.empty())
         {
             Obj *o = q.front();
+            f(*o);
             q.pop();
-
-            o->ComputeMxs();
-            o->Dispatch(visitor);
 
             for (const std::shared_ptr<Obj> &c : o->GetChildren())
             {
                 q.push(c.get());
             }
         }
-
-        // Set uniforms
     }
-
-    // No-op
-    void Scene::Root::Dispatch(ObjVisitor &visitor) {}
 }
