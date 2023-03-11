@@ -2,17 +2,7 @@
     "configurations": [
         {
             "name": "Mac",
-            "includePath": [
-                "${workspaceFolder}/external/Catch2/src",
-                "${workspaceFolder}/build/external/Catch2/generated-includes",
-                "${workspaceFolder}/external/glad",
-                "${workspaceFolder}/external/glfw/include",
-                "${workspaceFolder}/external/glm",
-                "${workspaceFolder}/external/imgui",
-                "${workspaceFolder}/external/stb",
-                "${workspaceFolder}/libs/core/src",
-                "${workspaceFolder}/libs/orc/src"
-            ],
+            "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "defines": [],
             "macFrameworkPath": [
                 "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"
@@ -20,7 +10,8 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-arm64"
+            "intelliSenseMode": "macos-clang-arm64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4
