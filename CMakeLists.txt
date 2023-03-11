@@ -12,6 +12,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/external/Catch2/extras)
 include(CTest)
 include(Catch)
 
+add_subdirectory(tools)
 add_subdirectory(external)
 add_subdirectory(libs)
 add_subdirectory(apps)
