@@ -2,5 +2,5 @@
 
 namespace orc
 {
-    extern const char light_frag[];
+    extern const char light_frag[113];
 }

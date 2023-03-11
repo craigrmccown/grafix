@@ -14,7 +14,7 @@
 const std::string
     usageMsg = "binembed <namespace> <resource-path>",
     indentation = "    ",
-    hexAlphabet = "01234567890abcdef";
+    hexAlphabet = "0123456789abcdef";
 const char bytesPerLine = 16;
 const std::regex identifierValidator("^[A-Za-z_]\\w*(::[A-Za-z_]\\w*)*$");
 
@@ -87,7 +87,7 @@ std::string charToHexLiteral(unsigned char c)
     return buf.str();
 }
 
-std::string buildHeaderString(std::string ns, std::string varname)
+std::string buildHeaderString(std::string ns, std::string varname, std::string content)
 {
     std::stringstream buf;
     buf
@@ -95,7 +95,7 @@ std::string buildHeaderString(std::string ns, std::string varname)
         << std::endl
         << "namespace " << ns << std::endl
         << "{" << std::endl
-        << indentation << "extern const char " << varname << "[];" << std::endl
+        << indentation << "extern const char " << varname << "[" << content.size() << "];" << std::endl
         << "}" << std::endl;
 
     return buf.str();
@@ -109,7 +109,7 @@ std::string buildSourceString(std::string headerName, std::string ns, std::strin
         << std::endl
         << "namespace " << ns << std::endl
         << "{" << std::endl
-        << indentation << "const char " << varname << "[] = {" << std::endl;
+        << indentation << "const char " << varname << "[" << content.size() << "] = {" << std::endl;
 
     for (int i = 0; i < content.length(); i++)
     {
@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
         hPath = path + ".hpp",
         cPath = path + ".cpp",
         varname = fnameToVarname(fname),
-        hContent = buildHeaderString(ns, varname),
+        hContent = buildHeaderString(ns, varname, content),
         cContent = buildSourceString(fname + ".hpp", ns, varname, content);
 
     try

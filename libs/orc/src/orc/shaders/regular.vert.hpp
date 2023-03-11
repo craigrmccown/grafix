@@ -2,5 +2,5 @@
 
 namespace orc
 {
-    extern const char regular_vert[];
+    extern const char regular_vert[564];
 }

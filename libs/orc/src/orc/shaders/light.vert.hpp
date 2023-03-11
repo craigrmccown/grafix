@@ -2,5 +2,5 @@
 
 namespace orc
 {
-    extern const char light_vert[];
+    extern const char light_vert[154];
 }
