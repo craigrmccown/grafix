@@ -1,20 +1,19 @@
+#include <iostream>
 #include <memory>
 #include <queue>
 #include <vector>
+#include <glad/glad.h>
 #include "light.hpp"
 #include "obj.hpp"
 #include "regular.hpp"
 #include "scene.hpp"
+#include "shader.hpp"
+#include "shaders/light.frag.hpp"
+#include "shaders/light.vert.hpp"
+#include "shaders/regular.frag.hpp"
+#include "shaders/regular.vert.hpp"
 #include "stateful_visitor.hpp"
 #include "visitor.hpp"
-
-// TODO: Improve handling of paths (x-platform and relative path root)
-const std::string shaderSourceDir = "../../../libs/orc/src/orc/shaders";
-
-static std::string buildShaderSrcPath(std::string filename)
-{
-    return shaderSourceDir + "/" + filename;
-}
 
 namespace orc
 {
@@ -23,13 +22,13 @@ namespace orc
         , camera(std::make_shared<Camera>(45.0, 16.0/9.0))
     {
         root->AttachChild(camera);
-        regularShader = LoadShaderFromFiles(std::vector<std::string>{
-            buildShaderSrcPath("regular.vert"),
-            buildShaderSrcPath("regular.frag")
+        regularShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
+            ShaderSrc(GL_VERTEX_SHADER, std::string(regular_vert, sizeof(regular_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(regular_frag, sizeof(regular_frag))),
         });
-        lightShader = LoadShaderFromFiles(std::vector<std::string>{
-            buildShaderSrcPath("light.vert"),
-            buildShaderSrcPath("light.frag")
+        lightShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
+            ShaderSrc(GL_VERTEX_SHADER, std::string(light_vert, sizeof(light_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(light_frag, sizeof(light_frag))),
         });
     }
 
