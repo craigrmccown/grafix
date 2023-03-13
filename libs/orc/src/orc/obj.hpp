@@ -9,24 +9,37 @@ namespace orc
 {
     // The base class for objects that exist in 3D space. Handles positioning
     // math and implements spatial hierarchy.
+    //
+    // TODO: Support scaling transforms
+    // TODO: Obj type that participates in tranformation, but cannot be rendered
     class Obj : public std::enable_shared_from_this<Obj>
     {
         public:
-        // Creates a new object at the origin facing the +Z direction
+        // Creates a new object at the origin facing the -Z direction
         Obj();
 
         // Implements the visitor pattern. Each concrete subclass of Obj should
         // override this method to dispatch the correct request to the visitor.
         virtual void Dispatch(ObjVisitor &visitor) = 0;
 
-        // Moves the object in world space by the specified deltas along each
-        // axis. This operation has no effect until ComputeMxs is called.
+        // Moves the object relative to the coordinate system of its parent by
+        // the specified deltas along each axis. This operation has no effect
+        // until ComputeMxs is called.
         void Translate(float x, float y, float z);
+
+        // Sets the translation of this object relative to the coordinate system
+        // of its parent. This operation has no effect until ComputeMxs is
+        // called.
+        void SetTranslation(float x, float y, float z);
 
         // Rotates the object by the specified yaw, pitch, and roll angles,
         // expressed in radians. This operation has no effect until ComputeMxs
         // is called.
         void Rotate(float yaw, float pitch, float roll);
+
+        // Sets the rotation of this object relative to the orientation of its
+        // parent. This operation has no effect until ComputeMxs is called.
+        void SetRotation(float yaw, float pitch, float roll);
 
         // Computes the model matrix based on the current translation and
         // rotation. If attached, calculations are relative to the orientation

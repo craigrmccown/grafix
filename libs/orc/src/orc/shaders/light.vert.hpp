@@ -2,5 +2,5 @@
 
 namespace orc::shaders
 {
-    extern const char light_vert[154];
+    extern const char light_vert[152];
 }

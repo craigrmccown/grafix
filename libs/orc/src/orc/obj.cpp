@@ -6,6 +6,7 @@
 
 namespace orc
 {
+    // TODO: Factory pattern to ensure shared_ptr management
     Obj::Obj()
         : translation(glm::vec3(0.0f))
         , rotation(glm::vec3(0.0f))
@@ -18,10 +19,20 @@ namespace orc
         translation += glm::vec3(x, y, z);
     }
 
+    void Obj::SetTranslation(float x, float y, float z)
+    {
+        translation = glm::vec3(x, y, z);
+    }
+
     void Obj::Rotate(float yaw, float pitch, float roll)
     {
         // TODO: Divide by 2pi radians to prevent overflow
         rotation += glm::vec3(yaw, pitch, roll);
+    }
+
+    void Obj::SetRotation(float yaw, float pitch, float roll)
+    {
+        rotation = glm::vec3(yaw, pitch, roll);
     }
 
     void Obj::ComputeMxs()
@@ -44,7 +55,8 @@ namespace orc
 
     glm::vec3 Obj::GetFront() const
     {
-        return GetModelMx() * glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+        // By convention, the default direction faces the -Z axis
+        return GetModelMx() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
     }
 
     glm::vec3 Obj::GetRight() const

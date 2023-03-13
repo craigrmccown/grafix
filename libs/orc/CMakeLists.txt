@@ -24,12 +24,16 @@ add_custom_command(
 # Source
 add_library(orc STATIC
     src/orc/camera.cpp
+    src/orc/cube.cpp
+    src/orc/image.cpp
     src/orc/light.cpp
+    src/orc/mesh.cpp
     src/orc/obj.cpp
     src/orc/regular.cpp
     src/orc/scene.cpp
     src/orc/shader.cpp
     src/orc/stateful_visitor.cpp
+    src/orc/texture.cpp
 
     # Embedded resources
     src/orc/shaders/light.frag.cpp
@@ -37,9 +41,12 @@ add_library(orc STATIC
     src/orc/shaders/regular.frag.cpp
     src/orc/shaders/regular.vert.cpp
 )
-set(LDEPS glad glm::glm)
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(orc PRIVATE ${LDEPS})
+target_link_libraries(orc PRIVATE 
+    glad
+    glm::glm
+    stb_image
+)
 
 # Tests
 add_executable(orc_test
@@ -49,8 +56,18 @@ add_executable(orc_test
 )
 target_link_libraries(orc_test PRIVATE
     Catch2::Catch2
+    glad
     glfw
+    glm::glm
     orc
-    ${LDEPS}
 )
 catch_discover_tests(orc_test)
+
+# Examples
+add_executable(basic_usage examples/basic_usage.cpp)
+target_link_libraries(basic_usage PRIVATE
+  glad
+  glfw
+  glm::glm
+  orc
+)

@@ -98,14 +98,14 @@ namespace orc
         // Map shader source code to compiled OpenGL objects. Once the program is linked,
         // these objects will fall out of scope and be deallocated.
         std::vector<std::unique_ptr<OpenGLShaderSource>> sources;
-        for (ShaderSrc src : srcs)
+        for (const ShaderSrc &src : srcs)
         {
             sources.push_back(std::make_unique<OpenGLShaderSource>(src.type, src.code.c_str()));
         }
 
         // Extract shader IDs, using a reference to avoid copies
         std::vector<unsigned int> shaders;
-        for (std::unique_ptr<OpenGLShaderSource> &source : sources)
+        for (const std::unique_ptr<OpenGLShaderSource> &source : sources)
         {
             shaders.push_back(source->GetId());
         }
@@ -179,7 +179,7 @@ namespace orc
     std::unique_ptr<OpenGLShader> LoadShaderFromFiles(std::vector<std::string> paths)
     {
         std::vector<ShaderSrc> srcs;
-        for (std::string path : paths)
+        for (const std::string &path : paths)
         {
             srcs.push_back(loadShaderSrc(path));
         }

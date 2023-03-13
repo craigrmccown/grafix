@@ -56,7 +56,7 @@ namespace orc
 
     SpotLight::SpotLight()
     {
-        SetBlurAngles(15.0f, 25.0f);
+        SetBlurAngles(glm::radians(15.0f), glm::radians(25.0f));
     }
 
     void SpotLight::Dispatch(ObjVisitor &visitor)
@@ -64,10 +64,10 @@ namespace orc
         visitor.VisitSpotLight(this);
     }
 
-    void SpotLight::SetBlurAngles(float innerDeg, float outerDeg)
+    void SpotLight::SetBlurAngles(float inner, float outer)
     {
-        innerBlur = cos(glm::radians(innerDeg));
-        outerBlur = cos(glm::radians(outerBlur));
+        innerBlur = cos(inner);
+        outerBlur = cos(outer);
     }
 
     float SpotLight::GetInnerBlur() const

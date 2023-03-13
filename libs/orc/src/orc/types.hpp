@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <glm/glm.hpp>
 
 namespace orc
@@ -20,5 +19,14 @@ namespace orc
     struct Attenuation
     {
         float Constant, Linear, Quadratic;
+    };
+
+    struct GlobalLight
+    {
+        glm::vec3 Direction;
+
+        glm::vec3 Color;
+
+        Phong Phong;
     };
 }

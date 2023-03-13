@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/epsilon.hpp>
+#include "light.hpp"
 #include "regular.hpp"
 #include "scene.hpp"
 
@@ -12,12 +13,12 @@ bool compareVec3(glm::vec3 a, glm::vec3 b) {
 }
 
 TEST_CASE("Orient single object", "[orc]") {
-    orc::Scene scene;
+    orc::Scene scene("data");
     std::shared_ptr<orc::Regular> o = std::make_shared<orc::Regular>();
 
     scene.GetRoot().AttachChild(o);
     
-    // Start at origin facing +Z, rotate 90 degrees clockwise around Y axis, and
+    // Start at origin facing -Z, rotate 90 degrees clockwise around Y axis, and
     // move away from the origin
     o->Translate(2.0f, 1.0f, 4.0f);
     o->Rotate(glm::radians(90.0f), 0.0f, 0.0f);
@@ -26,11 +27,11 @@ TEST_CASE("Orient single object", "[orc]") {
     REQUIRE(compareVec3(o->GetPosition(), glm::vec3(2.0f, 1.0f, 4.0f)));
     REQUIRE(compareVec3(o->GetUp(), glm::vec3(0.0f, 1.0f, 0.0f)));
     REQUIRE(compareVec3(o->GetRight(), glm::vec3(0.0f, 0.0f, -1.0f)));
-    REQUIRE(compareVec3(o->GetFront(), glm::vec3(1.0f, 0.0f, 0.0f)));
+    REQUIRE(compareVec3(o->GetFront(), glm::vec3(-1.0f, 0.0f, 0.0f)));
 }
 
 TEST_CASE("Orient child object", "[orc]") {
-    orc::Scene scene;
+    orc::Scene scene("data");
     std::shared_ptr<orc::Regular> parent = std::make_shared<orc::Regular>();
     std::shared_ptr<orc::Regular> child = std::make_shared<orc::Regular>();
     parent->AttachChild(child);
@@ -46,5 +47,5 @@ TEST_CASE("Orient child object", "[orc]") {
     REQUIRE(compareVec3(child->GetPosition(), glm::vec3(-11.0f, 9.0f, -1.0f)));
     REQUIRE(compareVec3(child->GetUp(), glm::vec3(-1.0f, 0.0f, 0.0f)));
     REQUIRE(compareVec3(child->GetRight(), glm::vec3(0.0f, 1.0f, 0.0f)));
-    REQUIRE(compareVec3(child->GetFront(), glm::vec3(0.0f, 0.0f, 1.0f)));
+    REQUIRE(compareVec3(child->GetFront(), glm::vec3(0.0f, 0.0f, -1.0f)));
 }

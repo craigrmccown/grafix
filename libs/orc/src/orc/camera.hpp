@@ -9,9 +9,11 @@ namespace orc
     class Camera : public Obj
     {
         public:
-        Camera(float fieldOfView, float aspectRatio);
+        Camera();
 
         void Dispatch(ObjVisitor &visitor) override;
+
+        void SetPerspective(float fieldOfView, float aspectRatio);
 
         // See Obj.ComputeMxs. Also computes the view-projection matrix.
         void ComputeMxs() override;
@@ -21,7 +23,7 @@ namespace orc
         glm::mat4 GetViewProjectionMx() const;
 
         private:
-        const glm::mat4 projectionMx;
+        glm::mat4 projectionMx;
         glm::mat4 viewProjectionMx;
 
         glm::mat4 GetViewMx() const;
