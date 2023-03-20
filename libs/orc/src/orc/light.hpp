@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "node.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
@@ -9,8 +10,6 @@ namespace orc
     class Light : public Node
     {
         public:
-        Light();
-
         void SetColor(float r, float g, float b);
 
         void SetPhong(float ambient, float diffuse, float specular);
@@ -18,6 +17,9 @@ namespace orc
         glm::vec3 GetColor() const;
 
         Phong GetPhong() const;
+
+        protected:
+        Light();
 
         private:
         glm::vec3 color;
@@ -27,13 +29,16 @@ namespace orc
     class OmniLight : public Light
     {
         public:
-        OmniLight();
+        static std::shared_ptr<OmniLight> Create();
 
         void Dispatch(NodeVisitor &visitor) override;
 
         void SetRadius(float radius);
 
         Attenuation GetAttenuation() const;
+
+        protected:
+        OmniLight();
 
         private:
         Attenuation attenuation;
@@ -42,7 +47,7 @@ namespace orc
     class SpotLight : public Light
     {
         public:
-        SpotLight();
+        static std::shared_ptr<SpotLight> Create();
 
         void Dispatch(NodeVisitor &visitor) override;
 
@@ -51,6 +56,9 @@ namespace orc
         float GetInnerBlur() const;
 
         float GetOuterBlur() const;
+
+        protected:
+        SpotLight();
 
         private:
         float innerBlur, outerBlur;

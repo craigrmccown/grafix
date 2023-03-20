@@ -24,8 +24,8 @@ const size_t maxOmniLights = 4;
 namespace orc
 {
     Scene::Scene(std::string dataDir)
-        : root(std::make_shared<Node>())
-        , camera(std::make_shared<Camera>())
+        : root(Node::Create())
+        , camera(Camera::Create())
         , mesh(BuildCubeMesh(dataDir))
         , globalLight(GlobalLight{
             .Color = glm::vec3(1),

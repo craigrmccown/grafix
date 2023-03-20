@@ -15,7 +15,11 @@ static float modRadians(float rad)
 
 namespace orc
 {
-    // TODO: Factory pattern to ensure shared_ptr management
+    std::shared_ptr<Node> Node::Create()
+    {
+        return std::shared_ptr<Node>(new Node());
+    }
+
     Node::Node()
         : translation(glm::vec3(0.0f))
         , rotation(glm::vec3(0.0f))

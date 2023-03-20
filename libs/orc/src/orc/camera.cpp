@@ -14,6 +14,11 @@ static void copyVecToRow(const glm::vec3 &v, glm::mat4 &m, int r)
 
 namespace orc
 {
+    std::shared_ptr<Camera> Camera::Create()
+    {
+        return std::shared_ptr<Camera>(new Camera());
+    }
+
     Camera::Camera()
     {
         SetPerspective(defaultFieldOfView, defaultAspectRatio);

@@ -79,17 +79,17 @@ int main(int argc, char *argv[])
     scene.GetCamera().Rotate(M_PI_4/1.25, -M_PI_4/2.5, 0);
 
     // Add some lighting
-    std::shared_ptr<orc::OmniLight> light = std::make_shared<orc::OmniLight>();
+    std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
     light->SetColor(1, 0, 0);
     light->Translate(-8, 6, 2);
     scene.GetRoot().AttachChild(light);
 
     // Create object and add to scene root
-    std::shared_ptr<orc::Object> parent = std::make_shared<orc::Object>();
+    std::shared_ptr<orc::Object> parent = orc::Object::Create();
     scene.GetRoot().AttachChild(parent);
 
     // Create child object and attach to parent
-    std::shared_ptr<orc::Object> child = std::make_shared<orc::Object>();
+    std::shared_ptr<orc::Object> child = orc::Object::Create();
     child->Translate(4, 0, 0);
     parent->AttachChild(child);
 

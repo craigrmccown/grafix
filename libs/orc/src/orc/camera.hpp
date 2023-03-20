@@ -9,7 +9,7 @@ namespace orc
     class Camera : public Node
     {
         public:
-        Camera();
+        static std::shared_ptr<Camera> Create();
 
         void Dispatch(NodeVisitor &visitor) override;
 
@@ -21,6 +21,9 @@ namespace orc
         // Returns the view-projection matrix that can be used to apply camera
         // perspective to all other nodes
         glm::mat4 GetViewProjectionMx() const;
+
+        protected:
+        Camera();
 
         private:
         glm::mat4 projectionMx;

@@ -119,17 +119,17 @@ int main()
     scene.GetCamera().SetPerspective(glm::radians(45.0f), (float)windowWidth/(float)windowHeight);
     scene.GetCamera().Translate(0, 0, 10);
 
-    std::shared_ptr<orc::Object> object = std::make_shared<orc::Object>();
+    std::shared_ptr<orc::Object> object = orc::Object::Create();
     object->Rotate(glm::radians(45.0f), 0, glm::radians(45.0f));
     scene.GetRoot().AttachChild(object);
 
-    std::shared_ptr<orc::OmniLight> light = std::make_shared<orc::OmniLight>();
+    std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
     light->Translate(3, 3, 0);
     light->SetColor(0, 1, 0);
     light->SetRadius(100);
     object->AttachChild(light);
 
-    std::shared_ptr<orc::SpotLight> flash = std::make_shared<orc::SpotLight>();
+    std::shared_ptr<orc::SpotLight> flash = orc::SpotLight::Create();
 
     Clock clock;
     KeyboardMouseControls ctrl(*window, 0.2f);

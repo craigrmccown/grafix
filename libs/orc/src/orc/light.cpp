@@ -29,8 +29,14 @@ namespace orc
         return phong;
     }
 
+    std::shared_ptr<OmniLight> OmniLight::Create()
+    {
+        return std::shared_ptr<OmniLight>(new OmniLight());
+    }
+
     OmniLight::OmniLight()
     {
+        // TODO: Normalize distance units
         SetRadius(50.0f);
     }
 
@@ -52,6 +58,11 @@ namespace orc
     Attenuation OmniLight::GetAttenuation() const
     {
         return attenuation;
+    }
+
+    std::shared_ptr<SpotLight> SpotLight::Create()
+    {
+        return std::shared_ptr<SpotLight>(new SpotLight());
     }
 
     SpotLight::SpotLight()

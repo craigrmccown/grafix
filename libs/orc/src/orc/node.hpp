@@ -14,8 +14,7 @@ namespace orc
     class Node : public std::enable_shared_from_this<Node>
     {
         public:
-        // Creates a new node at the origin facing the -Z direction
-        Node();
+        static std::shared_ptr<Node> Create();
 
         // Implements the visitor pattern. Each concrete subclass of Node should
         // override this method to dispatch the correct request to the visitor.
@@ -79,6 +78,10 @@ namespace orc
 
         // Returns a Node's children
         const std::set<std::shared_ptr<Node>> &GetChildren() const;
+
+        protected:
+        // Creates a new node at the origin facing the -Z direction
+        Node();
 
         private:
         glm::vec3 translation;
