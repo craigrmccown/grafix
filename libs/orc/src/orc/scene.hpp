@@ -25,12 +25,7 @@ namespace orc
         void Draw();
 
         private:
-        class Root : public Node
-        {
-            void Dispatch(NodeVisitor &visitor) override;
-        };
-
-        std::shared_ptr<Root> root;
+        std::shared_ptr<Node> root;
         std::shared_ptr<Camera> camera;
         std::unique_ptr<OpenGLShader> objectShader, lightShader;
 

@@ -3,6 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include "node.hpp"
+#include "visitor.hpp"
 
 namespace orc
 {
@@ -13,6 +14,11 @@ namespace orc
         , modelMx(glm::mat4(1.0f))
         , isAttached(false)
         {}
+
+    void Node::Dispatch(NodeVisitor &visitor)
+    {
+        // No-op
+    }
 
     void Node::Translate(float x, float y, float z)
     {

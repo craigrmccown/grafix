@@ -11,7 +11,6 @@ namespace orc
     // math and implements spatial hierarchy.
     //
     // TODO: Support scaling transforms
-    // TODO: Node type that participates in tranformation, but cannot be rendered
     class Node : public std::enable_shared_from_this<Node>
     {
         public:
@@ -20,7 +19,7 @@ namespace orc
 
         // Implements the visitor pattern. Each concrete subclass of Node should
         // override this method to dispatch the correct request to the visitor.
-        virtual void Dispatch(NodeVisitor &visitor) = 0;
+        virtual void Dispatch(NodeVisitor &visitor);
 
         // Moves the node relative to the coordinate system of its parent by the
         // specified deltas along each axis. This operation has no effect until

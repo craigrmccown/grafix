@@ -24,7 +24,7 @@ const size_t maxOmniLights = 4;
 namespace orc
 {
     Scene::Scene(std::string dataDir)
-        : root(std::make_shared<Root>())
+        : root(std::make_shared<Node>())
         , camera(std::make_shared<Camera>())
         , mesh(BuildCubeMesh(dataDir))
         , globalLight(GlobalLight{
@@ -146,9 +146,6 @@ namespace orc
             mesh->Draw();
         }
     }
-
-    // No-op
-    void Scene::Root::Dispatch(NodeVisitor &visitor) {}
 
     void Scene::Traverse(std::function<void(Node&)> f)
     {
