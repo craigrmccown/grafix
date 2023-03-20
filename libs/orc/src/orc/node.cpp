@@ -1,9 +1,17 @@
+#define _USE_MATH_DEFINES
+
+#include <cmath>
 #include <memory>
 #include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include "node.hpp"
 #include "visitor.hpp"
+
+static float modRadians(float rad)
+{
+    return remainderf(rad, 2 * M_PI);
+}
 
 namespace orc
 {
@@ -32,8 +40,10 @@ namespace orc
 
     void Node::Rotate(float yaw, float pitch, float roll)
     {
-        // TODO: Divide by 2pi radians to prevent overflow
         rotation += glm::vec3(yaw, pitch, roll);
+        rotation.x = modRadians(rotation.x);
+        rotation.y = modRadians(rotation.y);
+        rotation.z = modRadians(rotation.z);
     }
 
     void Node::SetRotation(float yaw, float pitch, float roll)
