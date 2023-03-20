@@ -101,9 +101,6 @@ namespace orc
         objectShader->SetUniformFloat("globalLight.phong.diffuse", globalLight.Phong.Diffuse);
         objectShader->SetUniformFloat("globalLight.phong.specular", globalLight.Phong.Specular);
 
-        // TODO: Material management
-        objectShader->SetUniformFloat("material.shininess", 64.0f);
-
         for (int i = 0; i < maxOmniLights; i ++)
         {
             if (i >= omniLights.size())
@@ -144,6 +141,8 @@ namespace orc
         {
             objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
             objectShader->SetUniformMat4("modelMx", object->GetModelMx());
+            objectShader->SetUniformFloat("material.shininess", object->GetMaterial().Shininess); // TODO: Material management
+
             mesh->Draw();
         }
     }

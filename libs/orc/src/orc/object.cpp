@@ -2,14 +2,7 @@
 #include "types.hpp"
 #include "visitor.hpp"
 
-const orc::Material defaultMaterial = orc::Material{
-    .Phong = orc::Phong{
-        .Ambient = 0.05f,
-        .Diffuse = 0.25f,
-        .Specular = 0.25f
-    },
-    .Shininess = 64.0f
-};
+const orc::Material defaultMaterial = orc::Material{.Shininess = 64.0f};
 
 namespace orc
 {

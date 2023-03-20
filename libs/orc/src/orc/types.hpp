@@ -11,8 +11,6 @@ namespace orc
 
     struct Material
     {
-        Phong Phong;
-
         float Shininess;
     };
 
