@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 #include "camera.hpp"
 #include "mesh.hpp"
-#include "obj.hpp"
+#include "node.hpp"
 #include "shader.hpp"
 #include "visitor.hpp"
 
@@ -16,7 +16,7 @@ namespace orc
         public:
         Scene(std::string dataDir);
 
-        Obj &GetRoot();
+        Node &GetRoot();
 
         Camera &GetCamera();
 
@@ -25,9 +25,9 @@ namespace orc
         void Draw();
 
         private:
-        class Root : public Obj
+        class Root : public Node
         {
-            void Dispatch(ObjVisitor &visitor) override;
+            void Dispatch(NodeVisitor &visitor) override;
         };
 
         std::shared_ptr<Root> root;
@@ -40,6 +40,6 @@ namespace orc
         // Temporary. Each object should reference its own mesh.
         std::unique_ptr<Mesh> mesh;
 
-        void Traverse(std::function<void(Obj&)>);
+        void Traverse(std::function<void(Node&)>);
     };
 }

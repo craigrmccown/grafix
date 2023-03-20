@@ -1,12 +1,12 @@
 #pragma once
 
-#include "obj.hpp"
+#include "node.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
 namespace orc
 {
-    class Light : public Obj
+    class Light : public Node
     {
         public:
         Light();
@@ -29,7 +29,7 @@ namespace orc
         public:
         OmniLight();
 
-        void Dispatch(ObjVisitor &visitor) override;
+        void Dispatch(NodeVisitor &visitor) override;
 
         void SetRadius(float radius);
 
@@ -44,7 +44,7 @@ namespace orc
         public:
         SpotLight();
 
-        void Dispatch(ObjVisitor &visitor) override;
+        void Dispatch(NodeVisitor &visitor) override;
 
         void SetBlurAngles(float innerDeg, float outerDeg);
 

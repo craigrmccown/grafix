@@ -8,7 +8,7 @@
 
 namespace orc
 {
-    class StatefulVisitor : public ObjVisitor
+    class StatefulVisitor : public NodeVisitor
     {
         public:
         void VisitCamera(Camera *camera) override;

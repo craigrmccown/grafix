@@ -1,25 +1,25 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "obj.hpp"
+#include "node.hpp"
 #include "visitor.hpp"
 
 namespace orc
 {
-    class Camera : public Obj
+    class Camera : public Node
     {
         public:
         Camera();
 
-        void Dispatch(ObjVisitor &visitor) override;
+        void Dispatch(NodeVisitor &visitor) override;
 
         void SetPerspective(float fieldOfView, float aspectRatio);
 
-        // See Obj.ComputeMxs. Also computes the view-projection matrix.
+        // See Node.ComputeMxs. Also computes the view-projection matrix.
         void ComputeMxs() override;
 
         // Returns the view-projection matrix that can be used to apply camera
-        // perspective to all other objects
+        // perspective to all other nodes
         glm::mat4 GetViewProjectionMx() const;
 
         private:

@@ -7,37 +7,37 @@
 
 namespace orc
 {
-    // The base class for objects that exist in 3D space. Handles positioning
+    // The base class for points that exist in 3D space. Handles positioning
     // math and implements spatial hierarchy.
     //
     // TODO: Support scaling transforms
-    // TODO: Obj type that participates in tranformation, but cannot be rendered
-    class Obj : public std::enable_shared_from_this<Obj>
+    // TODO: Node type that participates in tranformation, but cannot be rendered
+    class Node : public std::enable_shared_from_this<Node>
     {
         public:
-        // Creates a new object at the origin facing the -Z direction
-        Obj();
+        // Creates a new node at the origin facing the -Z direction
+        Node();
 
-        // Implements the visitor pattern. Each concrete subclass of Obj should
+        // Implements the visitor pattern. Each concrete subclass of Node should
         // override this method to dispatch the correct request to the visitor.
-        virtual void Dispatch(ObjVisitor &visitor) = 0;
+        virtual void Dispatch(NodeVisitor &visitor) = 0;
 
-        // Moves the object relative to the coordinate system of its parent by
-        // the specified deltas along each axis. This operation has no effect
-        // until ComputeMxs is called.
+        // Moves the node relative to the coordinate system of its parent by the
+        // specified deltas along each axis. This operation has no effect until
+        // ComputeMxs is called.
         void Translate(float x, float y, float z);
 
-        // Sets the translation of this object relative to the coordinate system
+        // Sets the translation of this node relative to the coordinate system
         // of its parent. This operation has no effect until ComputeMxs is
         // called.
         void SetTranslation(float x, float y, float z);
 
-        // Rotates the object by the specified yaw, pitch, and roll angles,
+        // Rotates the node by the specified yaw, pitch, and roll angles,
         // expressed in radians. This operation has no effect until ComputeMxs
         // is called.
         void Rotate(float yaw, float pitch, float roll);
 
-        // Sets the rotation of this object relative to the orientation of its
+        // Sets the rotation of this node relative to the orientation of its
         // parent. This operation has no effect until ComputeMxs is called.
         void SetRotation(float yaw, float pitch, float roll);
 
@@ -50,43 +50,43 @@ namespace orc
         // ComputeMxs
         glm::mat4 GetModelMx() const;
 
-        // Returns a unit vector pointing in the direction of this object. If
-        // this object has not been rotated, the front vector aligns with the +Z
+        // Returns a unit vector pointing in the direction of this node. If this
+        // this node has not been rotated, the front vector aligns with the -Z
         // axis.
         glm::vec3 GetFront() const;
 
         // Returns a unit vector pointing in a direction orthogonal to the
-        // direction of this object. If this object has not been rotated, the
-        // right vector aligns with the +X axis.
+        // direction of this node. If this node has not been rotated, the right
+        // vector aligns with the +X axis.
         glm::vec3 GetRight() const;
 
         // Returns a unit vector pointing in a direction orthogonal to the
-        // direction of this object. If this object has not been rotated, the
-        // up vector aligns with the +Y axis.
+        // direction of this node. If this node has not been rotated, the up
+        // vector aligns with the +Y axis.
         glm::vec3 GetUp() const;
 
-        // Returns the position of this object, in world coordinate space. All
-        // objects are initialized at the origin.
+        // Returns the position of this node, in world coordinate space. All
+        // nodes are initialized at the origin.
         glm::vec3 GetPosition() const;
 
-        // Establishes a parent-child relationship between this Obj and the
+        // Establishes a parent-child relationship between this Node and the
         // specified child. Assumes shared ownership of the child. All child
         // transformations will be relative to its parent.
-        void AttachChild(std::shared_ptr<Obj> child);
+        void AttachChild(std::shared_ptr<Node> child);
 
         // Detaches a node from another. Detached nodes aren't drawn by the
         // Scene, but can still be manipulated and reattached at a later point.
         void Detach();
 
-        // Returns an Obj's children
-        const std::set<std::shared_ptr<Obj>> &GetChildren() const;
+        // Returns a Node's children
+        const std::set<std::shared_ptr<Node>> &GetChildren() const;
 
         private:
         glm::vec3 translation;
         glm::vec3 rotation;
         glm::mat4 modelMx;
-        std::set<std::shared_ptr<Obj>> children;
-        std::weak_ptr<Obj> parent;
+        std::set<std::shared_ptr<Node>> children;
+        std::weak_ptr<Node> parent;
         bool isAttached;
     };
 }

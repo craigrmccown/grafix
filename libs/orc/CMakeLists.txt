@@ -28,7 +28,7 @@ add_library(orc STATIC
     src/orc/image.cpp
     src/orc/light.cpp
     src/orc/mesh.cpp
-    src/orc/obj.cpp
+    src/orc/node.cpp
     src/orc/regular.cpp
     src/orc/scene.cpp
     src/orc/shader.cpp

@@ -34,7 +34,7 @@ namespace orc
         SetRadius(50.0f);
     }
 
-    void OmniLight::Dispatch(ObjVisitor &visitor)
+    void OmniLight::Dispatch(NodeVisitor &visitor)
     {
         visitor.VisitOmniLight(this);
     }
@@ -59,7 +59,7 @@ namespace orc
         SetBlurAngles(glm::radians(15.0f), glm::radians(25.0f));
     }
 
-    void SpotLight::Dispatch(ObjVisitor &visitor)
+    void SpotLight::Dispatch(NodeVisitor &visitor)
     {
         visitor.VisitSpotLight(this);
     }

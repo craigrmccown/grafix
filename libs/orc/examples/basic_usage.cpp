@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
     child->Translate(4, 0, 0);
     parent->AttachChild(child);
 
-    // Each frame, objects should be manipulated as needed, then Update should
-    // be called once. At the end of the frame, call Draw.
+    // Each frame, nodes should be manipulated as needed, then Update should be
+    // called once. At the end of the frame, call Draw.
     window.StartRenderLoop([&scene, &parent, &child]{
         float t = glfwGetTime();
         parent->SetRotation(0, 0, t);

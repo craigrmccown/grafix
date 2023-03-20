@@ -145,7 +145,7 @@ int main()
         clock.tick();
         ctrl.newFrame(clock.getElapsedSeconds());
 
-        // TODO: Build orientation-specific translation into Obj API (e.g. TranslateFront())
+        // TODO: Build orientation-specific translation into Node API (e.g. TranslateFront())
         glm::vec3 cameraTranslation = 6.0f * (
             scene.GetCamera().GetFront() * (float)ctrl.getValue(Controls::Signal::moveY) +
             scene.GetCamera().GetRight() * (float)ctrl.getValue(Controls::Signal::moveX)

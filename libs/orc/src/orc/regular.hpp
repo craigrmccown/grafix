@@ -1,15 +1,15 @@
 #pragma once
 
-#include "obj.hpp"
+#include "node.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
 namespace orc
 {
-    class Regular : public Obj
+    class Regular : public Node
     {
         public:
-        void Dispatch(ObjVisitor &visitor) override;
+        void Dispatch(NodeVisitor &visitor) override;
 
         const Material &GetMaterial() const;
 

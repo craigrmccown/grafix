@@ -2,43 +2,43 @@
 #include <stdexcept>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
-#include "obj.hpp"
+#include "node.hpp"
 
 namespace orc
 {
     // TODO: Factory pattern to ensure shared_ptr management
-    Obj::Obj()
+    Node::Node()
         : translation(glm::vec3(0.0f))
         , rotation(glm::vec3(0.0f))
         , modelMx(glm::mat4(1.0f))
         , isAttached(false)
         {}
 
-    void Obj::Translate(float x, float y, float z)
+    void Node::Translate(float x, float y, float z)
     {
         translation += glm::vec3(x, y, z);
     }
 
-    void Obj::SetTranslation(float x, float y, float z)
+    void Node::SetTranslation(float x, float y, float z)
     {
         translation = glm::vec3(x, y, z);
     }
 
-    void Obj::Rotate(float yaw, float pitch, float roll)
+    void Node::Rotate(float yaw, float pitch, float roll)
     {
         // TODO: Divide by 2pi radians to prevent overflow
         rotation += glm::vec3(yaw, pitch, roll);
     }
 
-    void Obj::SetRotation(float yaw, float pitch, float roll)
+    void Node::SetRotation(float yaw, float pitch, float roll)
     {
         rotation = glm::vec3(yaw, pitch, roll);
     }
 
-    void Obj::ComputeMxs()
+    void Node::ComputeMxs()
     {
         glm::mat4 parentMx(1.0f);
-        if (std::shared_ptr<Obj> p = parent.lock())
+        if (std::shared_ptr<Node> p = parent.lock())
         {
             parentMx = p->GetModelMx();
         }
@@ -48,37 +48,37 @@ namespace orc
             glm::yawPitchRoll(rotation.x, rotation.y, rotation.z);
     }
 
-    glm::mat4 Obj::GetModelMx() const
+    glm::mat4 Node::GetModelMx() const
     {
         return modelMx;
     }
 
-    glm::vec3 Obj::GetFront() const
+    glm::vec3 Node::GetFront() const
     {
         // By convention, the default direction faces the -Z axis
         return GetModelMx() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
     }
 
-    glm::vec3 Obj::GetRight() const
+    glm::vec3 Node::GetRight() const
     {
         return GetModelMx() * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
     }
 
-    glm::vec3 Obj::GetUp() const
+    glm::vec3 Node::GetUp() const
     {
         return GetModelMx() * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
     }
 
-    glm::vec3 Obj::GetPosition() const
+    glm::vec3 Node::GetPosition() const
     {
         return GetModelMx() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    void Obj::AttachChild(std::shared_ptr<Obj> child)
+    void Node::AttachChild(std::shared_ptr<Node> child)
     {
         if (child->isAttached)
         {
-            throw std::logic_error("Child is already attached to another object");
+            throw std::logic_error("Child is already attached to another node");
         }
 
         child->parent = shared_from_this();
@@ -86,9 +86,9 @@ namespace orc
         child->isAttached = true;
     }
 
-    void Obj::Detach()
+    void Node::Detach()
     {
-        if (std::shared_ptr<Obj> p = parent.lock())
+        if (std::shared_ptr<Node> p = parent.lock())
         {
             parent.reset();
             p->children.erase(shared_from_this());
@@ -96,7 +96,7 @@ namespace orc
         }
     }
 
-    const std::set<std::shared_ptr<Obj>> &Obj::GetChildren() const
+    const std::set<std::shared_ptr<Node>> &Node::GetChildren() const
     {
         return children;
     }

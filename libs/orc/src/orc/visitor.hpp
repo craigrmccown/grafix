@@ -11,7 +11,7 @@ namespace orc
     class SpotLight;
     class Regular;
 
-    class ObjVisitor
+    class NodeVisitor
     {
         public:
         virtual void VisitCamera(Camera *camera) = 0;

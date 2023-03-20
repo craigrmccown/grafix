@@ -7,7 +7,7 @@
 #include "cube.hpp"
 #include "light.hpp"
 #include "mesh.hpp"
-#include "obj.hpp"
+#include "node.hpp"
 #include "regular.hpp"
 #include "scene.hpp"
 #include "shader.hpp"
@@ -45,7 +45,7 @@ namespace orc
         mesh->Use();
     }
 
-    Obj &Scene::GetRoot()
+    Node &Scene::GetRoot()
     {
         return *root;
     }
@@ -57,7 +57,7 @@ namespace orc
 
     void Scene::Update()
     {
-        Traverse([](Obj &obj) { obj.ComputeMxs(); });
+        Traverse([](Node &node) { node.ComputeMxs(); });
     }
 
     // TODO: Delegate responsibility of mapping values to uniforms
@@ -66,11 +66,11 @@ namespace orc
     // TODO: Set uniforms only when data has changed
     void Scene::Draw()
     {
-        // Collect all objects in scene graph and separate by type
+        // Collect all nodes in scene graph and separate by type
         StatefulVisitor visitor;
-        Traverse([&visitor](Obj &obj) { obj.Dispatch(visitor); });
+        Traverse([&visitor](Node &node) { node.Dispatch(visitor); });
 
-        // Extract drawable objects
+        // Extract drawable nodes
         std::vector<OmniLight*> omniLights = std::vector<OmniLight *>(
             visitor.GetOmniLights().begin(),
             visitor.GetOmniLights().begin() + std::min(visitor.GetOmniLights().size(), maxOmniLights)
@@ -149,20 +149,20 @@ namespace orc
     }
 
     // No-op
-    void Scene::Root::Dispatch(ObjVisitor &visitor) {}
+    void Scene::Root::Dispatch(NodeVisitor &visitor) {}
 
-    void Scene::Traverse(std::function<void(Obj&)> f)
+    void Scene::Traverse(std::function<void(Node&)> f)
     {
-        std::queue<Obj *const> q;
+        std::queue<Node *const> q;
         q.push(root.get());
 
         while (!q.empty())
         {
-            Obj *o = q.front();
+            Node *o = q.front();
             f(*o);
             q.pop();
 
-            for (const std::shared_ptr<Obj> &c : o->GetChildren())
+            for (const std::shared_ptr<Node> &c : o->GetChildren())
             {
                 q.push(c.get());
             }

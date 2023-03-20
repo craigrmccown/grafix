@@ -13,7 +13,7 @@ const orc::Material defaultMaterial = orc::Material{
 
 namespace orc
 {
-    void Regular::Dispatch(ObjVisitor &visitor)
+    void Regular::Dispatch(NodeVisitor &visitor)
     {
         visitor.VisitRegular(this);
     }

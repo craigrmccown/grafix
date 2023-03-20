@@ -20,7 +20,7 @@ namespace orc
         ComputeMxs();
     }
 
-    void Camera::Dispatch(ObjVisitor &visitor)
+    void Camera::Dispatch(NodeVisitor &visitor)
     {
         visitor.VisitCamera(this);
     }
@@ -33,7 +33,7 @@ namespace orc
 
     void Camera::ComputeMxs()
     {
-        Obj::ComputeMxs();
+        Node::ComputeMxs();
         viewProjectionMx = projectionMx * GetViewMx();
     }
 
