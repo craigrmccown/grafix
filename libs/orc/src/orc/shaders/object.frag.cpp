@@ -1,8 +1,8 @@
-#include "regular.frag.hpp"
+#include "object.frag.hpp"
 
 namespace orc::shaders
 {
-    const char regular_frag[4695] = {
+    const char object_frag[4695] = {
         '\x23','\x76','\x65','\x72','\x73','\x69','\x6f','\x6e','\x20','\x33','\x33','\x30','\x20','\x63','\x6f','\x72',
         '\x65','\x0a','\x0a','\x69','\x6e','\x20','\x76','\x65','\x63','\x32','\x20','\x74','\x65','\x78','\x43','\x6f',
         '\x6f','\x72','\x64','\x3b','\x0a','\x69','\x6e','\x20','\x76','\x65','\x63','\x33','\x20','\x6e','\x6f','\x72',

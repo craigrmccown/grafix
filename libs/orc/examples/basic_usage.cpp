@@ -8,7 +8,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "orc/light.hpp"
-#include "orc/regular.hpp"
+#include "orc/object.hpp"
 #include "orc/scene.hpp"
 
 // GLFW window boilerplate to ensure cleanup. Must be used as a singleton.
@@ -84,12 +84,12 @@ int main(int argc, char *argv[])
     light->Translate(-8, 6, 2);
     scene.GetRoot().AttachChild(light);
 
-    // Create regular and add to scene root
-    std::shared_ptr<orc::Regular> parent = std::make_shared<orc::Regular>();
+    // Create object and add to scene root
+    std::shared_ptr<orc::Object> parent = std::make_shared<orc::Object>();
     scene.GetRoot().AttachChild(parent);
 
-    // Create child regular and attach to parent
-    std::shared_ptr<orc::Regular> child = std::make_shared<orc::Regular>();
+    // Create child object and attach to parent
+    std::shared_ptr<orc::Object> child = std::make_shared<orc::Object>();
     child->Translate(4, 0, 0);
     parent->AttachChild(child);
 

@@ -32,7 +32,7 @@ namespace orc
 
         std::shared_ptr<Root> root;
         std::shared_ptr<Camera> camera;
-        std::unique_ptr<OpenGLShader> regularShader, lightShader;
+        std::unique_ptr<OpenGLShader> objectShader, lightShader;
 
         // TODO: API to set global light properties
         GlobalLight globalLight;

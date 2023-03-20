@@ -8,13 +8,13 @@
 #include "light.hpp"
 #include "mesh.hpp"
 #include "node.hpp"
-#include "regular.hpp"
+#include "object.hpp"
 #include "scene.hpp"
 #include "shader.hpp"
 #include "shaders/light.frag.hpp"
 #include "shaders/light.vert.hpp"
-#include "shaders/regular.frag.hpp"
-#include "shaders/regular.vert.hpp"
+#include "shaders/object.frag.hpp"
+#include "shaders/object.vert.hpp"
 #include "stateful_visitor.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
@@ -33,9 +33,9 @@ namespace orc
             .Phong = Phong{.Ambient=0.15, .Diffuse=0.2, .Specular=0.1}
         })
     {
-        regularShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::regular_vert, sizeof(shaders::regular_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::regular_frag, sizeof(shaders::regular_frag))),
+        objectShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
+            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::object_vert, sizeof(shaders::object_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::object_frag, sizeof(shaders::object_frag))),
         });
         lightShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
             ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::light_vert, sizeof(shaders::light_vert))),
@@ -80,7 +80,7 @@ namespace orc
         {
             spotLight = visitor.GetSpotLights()[0];
         }
-        std::vector<Regular*> regulars = visitor.GetRegulars();
+        std::vector<Object *> objects = visitor.GetObjects();
 
         // Draw lights
         lightShader->Use();
@@ -92,58 +92,58 @@ namespace orc
             mesh->Draw();
         }
 
-        // Draw regulars
-        regularShader->Use();
-        regularShader->SetUniformVec3("cameraPosition", GetCamera().GetPosition());
-        regularShader->SetUniformVec3("globalLight.color", globalLight.Color);
-        regularShader->SetUniformVec3("globalLight.direction", globalLight.Direction);
-        regularShader->SetUniformFloat("globalLight.phong.ambient", globalLight.Phong.Ambient);
-        regularShader->SetUniformFloat("globalLight.phong.diffuse", globalLight.Phong.Diffuse);
-        regularShader->SetUniformFloat("globalLight.phong.specular", globalLight.Phong.Specular);
+        // Draw objects
+        objectShader->Use();
+        objectShader->SetUniformVec3("cameraPosition", GetCamera().GetPosition());
+        objectShader->SetUniformVec3("globalLight.color", globalLight.Color);
+        objectShader->SetUniformVec3("globalLight.direction", globalLight.Direction);
+        objectShader->SetUniformFloat("globalLight.phong.ambient", globalLight.Phong.Ambient);
+        objectShader->SetUniformFloat("globalLight.phong.diffuse", globalLight.Phong.Diffuse);
+        objectShader->SetUniformFloat("globalLight.phong.specular", globalLight.Phong.Specular);
 
         // TODO: Material management
-        regularShader->SetUniformFloat("material.shininess", 64.0f);
+        objectShader->SetUniformFloat("material.shininess", 64.0f);
 
         for (int i = 0; i < maxOmniLights; i ++)
         {
             if (i >= omniLights.size())
             {
-                regularShader->SetUniformVec3Element("omniLights", "color", i, glm::vec3(0));
-                regularShader->SetUniformFloatElement("omniLights", "constant", i, 1); // Avoid divide by zero
+                objectShader->SetUniformVec3Element("omniLights", "color", i, glm::vec3(0));
+                objectShader->SetUniformFloatElement("omniLights", "constant", i, 1); // Avoid divide by zero
                 continue;
             }
 
             OmniLight *light = omniLights[i];
-            regularShader->SetUniformVec3Element("omniLights", "color", i, light->GetColor());
-            regularShader->SetUniformVec3Element("omniLights", "position", i, light->GetPosition());
-            regularShader->SetUniformFloatElement("omniLights", "phong.ambient", i, light->GetPhong().Ambient);
-            regularShader->SetUniformFloatElement("omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
-            regularShader->SetUniformFloatElement("omniLights", "phong.specular", i, light->GetPhong().Specular);
-            regularShader->SetUniformFloatElement("omniLights", "constant", i, light->GetAttenuation().Constant);
-            regularShader->SetUniformFloatElement("omniLights", "linear", i, light->GetAttenuation().Linear);
-            regularShader->SetUniformFloatElement("omniLights", "quadratic", i, light->GetAttenuation().Quadratic);
+            objectShader->SetUniformVec3Element("omniLights", "color", i, light->GetColor());
+            objectShader->SetUniformVec3Element("omniLights", "position", i, light->GetPosition());
+            objectShader->SetUniformFloatElement("omniLights", "phong.ambient", i, light->GetPhong().Ambient);
+            objectShader->SetUniformFloatElement("omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
+            objectShader->SetUniformFloatElement("omniLights", "phong.specular", i, light->GetPhong().Specular);
+            objectShader->SetUniformFloatElement("omniLights", "constant", i, light->GetAttenuation().Constant);
+            objectShader->SetUniformFloatElement("omniLights", "linear", i, light->GetAttenuation().Linear);
+            objectShader->SetUniformFloatElement("omniLights", "quadratic", i, light->GetAttenuation().Quadratic);
         }
 
         if (spotLight)
         {
-            regularShader->SetUniformVec3("spotLight.color", spotLight->GetColor());
-            regularShader->SetUniformVec3("spotLight.direction", spotLight->GetFront());
-            regularShader->SetUniformVec3("spotLight.position", spotLight->GetPosition());
-            regularShader->SetUniformFloat("spotLight.inner", spotLight->GetInnerBlur());
-            regularShader->SetUniformFloat("spotLight.outer", spotLight->GetOuterBlur());
-            regularShader->SetUniformFloat("spotLight.phong.ambient", spotLight->GetPhong().Ambient);
-            regularShader->SetUniformFloat("spotLight.phong.diffuse", spotLight->GetPhong().Diffuse);
-            regularShader->SetUniformFloat("spotLight.phong.specular", spotLight->GetPhong().Specular);
+            objectShader->SetUniformVec3("spotLight.color", spotLight->GetColor());
+            objectShader->SetUniformVec3("spotLight.direction", spotLight->GetFront());
+            objectShader->SetUniformVec3("spotLight.position", spotLight->GetPosition());
+            objectShader->SetUniformFloat("spotLight.inner", spotLight->GetInnerBlur());
+            objectShader->SetUniformFloat("spotLight.outer", spotLight->GetOuterBlur());
+            objectShader->SetUniformFloat("spotLight.phong.ambient", spotLight->GetPhong().Ambient);
+            objectShader->SetUniformFloat("spotLight.phong.diffuse", spotLight->GetPhong().Diffuse);
+            objectShader->SetUniformFloat("spotLight.phong.specular", spotLight->GetPhong().Specular);
         }
         else
         {
-            regularShader->SetUniformVec3("spotLight.color", glm::vec3(0));
+            objectShader->SetUniformVec3("spotLight.color", glm::vec3(0));
         }
 
-        for (const Regular *regular : regulars)
+        for (const Object *object : objects)
         {
-            regularShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * regular->GetModelMx());
-            regularShader->SetUniformMat4("modelMx", regular->GetModelMx());
+            objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
+            objectShader->SetUniformMat4("modelMx", object->GetModelMx());
             mesh->Draw();
         }
     }

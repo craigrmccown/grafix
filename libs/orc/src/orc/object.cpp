@@ -1,4 +1,4 @@
-#include "regular.hpp"
+#include "object.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
@@ -13,18 +13,18 @@ const orc::Material defaultMaterial = orc::Material{
 
 namespace orc
 {
-    void Regular::Dispatch(NodeVisitor &visitor)
+    void Object::Dispatch(NodeVisitor &visitor)
     {
-        visitor.VisitRegular(this);
+        visitor.VisitObject(this);
     }
 
-    const Material &Regular::GetMaterial() const
+    const Material &Object::GetMaterial() const
     {
         if (!material) return defaultMaterial;
         return *material;
     }
 
-    void Regular::SetMaterial(Material *material)
+    void Object::SetMaterial(Material *material)
     {
         this->material = material;
     }

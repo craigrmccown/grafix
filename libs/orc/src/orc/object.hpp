@@ -6,7 +6,7 @@
 
 namespace orc
 {
-    class Regular : public Node
+    class Object : public Node
     {
         public:
         void Dispatch(NodeVisitor &visitor) override;

@@ -9,7 +9,7 @@ namespace orc
     class Camera;
     class OmniLight;
     class SpotLight;
-    class Regular;
+    class Object;
 
     class NodeVisitor
     {
@@ -17,6 +17,6 @@ namespace orc
         virtual void VisitCamera(Camera *camera) = 0;
         virtual void VisitOmniLight(OmniLight *light) = 0;
         virtual void VisitSpotLight(SpotLight *light) = 0;
-        virtual void VisitRegular(Regular *regular) = 0;
+        virtual void VisitObject(Object *object) = 0;
     };
 }

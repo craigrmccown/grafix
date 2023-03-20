@@ -11,7 +11,7 @@
 #include <core/controls.hpp>
 #include <core/mouse.hpp>
 #include <orc/light.hpp>
-#include <orc/regular.hpp>
+#include <orc/object.hpp>
 #include <orc/scene.hpp>
 #include <orc/shader.hpp>
 
@@ -119,15 +119,15 @@ int main()
     scene.GetCamera().SetPerspective(glm::radians(45.0f), (float)windowWidth/(float)windowHeight);
     scene.GetCamera().Translate(0, 0, 10);
 
-    std::shared_ptr<orc::Regular> reg = std::make_shared<orc::Regular>();
-    reg->Rotate(glm::radians(45.0f), 0, glm::radians(45.0f));
-    scene.GetRoot().AttachChild(reg);
+    std::shared_ptr<orc::Object> object = std::make_shared<orc::Object>();
+    object->Rotate(glm::radians(45.0f), 0, glm::radians(45.0f));
+    scene.GetRoot().AttachChild(object);
 
     std::shared_ptr<orc::OmniLight> light = std::make_shared<orc::OmniLight>();
     light->Translate(3, 3, 0);
     light->SetColor(0, 1, 0);
     light->SetRadius(100);
-    reg->AttachChild(light);
+    object->AttachChild(light);
 
     std::shared_ptr<orc::SpotLight> flash = std::make_shared<orc::SpotLight>();
 

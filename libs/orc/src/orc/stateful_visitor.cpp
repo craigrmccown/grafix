@@ -1,7 +1,7 @@
 #include <vector>
 #include "camera.hpp"
 #include "light.hpp"
-#include "regular.hpp"
+#include "object.hpp"
 #include "stateful_visitor.hpp"
 
 namespace orc
@@ -21,9 +21,9 @@ namespace orc
         spotLights.push_back(light);
     }
 
-    void StatefulVisitor::VisitRegular(Regular *regular)
+    void StatefulVisitor::VisitObject(Object *object)
     {
-        regulars.push_back(regular);
+        objects.push_back(object);
     }
 
     const std::vector<Camera *> &StatefulVisitor::GetCameras() const
@@ -41,8 +41,8 @@ namespace orc
         return spotLights;
     }
 
-    const std::vector<Regular *> &StatefulVisitor::GetRegulars() const
+    const std::vector<Object *> &StatefulVisitor::GetObjects() const
     {
-        return regulars;
+        return objects;
     }
 }
