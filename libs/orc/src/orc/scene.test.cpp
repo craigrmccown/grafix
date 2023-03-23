@@ -13,7 +13,7 @@ bool compareVec3(glm::vec3 a, glm::vec3 b) {
 }
 
 TEST_CASE("Orient single object", "[orc]") {
-    orc::Scene scene("data");
+    orc::Scene scene;
     std::shared_ptr<orc::Object> o = orc::Object::Create();
 
     scene.GetRoot().AttachChild(o);
@@ -31,7 +31,7 @@ TEST_CASE("Orient single object", "[orc]") {
 }
 
 TEST_CASE("Orient child object", "[orc]") {
-    orc::Scene scene("data");
+    orc::Scene scene;
     std::shared_ptr<orc::Object> parent = orc::Object::Create();
     std::shared_ptr<orc::Object> child = orc::Object::Create();
     parent->AttachChild(child);
