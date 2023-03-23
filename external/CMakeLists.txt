@@ -1,3 +1,7 @@
+set(ASSIMP_INSTALL OFF)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF)
+add_subdirectory(assimp)
+
 add_subdirectory(Catch2)
 add_subdirectory(glad)
 
