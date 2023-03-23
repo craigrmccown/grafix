@@ -5,6 +5,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "texture.hpp"
+#include "texture_manager.hpp"
 
 namespace orc
 {
@@ -27,13 +28,11 @@ namespace orc
         Mesh(const Mesh &other) = delete;
         void operator=(const Mesh &other) = delete;
 
-        void Use();
+        void Use(TextureManager &TextureManager);
 
         void Draw();
 
         private:
-        std::unique_ptr<Texture> texture;
-
         // Vertex Array Object
         unsigned int vaoId;
 
@@ -45,5 +44,8 @@ namespace orc
 
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
+
+        // TODO: Support multiple textures
+        std::string texturePath;
     };
 }

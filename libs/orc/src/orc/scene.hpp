@@ -7,6 +7,7 @@
 #include "mesh.hpp"
 #include "node.hpp"
 #include "shader.hpp"
+#include "texture_manager.hpp"
 #include "visitor.hpp"
 
 namespace orc
@@ -28,6 +29,7 @@ namespace orc
         std::shared_ptr<Node> root;
         std::shared_ptr<Camera> camera;
         std::unique_ptr<OpenGLShader> objectShader, lightShader;
+        TextureManager textureManager;
 
         // TODO: API to set global light properties
         GlobalLight globalLight;

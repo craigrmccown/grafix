@@ -42,7 +42,7 @@ namespace orc
             ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::light_frag, sizeof(shaders::light_frag))),
         });
         root->AttachChild(camera);
-        mesh->Use();
+        mesh->Use(textureManager);
     }
 
     Node &Scene::GetRoot()
@@ -88,7 +88,6 @@ namespace orc
         {
             lightShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
             lightShader->SetUniformVec3("lightColor", light->GetColor());
-            mesh->Use();
             mesh->Draw();
         }
 

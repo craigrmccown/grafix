@@ -3,13 +3,14 @@
 #include <glad/glad.h>
 #include "mesh.hpp"
 #include "texture.hpp"
+#include "texture_manager.hpp"
 
 namespace orc
 {
     Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::string texturePath)
         : vertices(vertices)
         , indices(indices)
-        , texture(std::make_unique<Texture>(texturePath))
+        , texturePath(texturePath)
     {
         // TODO: Implement OpenGL RAII library to prevent leaks on error
         glGenVertexArrays(1, &vaoId);
@@ -44,9 +45,9 @@ namespace orc
         glDeleteBuffers(1, &eboId);
     }
 
-    void Mesh::Use()
+    void Mesh::Use(TextureManager &textureManager)
     {
-        texture->Use();
+        textureManager.LoadTexture(texturePath).Use();
         glBindVertexArray(vaoId);
     }
 
