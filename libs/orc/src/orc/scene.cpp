@@ -140,7 +140,6 @@ namespace orc
         {
             objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
             objectShader->SetUniformMat4("modelMx", object->GetModelMx());
-            objectShader->SetUniformFloat("material.shininess", object->GetMaterial().Shininess); // TODO: Material management
 
             mesh->Draw();
         }

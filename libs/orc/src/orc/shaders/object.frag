@@ -46,10 +46,6 @@ struct SpotLight {
     Phong phong;
 };
 
-struct Material {
-    float shininess;
-};
-
 #define NUM_OMNI_LIGHTS 4
 
 uniform sampler2D tex;
@@ -57,7 +53,6 @@ uniform vec3 cameraPosition;
 uniform GlobalLight globalLight;
 uniform OmniLight omniLights[NUM_OMNI_LIGHTS];
 uniform SpotLight spotLight;
-uniform Material material;
 
 float computeLighting(Phong phong, vec3 lightDir, vec3 fragPos, vec3 normal)
 {
@@ -87,7 +82,7 @@ float computeLighting(Phong phong, vec3 lightDir, vec3 fragPos, vec3 normal)
 
     // Multiply by reflection angle so that we only get specular highlights on
     // surfaces that are supposed to reflect light.
-    float specular = pow(max(dot(bisector, normal), 0.0), material.shininess) * phong.specular * reflectionAngle;
+    float specular = pow(max(dot(bisector, normal), 0.0), 64.0) * phong.specular * reflectionAngle;
 
     return ambient + diffuse + specular;
 }

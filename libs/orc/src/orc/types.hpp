@@ -9,11 +9,6 @@ namespace orc
         float Ambient, Diffuse, Specular;
     };
 
-    struct Material
-    {
-        float Shininess;
-    };
-
     struct Attenuation
     {
         float Constant, Linear, Quadratic;

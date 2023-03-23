@@ -13,14 +13,7 @@ namespace orc
 
         void Dispatch(NodeVisitor &visitor) override;
 
-        const Material &GetMaterial() const;
-
-        void SetMaterial(Material *material);
-
         protected:
         Object();
-
-        private:
-        Material *material;
     };
 }
