@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <glm/glm.hpp>
 #include "texture.hpp"
 
 namespace orc
@@ -10,7 +11,14 @@ namespace orc
     class Mesh 
     {
         public:
-        Mesh(std::vector<float> vertices, std::string texturePath);
+        struct Vertex
+        {
+            glm::vec3 Coordinates;
+            glm::vec3 Normal;
+            glm::vec2 TextureCoords;
+        };
+
+        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::string texturePath);
 
         ~Mesh();
 
@@ -35,6 +43,7 @@ namespace orc
         // Element Buffer Object (not currently used)
         unsigned int eboId;
 
-        std::vector<float> vertices;
+        std::vector<Vertex> vertices;
+        std::vector<unsigned int> indices;
     };
 }

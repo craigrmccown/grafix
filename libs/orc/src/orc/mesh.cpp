@@ -6,8 +6,9 @@
 
 namespace orc
 {
-    Mesh::Mesh(std::vector<float> vertices, std::string texturePath)
+    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::string texturePath)
         : vertices(vertices)
+        , indices(indices)
         , texture(std::make_unique<Texture>(texturePath))
     {
         // TODO: Implement OpenGL RAII library to prevent leaks on error
@@ -18,20 +19,21 @@ namespace orc
         // Bind buffer to vertex array and load vertices
         glBindVertexArray(vaoId);
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+
+        // Do the same thing for indices
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
         // Set vertex attributes to be interpreted by shader:
         // attribute location, number of elements, data type, whether to normalize,
-        // stride to next element, offset
-        //
-        // Attribute 1, vertex coordinate: (x, y, z) @ location 0
-        // Attribute 2, texture coordinate: (x, y) @ location 1
-        // Attribute 3, normal vector: (x, y, z) @ location 2
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        // stride to next element, offset. The Vertex struct is used to provide
+        // semantic meaning to each attribute.
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Coordinates));
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5*sizeof(float)));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TextureCoords));
         glEnableVertexAttribArray(2);
     }
 
@@ -50,6 +52,6 @@ namespace orc
 
     void Mesh::Draw()
     {
-        glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     }
 }
