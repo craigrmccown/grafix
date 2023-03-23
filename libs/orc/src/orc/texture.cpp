@@ -20,7 +20,7 @@ namespace orc
         // Load image file and pass to OpenGL
         // TODO: Use appropriate image format (e.g. GL_RGB) based on image file. Currently expects PNG with alpha channel.
         Image image(path);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.GetWidth(), image.GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.GetData());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.GetWidth(), image.GetHeight(), 0, image.GetFormat(), GL_UNSIGNED_BYTE, image.GetData());
 
         // Auto-generate lower resolution versions of texture to render at distance
         glGenerateMipmap(GL_TEXTURE_2D);

@@ -82,7 +82,7 @@ float computeLighting(Phong phong, vec3 lightDir, vec3 fragPos, vec3 normal)
 
     // Multiply by reflection angle so that we only get specular highlights on
     // surfaces that are supposed to reflect light.
-    float specular = pow(max(dot(bisector, normal), 0.0), 64.0) * phong.specular * reflectionAngle;
+    float specular = pow(max(dot(bisector, normal), 0.0), 128.0) * phong.specular * reflectionAngle;
 
     return ambient + diffuse + specular;
 }

@@ -12,6 +12,7 @@
 #include <core/mouse.hpp>
 #include <orc/cube.hpp>
 #include <orc/light.hpp>
+#include <orc/model.hpp>
 #include <orc/object.hpp>
 #include <orc/scene.hpp>
 #include <orc/shader.hpp>
@@ -120,17 +121,16 @@ int main()
     scene.GetCamera().SetPerspective(glm::radians(45.0f), (float)windowWidth/(float)windowHeight);
     scene.GetCamera().Translate(0, 0, 10);
 
-    std::shared_ptr<orc::Object> object = orc::Object::Create();
-    object->Rotate(glm::radians(45.0f), 0, glm::radians(45.0f));
-    object->AddMesh(orc::BuildCubeMesh("data"));
+    // This model is not checked into source control for practical reasons
+    std::shared_ptr<orc::Object> object = orc::LoadModel("data/models/hovercar/scene.gltf");
     scene.GetRoot().AttachChild(object);
 
     std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
-    light->Translate(3, 3, 0);
+    light->Translate(5, 3, 0);
     light->SetColor(0, 1, 0);
-    light->SetRadius(100);
+    light->SetRadius(50);
     light->AddMesh(orc::BuildCubeMesh("data"));
-    object->AttachChild(light);
+    scene.GetRoot().AttachChild(light);
 
     std::shared_ptr<orc::SpotLight> flash = orc::SpotLight::Create();
 
@@ -160,6 +160,7 @@ int main()
         );
         scene.GetCamera().Translate(cameraTranslation.x, cameraTranslation.y, cameraTranslation.z);
         scene.GetCamera().Rotate(cameraRotation.x, cameraRotation.y, cameraRotation.z);
+        object->SetTranslation(0, cos(glfwGetTime() * 3) / 6, 0);
 
         if (ctrl.isLeading(Controls::Signal::exit)) glfwSetWindowShouldClose(window, true);
         if (ctrl.isLeading(Controls::Signal::action2))

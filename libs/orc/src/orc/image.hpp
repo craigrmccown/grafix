@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <glad/glad.h>
 
 namespace orc
 {
@@ -18,10 +19,11 @@ namespace orc
         Image(const Image &other) = delete;
         void operator=(const Image &other) = delete;
 
-        const unsigned char *GetData();
-        int GetWidth();
-        int GetHeight();
-        int GetChannels();
+        const unsigned char *GetData() const;
+        int GetWidth() const;
+        int GetHeight() const;
+        int GetChannels() const;
+        GLenum GetFormat() const;
 
         private:
         int width, height, channels;

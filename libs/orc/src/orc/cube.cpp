@@ -4,7 +4,6 @@
 #include "cube.hpp"
 #include "mesh.hpp"
 
-// TODO: Load vertex data from model file
 const std::vector<orc::Mesh::Vertex> vertices = {
     // Back face
     orc::Mesh::Vertex {

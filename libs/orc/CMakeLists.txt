@@ -28,6 +28,7 @@ add_library(orc STATIC
     src/orc/image.cpp
     src/orc/light.cpp
     src/orc/mesh.cpp
+    src/orc/model.cpp
     src/orc/node.cpp
     src/orc/object.cpp
     src/orc/scene.cpp
@@ -44,6 +45,7 @@ add_library(orc STATIC
 )
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(orc PRIVATE 
+    assimp
     glad
     glm::glm
     stb_image
@@ -53,6 +55,7 @@ target_link_libraries(orc PRIVATE
 add_executable(orc_test
     test/main.cpp
     src/orc/camera.test.cpp
+    src/orc/node.test.cpp
     src/orc/scene.test.cpp
 )
 target_link_libraries(orc_test PRIVATE

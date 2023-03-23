@@ -1,0 +1,2 @@
+# Model files can be quite large, so we don't check them into source control
+models/

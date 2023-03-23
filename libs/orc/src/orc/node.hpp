@@ -39,6 +39,10 @@ namespace orc
         // parent. This operation has no effect until ComputeMxs is called.
         void SetRotation(float yaw, float pitch, float roll);
 
+        // Extracts the translation and rotation from the passed in matrix. Does
+        // not update the model matrix until ComputeMxs is called.
+        void SetTransformMx(glm::mat4 mx);
+
         // Computes the model matrix based on the current translation and
         // rotation. If attached, calculations are relative to the orientation
         // of the parent. If detached, they are relative to the world's origin.

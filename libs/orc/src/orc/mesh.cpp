@@ -47,6 +47,7 @@ namespace orc
 
     void Mesh::Use(TextureManager &textureManager)
     {
+        // TODO: Default texture if none provided
         textureManager.LoadTexture(texturePath).Use();
         glBindVertexArray(vaoId);
     }

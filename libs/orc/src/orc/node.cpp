@@ -8,9 +8,20 @@
 #include "node.hpp"
 #include "visitor.hpp"
 
+// By convention, the default direction faces the -Z axis
+const glm::vec4 worldFront(0.0f, 0.0f, -1.0f, 0.0f);
+const glm::vec4 worldRight(1.0f, 0.0f, 0.0f, 0.0f);
+const glm::vec4 worldUp(0.0f, 1.0f, 0.0f, 0.0f);
+const glm::vec4 worldOrigin(0.0f, 0.0f, 0.0f, 1.0f);
+
 static float modRadians(float rad)
 {
     return remainderf(rad, 2 * M_PI);
+}
+
+static int getSign(float val)
+{
+    return (val > 0) - (val < 0);
 }
 
 namespace orc
@@ -55,6 +66,12 @@ namespace orc
         rotation = glm::vec3(yaw, pitch, roll);
     }
 
+    void Node::SetTransformMx(glm::mat4 mx)
+    {
+        translation = mx * worldOrigin;
+        glm::extractEulerAngleYXZ(mx, rotation.x, rotation.y, rotation.z);
+    }
+
     void Node::ComputeMxs()
     {
         glm::mat4 parentMx(1.0f);
@@ -75,23 +92,22 @@ namespace orc
 
     glm::vec3 Node::GetFront() const
     {
-        // By convention, the default direction faces the -Z axis
-        return GetModelMx() * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+        return GetModelMx() * worldFront;
     }
 
     glm::vec3 Node::GetRight() const
     {
-        return GetModelMx() * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+        return GetModelMx() * worldRight;
     }
 
     glm::vec3 Node::GetUp() const
     {
-        return GetModelMx() * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+        return GetModelMx() * worldUp;
     }
 
     glm::vec3 Node::GetPosition() const
     {
-        return GetModelMx() * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        return GetModelMx() * worldOrigin;
     }
 
     void Node::AttachChild(std::shared_ptr<Node> child)

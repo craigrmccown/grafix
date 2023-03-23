@@ -27,8 +27,8 @@ namespace orc
         , camera(Camera::Create())
         , globalLight(GlobalLight{
             .Color = glm::vec3(1),
-            .Direction = glm::vec3(0, -1, 0),
-            .Phong = Phong{.Ambient=0.15, .Diffuse=0.2, .Specular=0.1}
+            .Direction = glm::normalize(glm::vec3(-0.5, -1, 0)),
+            .Phong = Phong{.Ambient=0.2, .Diffuse=0.65, .Specular=0.5}
         })
     {
         objectShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
