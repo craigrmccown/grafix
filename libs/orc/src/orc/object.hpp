@@ -1,6 +1,10 @@
 #pragma once
 
+#include <memory>
+#include <vector>
+#include "mesh.hpp"
 #include "node.hpp"
+#include "texture_manager.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
@@ -13,7 +17,14 @@ namespace orc
 
         void Dispatch(NodeVisitor &visitor) override;
 
+        void AddMesh(std::unique_ptr<Mesh> mesh);
+
+        void Draw(TextureManager &textureManager);
+
         protected:
         Object();
+
+        private:
+        std::vector<std::unique_ptr<Mesh>> meshes;
     };
 }

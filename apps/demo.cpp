@@ -10,6 +10,7 @@
 #include <core/clock.hpp>
 #include <core/controls.hpp>
 #include <core/mouse.hpp>
+#include <orc/cube.hpp>
 #include <orc/light.hpp>
 #include <orc/object.hpp>
 #include <orc/scene.hpp>
@@ -115,18 +116,20 @@ int main()
 
     mouse::listenForMovement(window);
 
-    orc::Scene scene("../../data");
+    orc::Scene scene;
     scene.GetCamera().SetPerspective(glm::radians(45.0f), (float)windowWidth/(float)windowHeight);
     scene.GetCamera().Translate(0, 0, 10);
 
     std::shared_ptr<orc::Object> object = orc::Object::Create();
     object->Rotate(glm::radians(45.0f), 0, glm::radians(45.0f));
+    object->AddMesh(orc::BuildCubeMesh("data"));
     scene.GetRoot().AttachChild(object);
 
     std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
     light->Translate(3, 3, 0);
     light->SetColor(0, 1, 0);
     light->SetRadius(100);
+    light->AddMesh(orc::BuildCubeMesh("data"));
     object->AttachChild(light);
 
     std::shared_ptr<orc::SpotLight> flash = orc::SpotLight::Create();

@@ -1,13 +1,13 @@
 #pragma once
 
 #include <memory>
-#include "node.hpp"
+#include "object.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
 namespace orc
 {
-    class Light : public Node
+    class Light : public Object
     {
         public:
         void SetColor(float r, float g, float b);

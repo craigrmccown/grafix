@@ -7,6 +7,7 @@
 #include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "orc/cube.hpp"
 #include "orc/light.hpp"
 #include "orc/object.hpp"
 #include "orc/scene.hpp"
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
     glEnable(GL_DEPTH_TEST);
 
     // Create scene and position camera
-    orc::Scene scene("../../../data");
+    orc::Scene scene;
     scene.GetCamera().SetPerspective(M_PI_4, windowWidth/windowHeight);
     scene.GetCamera().Translate(6, 6, 12);
     scene.GetCamera().Rotate(M_PI_4/1.25, -M_PI_4/2.5, 0);
@@ -82,15 +83,18 @@ int main(int argc, char *argv[])
     std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
     light->SetColor(1, 0, 0);
     light->Translate(-8, 6, 2);
+    light->AddMesh(orc::BuildCubeMesh("data"));
     scene.GetRoot().AttachChild(light);
 
     // Create object and add to scene root
     std::shared_ptr<orc::Object> parent = orc::Object::Create();
+    parent->AddMesh(orc::BuildCubeMesh("data"));
     scene.GetRoot().AttachChild(parent);
 
     // Create child object and attach to parent
     std::shared_ptr<orc::Object> child = orc::Object::Create();
     child->Translate(4, 0, 0);
+    child->AddMesh(orc::BuildCubeMesh("data"));
     parent->AttachChild(child);
 
     // Each frame, nodes should be manipulated as needed, then Update should be

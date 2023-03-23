@@ -6,7 +6,6 @@
 #include <glad/glad.h>
 #include "cube.hpp"
 #include "light.hpp"
-#include "mesh.hpp"
 #include "node.hpp"
 #include "object.hpp"
 #include "scene.hpp"
@@ -23,10 +22,9 @@ const size_t maxOmniLights = 4;
 
 namespace orc
 {
-    Scene::Scene(std::string dataDir)
+    Scene::Scene()
         : root(Node::Create())
         , camera(Camera::Create())
-        , mesh(BuildCubeMesh(dataDir))
         , globalLight(GlobalLight{
             .Color = glm::vec3(1),
             .Direction = glm::vec3(0, -1, 0),
@@ -42,7 +40,6 @@ namespace orc
             ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::light_frag, sizeof(shaders::light_frag))),
         });
         root->AttachChild(camera);
-        mesh->Use(textureManager);
     }
 
     Node &Scene::GetRoot()
@@ -84,11 +81,11 @@ namespace orc
 
         // Draw lights
         lightShader->Use();
-        for (const OmniLight *light : omniLights)
+        for (OmniLight *light : omniLights)
         {
             lightShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
             lightShader->SetUniformVec3("lightColor", light->GetColor());
-            mesh->Draw();
+            light->Draw(textureManager);
         }
 
         // Draw objects
@@ -136,12 +133,11 @@ namespace orc
             objectShader->SetUniformVec3("spotLight.color", glm::vec3(0));
         }
 
-        for (const Object *object : objects)
+        for (Object *object : objects)
         {
             objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
             objectShader->SetUniformMat4("modelMx", object->GetModelMx());
-
-            mesh->Draw();
+            object->Draw(textureManager);
         }
     }
 

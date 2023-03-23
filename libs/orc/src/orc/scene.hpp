@@ -15,7 +15,7 @@ namespace orc
     class Scene
     {
         public:
-        Scene(std::string dataDir);
+        Scene();
 
         Node &GetRoot();
 
@@ -33,9 +33,6 @@ namespace orc
 
         // TODO: API to set global light properties
         GlobalLight globalLight;
-
-        // Temporary. Each object should reference its own mesh.
-        std::unique_ptr<Mesh> mesh;
 
         void Traverse(std::function<void(Node&)>);
     };
