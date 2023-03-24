@@ -1,71 +1,8 @@
-#include <iomanip>
-#include <iostream>
-#include <limits>
 #include <memory>
-#include <sstream>
 #include <catch2/catch_test_macros.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/epsilon.hpp>
+#include <testutils/glm.hpp>
 #include "camera.hpp"
-
-std::string vec3ToString(glm::vec3 v)
-{
-    std::stringstream out;
-
-    out
-        << std::fixed << std::setprecision(4)
-        << v.x << ", " << v.y << ", " << v.z;
-
-    return out.str();
-}
-
-std::string mat4ToString(glm::mat4 m)
-{
-    std::stringstream out;
-    out << std::fixed << std::setprecision(10);
-
-    for (int r = 0; r < 4; r ++)
-    {
-        if (r != 0) out << "\n";
-
-        for (int c = 0; c < 4; c ++)
-        {
-            if (c != 0) out << ", ";
-            out << m[c][r];
-        }
-    }
-
-    return out.str();
-}
-
-void printMat4Err(glm::mat4 expected, glm::mat4 actual)
-{
-    std::cout
-        << "Matrices are not equal\n"
-        << "Expected:\n"
-        << mat4ToString(expected) << "\n\n"
-        << "Actual:\n"
-        << mat4ToString(actual) << std::endl;
-}
-
-bool compareMat4(glm::mat4 expected, glm::mat4 actual)
-{
-    for (int c = 0; c < 4; c ++)
-    {
-        for (int r = 0; r < 4; r ++)
-        {
-            float diff = abs(expected[c][r] - actual[c][r]);
-            float epsilon = std::numeric_limits<float>::epsilon();
-
-            if (diff > epsilon * 100)
-            {
-                printMat4Err(expected, actual);
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
 TEST_CASE("View-projection matrix", "[orc]") {
     float fov = 45.0f, aspect = 16.0f/9.0f;
@@ -85,13 +22,13 @@ TEST_CASE("View-projection matrix", "[orc]") {
     glm::mat4 projectionMx = glm::perspective(glm::radians(fov), aspect, 0.1f, 100.0f);
     glm::mat4 rotationMx(1.0f);
     glm::mat4 translationMx(1.0f);
-    REQUIRE(compareMat4(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
+    REQUIRE(testutils::Mat4Equals(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
 
     // Back the camera up a bit
     camera->Translate(0.0f, 0.0f, 10.0f);
     camera->ComputeMxs();
     translationMx[3][2] = -10.0f;
-    REQUIRE(compareMat4(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
+    REQUIRE(testutils::Mat4Equals(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
 
     // Raise the camera into the air by the same distance, then angle it down
     // towards the origin
@@ -108,5 +45,5 @@ TEST_CASE("View-projection matrix", "[orc]") {
     rotationMx[1][2] = vecComp;   // Fy
     rotationMx[2][2] = vecComp;    // Fz
 
-    REQUIRE(compareMat4(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
+    REQUIRE(testutils::Mat4Equals(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
 }

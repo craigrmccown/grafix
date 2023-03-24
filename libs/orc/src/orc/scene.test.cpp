@@ -1,16 +1,10 @@
-#include <iostream>
-#include <filesystem>
 #include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtc/epsilon.hpp>
+#include <testutils/glm.hpp>
 #include "light.hpp"
 #include "object.hpp"
 #include "scene.hpp"
-
-bool compareVec3(glm::vec3 a, glm::vec3 b) {
-    return glm::all(glm::epsilonEqual(a, b, std::numeric_limits<float>::epsilon()));
-}
 
 TEST_CASE("Orient single object", "[orc]") {
     orc::Scene scene;
@@ -24,10 +18,10 @@ TEST_CASE("Orient single object", "[orc]") {
     o->Rotate(glm::radians(90.0f), 0.0f, 0.0f);
     scene.Update();
 
-    REQUIRE(compareVec3(o->GetPosition(), glm::vec3(2.0f, 1.0f, 4.0f)));
-    REQUIRE(compareVec3(o->GetUp(), glm::vec3(0.0f, 1.0f, 0.0f)));
-    REQUIRE(compareVec3(o->GetRight(), glm::vec3(0.0f, 0.0f, -1.0f)));
-    REQUIRE(compareVec3(o->GetFront(), glm::vec3(-1.0f, 0.0f, 0.0f)));
+    REQUIRE(testutils::Vec3Equals(o->GetPosition(), glm::vec3(2.0f, 1.0f, 4.0f)));
+    REQUIRE(testutils::Vec3Equals(o->GetUp(), glm::vec3(0.0f, 1.0f, 0.0f)));
+    REQUIRE(testutils::Vec3Equals(o->GetRight(), glm::vec3(0.0f, 0.0f, -1.0f)));
+    REQUIRE(testutils::Vec3Equals(o->GetFront(), glm::vec3(-1.0f, 0.0f, 0.0f)));
 }
 
 TEST_CASE("Orient child object", "[orc]") {
@@ -44,8 +38,8 @@ TEST_CASE("Orient child object", "[orc]") {
     parent->Rotate(0.0f, 0.0f, glm::radians(90.0f));
     scene.Update();
 
-    REQUIRE(compareVec3(child->GetPosition(), glm::vec3(-11.0f, 9.0f, -1.0f)));
-    REQUIRE(compareVec3(child->GetUp(), glm::vec3(-1.0f, 0.0f, 0.0f)));
-    REQUIRE(compareVec3(child->GetRight(), glm::vec3(0.0f, 1.0f, 0.0f)));
-    REQUIRE(compareVec3(child->GetFront(), glm::vec3(0.0f, 0.0f, -1.0f)));
+    REQUIRE(testutils::Vec3Equals(child->GetPosition(), glm::vec3(-11.0f, 9.0f, -1.0f)));
+    REQUIRE(testutils::Vec3Equals(child->GetUp(), glm::vec3(-1.0f, 0.0f, 0.0f)));
+    REQUIRE(testutils::Vec3Equals(child->GetRight(), glm::vec3(0.0f, 1.0f, 0.0f)));
+    REQUIRE(testutils::Vec3Equals(child->GetFront(), glm::vec3(0.0f, 0.0f, -1.0f)));
 }

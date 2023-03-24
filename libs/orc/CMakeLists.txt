@@ -61,6 +61,7 @@ target_link_libraries(orc_test PRIVATE
     glfw
     glm::glm
     orc
+    testutils
 )
 catch_discover_tests(orc_test)
 
