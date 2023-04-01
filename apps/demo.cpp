@@ -118,7 +118,7 @@ int main()
     mouse::listenForMovement(window);
 
     orc::Scene scene;
-    scene.GetCamera().SetPerspective(glm::radians(45.0f), (float)windowWidth/(float)windowHeight);
+    scene.GetCamera().SetAspectRatio((float)windowWidth/(float)windowHeight);
     scene.GetCamera().Translate(0, 0, 10);
 
     // This model is not checked into source control for practical reasons

@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
     // Create scene and position camera
     orc::Scene scene;
-    scene.GetCamera().SetPerspective(M_PI_4, windowWidth/windowHeight);
+    scene.GetCamera().SetAspectRatio(windowWidth/windowHeight);
     scene.GetCamera().Translate(6, 6, 12);
     scene.GetCamera().Rotate(M_PI_4/1.25, -M_PI_4/2.5, 0);
 

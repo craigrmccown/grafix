@@ -13,7 +13,19 @@ namespace orc
 
         void Dispatch(NodeVisitor &visitor) override;
 
-        void SetPerspective(float fieldOfView, float aspectRatio);
+        // Sets the camera's field of view angle, expressed in radians. Defaults
+        // to pi/4 (45 deg).
+        void SetFieldOfView(float fieldOfView);
+
+        // Sets the aspect ratio of the perspective projection. Usually this
+        // should be set to the screen's width/height. Defaults to 16/9,
+        // although this is rarely correct.
+        void SetAspectRatio(float aspectRatio);
+
+        // Sets the frustum distances of the camera. Distances that fall out of
+        // this range will be clipped. Near distance must be a non-zero,
+        // positive number
+        void SetClippingDistance(float near, float far);
 
         // See Node.ComputeMxs. Also computes the view-projection matrix.
         void ComputeMxs() override;
@@ -26,9 +38,10 @@ namespace orc
         Camera();
 
         private:
-        glm::mat4 projectionMx;
         glm::mat4 viewProjectionMx;
+        float fieldOfView, aspectRatio, nearClip, farClip;
 
-        glm::mat4 GetViewMx() const;
+        glm::mat4 ComputeViewMx() const;
+        glm::mat4 ComputeProjectionMx() const;
     };
 }

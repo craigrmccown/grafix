@@ -2,7 +2,11 @@
 #include "camera.hpp"
 #include "visitor.hpp"
 
-const float defaultFieldOfView = glm::radians(45.0f), defaultAspectRatio = 16.0f/9.0f;
+const float
+    defaultFieldOfView = glm::radians(45.0f),
+    defaultAspectRatio = 16.0f/9.0f,
+    defaultNearClip = 0.1f,
+    defaultFarClip = 200.0f;
 
 static void copyVecToRow(const glm::vec3 &v, glm::mat4 &m, int r)
 {
@@ -20,8 +24,11 @@ namespace orc
     }
 
     Camera::Camera()
+        : fieldOfView(defaultFieldOfView)
+        , aspectRatio(defaultAspectRatio)
+        , nearClip(defaultNearClip)
+        , farClip(defaultFarClip)
     {
-        SetPerspective(defaultFieldOfView, defaultAspectRatio);
         ComputeMxs();
     }
 
@@ -30,23 +37,38 @@ namespace orc
         visitor.VisitCamera(this);
     }
 
-    void Camera::SetPerspective(float fieldOfView, float aspectRatio)
+    void Camera::SetFieldOfView(float fieldOfView)
     {
-        // TODO: Configurable frustum distances
-        projectionMx = glm::perspective(fieldOfView, aspectRatio, 0.1f, 100.0f);
+        this->fieldOfView = fieldOfView;
+    }
+
+    void Camera::SetAspectRatio(float aspectRatio)
+    {
+        this->aspectRatio = aspectRatio;
+    }
+
+    void Camera::SetClippingDistance(float near, float far)
+    {
+        if (near <= 0)
+        {
+            throw std::logic_error("Near clipping distance must be greater than 0");
+        }
+
+        nearClip = near;
+        farClip = far;
     }
 
     void Camera::ComputeMxs()
     {
         Node::ComputeMxs();
-        viewProjectionMx = projectionMx * GetViewMx();
+        viewProjectionMx = ComputeProjectionMx() * ComputeViewMx();
     }
 
     glm::mat4 Camera::GetViewProjectionMx() const {
         return viewProjectionMx;
     }
 
-    glm::mat4 Camera::GetViewMx() const
+    glm::mat4 Camera::ComputeViewMx() const
     {
         glm::vec3 pos = GetPosition();
         glm::vec3 up = GetUp();
@@ -79,5 +101,10 @@ namespace orc
         viewMx[3][2] = -glm::dot(front, pos);
 
         return viewMx;
+    }
+
+    glm::mat4 Camera::ComputeProjectionMx() const
+    {
+        return glm::perspective(fieldOfView, aspectRatio, nearClip, farClip);
     }
 }
