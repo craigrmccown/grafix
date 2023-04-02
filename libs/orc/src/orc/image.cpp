@@ -39,12 +39,4 @@ namespace orc
     {
         return channels;
     }
-
-    GLenum Image::GetFormat() const
-    {
-        if (GetChannels() == 3) return GL_RGB;
-        if (GetChannels() == 4) return GL_RGBA;
-
-        throw std::runtime_error("Image must be RGB or RGBA");
-    }
 }

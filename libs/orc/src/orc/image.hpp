@@ -23,7 +23,6 @@ namespace orc
         int GetWidth() const;
         int GetHeight() const;
         int GetChannels() const;
-        GLenum GetFormat() const;
 
         private:
         int width, height, channels;
