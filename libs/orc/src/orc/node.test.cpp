@@ -11,6 +11,7 @@ TEST_CASE("Set transformation matrix", "[orc]")
     std::shared_ptr<orc::Node> n1 = orc::Node::Create();
     n1->Translate(3, 5, -1);
     n1->Rotate(0.134, -1.453, 0.897);
+    n1->Scale(0.9, 1.5, 1);
     n1->ComputeMxs();
 
     std::shared_ptr<orc::Node> n2 = orc::Node::Create();

@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
     std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
     light->SetColor(1, 0, 0);
     light->Translate(-8, 6, 2);
+    light->Scale(0.5, 0.5, 0.5)
     light->AddMesh(orc::BuildCubeMesh("data"));
     scene.GetRoot().AttachChild(light);
 

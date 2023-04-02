@@ -34,6 +34,7 @@ namespace orc
     Node::Node()
         : translation(glm::vec3(0.0f))
         , rotation(glm::vec3(0.0f))
+        , scale(glm::vec3(1.0f))
         , modelMx(glm::mat4(1.0f))
         , isAttached(false)
         {}
@@ -45,7 +46,8 @@ namespace orc
 
     void Node::Translate(float x, float y, float z)
     {
-        translation += glm::vec3(x, y, z);
+        SetTranslation(translation.x + x, translation.y + y, translation.z + z);
+
     }
 
     void Node::SetTranslation(float x, float y, float z)
@@ -55,10 +57,11 @@ namespace orc
 
     void Node::Rotate(float yaw, float pitch, float roll)
     {
-        rotation += glm::vec3(yaw, pitch, roll);
-        rotation.x = modRadians(rotation.x);
-        rotation.y = modRadians(rotation.y);
-        rotation.z = modRadians(rotation.z);
+        SetRotation(
+            modRadians(rotation.x + yaw),
+            modRadians(rotation.y + pitch),
+            modRadians(rotation.z + roll)
+        );
     }
 
     void Node::SetRotation(float yaw, float pitch, float roll)
@@ -67,10 +70,50 @@ namespace orc
         rotation = glm::vec3(yaw, pitch, roll);
     }
 
+    void Node::Scale(float x, float y, float z)
+    {
+        SetScale(scale.x * x, scale.y * y, scale.z * z);
+    }
+
+    void Node::SetScale(float x, float y, float z)
+    {
+        if (x <= 0 || y <= 0 || z <= 0)
+        {
+            throw std::logic_error("Scaling factors must be positive and non-zero");
+        }
+
+        scale = glm::vec3(x, y, z);
+    }
+
+    // Assumes a T*R*S transformation matrix
     void Node::SetTransformMx(glm::mat4 mx)
     {
-        translation = mx * worldOrigin;
-        glm::extractEulerAngleYXZ(mx, rotation.x, rotation.y, rotation.z);
+        // Translation vector can be extracted from the last column of the
+        // matrix
+        translation = glm::vec3(mx[3][0], mx[3][1], mx[3][2]);
+
+        // Since each axis is be expressed as a unit vector in the pure rotation
+        // matrix, the scaling factors can be derived by taking the magnitude
+        // of each axis in the transformation matrix
+        scale = glm::vec3(
+            glm::length(glm::vec3(mx[0][0], mx[0][1], mx[0][2])),
+            glm::length(glm::vec3(mx[1][0], mx[1][1], mx[1][2])),
+            glm::length(glm::vec3(mx[2][0], mx[2][1], mx[2][2]))
+        );
+
+        // Construct a pure rotation matrix by dividing each scaled axis by its
+        // respective scaling factor
+        glm::mat4 pureRotationMx(1.0f);
+        pureRotationMx[0][0] = mx[0][0] / scale.x;
+        pureRotationMx[0][1] = mx[0][1] / scale.x;
+        pureRotationMx[0][2] = mx[0][2] / scale.x;
+        pureRotationMx[1][0] = mx[1][0] / scale.y;
+        pureRotationMx[1][1] = mx[1][1] / scale.y;
+        pureRotationMx[1][2] = mx[1][2] / scale.y;
+        pureRotationMx[2][0] = mx[2][0] / scale.z;
+        pureRotationMx[2][1] = mx[2][1] / scale.z;
+        pureRotationMx[2][2] = mx[2][2] / scale.z;
+        glm::extractEulerAngleYXZ(pureRotationMx, rotation.x, rotation.y, rotation.z);
     }
 
     void Node::ComputeMxs()
@@ -83,7 +126,8 @@ namespace orc
 
         modelMx = parentMx *
             glm::translate(glm::mat4(1.0f), translation) *
-            glm::yawPitchRoll(rotation.x, rotation.y, rotation.z);
+            glm::yawPitchRoll(rotation.x, rotation.y, rotation.z) *
+            glm::scale(glm::mat4(1.0f), scale);
     }
 
     glm::mat4 Node::GetModelMx() const

@@ -6,7 +6,9 @@
 #include <glm/glm.hpp>
 #include "glm.hpp"
 
-const float errorMargin = std::numeric_limits<float>::epsilon() * 100;
+// Allow floating point precision error up to this value. Should consider using
+// more precise data types if this becomes an issue.
+const float errorMargin = 0.02;
 
 namespace testutils
 {

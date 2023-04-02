@@ -9,8 +9,6 @@ namespace orc
 {
     // The base class for points that exist in 3D space. Handles positioning
     // math and implements spatial hierarchy.
-    //
-    // TODO: Support scaling transforms
     class Node : public std::enable_shared_from_this<Node>
     {
         public:
@@ -38,6 +36,16 @@ namespace orc
         // Sets the rotation of this node relative to the orientation of its
         // parent. This operation has no effect until ComputeMxs is called.
         void SetRotation(float yaw, float pitch, float roll);
+
+        // Scales the object along its local axes by the provided factors. Input
+        // must be positive and non-zero. This operation has no effect until
+        // ComputeMxs is called.
+        void Scale(float x, float y, float z);
+
+        // Sets the scale of the object along its local axes to the provided
+        // factors, overwriting the current scaling. Input must be positive and.
+        // non-zero. This operation has no effect until ComputeMxs is called.
+        void SetScale(float x, float y, float z);
 
         // Extracts the translation and rotation from the passed in matrix. Does
         // not update the model matrix until ComputeMxs is called.
@@ -90,6 +98,7 @@ namespace orc
         private:
         glm::vec3 translation;
         glm::vec3 rotation;
+        glm::vec3 scale;
         glm::mat4 modelMx;
         std::set<std::shared_ptr<Node>> children;
         std::weak_ptr<Node> parent;
