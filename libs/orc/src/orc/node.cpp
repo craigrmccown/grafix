@@ -63,6 +63,7 @@ namespace orc
 
     void Node::SetRotation(float yaw, float pitch, float roll)
     {
+        // TODO: Represent rotation using quaternions
         rotation = glm::vec3(yaw, pitch, roll);
     }
 
