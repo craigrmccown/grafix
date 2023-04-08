@@ -16,9 +16,9 @@ namespace orc
         public:
         Scene();
 
-        Node &GetRoot();
+        Node &GetRoot() const;
 
-        Camera &GetCamera();
+        Camera &GetCamera() const;
 
         void Update();
 

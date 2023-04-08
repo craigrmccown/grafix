@@ -63,25 +63,14 @@ GLFWwindow *openWindowedFullscreenWindow(const char *title)
     return glfwCreateWindow(mode->width, mode->height, title, monitor, NULL);
 }
 
-void buildDebugUi()
+void buildDebugUi(const orc::Scene &scene)
 {
-    static float f = 0.0f;
-    static int counter = 0;
+    glm::vec3 cameraPos = scene.GetCamera().GetPosition();
 
-    ImGui::Begin("Hello, world!");
+    ImGui::Begin("Debug Window");
 
-    ImGui::Text("This is some useful text.");
-
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
-    if (ImGui::Button("Button"))
-    {
-        counter++;
-    }
-    ImGui::SameLine();
-    ImGui::Text("counter = %d", counter);
-
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("Camera Position: (%.1f, %.1f, %.1f)", cameraPos.x, cameraPos.y, cameraPos.z);
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
     ImGui::End();
 }
@@ -182,7 +171,7 @@ int main()
         scene.Draw();
 
         // Render the debug UI
-        buildDebugUi();
+        buildDebugUi(scene);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

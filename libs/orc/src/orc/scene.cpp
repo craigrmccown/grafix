@@ -42,12 +42,12 @@ namespace orc
         root->AttachChild(camera);
     }
 
-    Node &Scene::GetRoot()
+    Node &Scene::GetRoot() const
     {
         return *root;
     }
 
-    Camera &Scene::GetCamera()
+    Camera &Scene::GetCamera() const
     {
         return *camera;
     }
