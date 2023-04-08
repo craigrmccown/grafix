@@ -7,10 +7,10 @@
 
 namespace orc
 {
-    Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::string texturePath)
+    Mesh::Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, TextureRef texture)
         : vertices(vertices)
         , indices(indices)
-        , texturePath(texturePath)
+        , texture(texture)
     {
         // TODO: Implement OpenGL RAII library to prevent leaks on error
         glGenVertexArrays(1, &vaoId);
@@ -45,10 +45,10 @@ namespace orc
         glDeleteBuffers(1, &eboId);
     }
 
-    void Mesh::Use(TextureManager &textureManager)
+    void Mesh::Use()
     {
         // TODO: Default texture if none provided
-        textureManager.LoadTexture(texturePath).Use();
+        texture.Load().Use();
         glBindVertexArray(vaoId);
     }
 

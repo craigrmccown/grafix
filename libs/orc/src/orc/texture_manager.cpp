@@ -4,11 +4,20 @@
 
 namespace orc
 {
-    Texture &TextureManager::LoadTexture(std::string path)
+    TextureManager::TextureManager() {}
+
+    TextureManager &TextureManager::Get()
+    {
+        // Lazily initialized, should be thread safe.
+        static TextureManager tm;
+        return tm;
+    }
+
+    Texture &TextureManager::LoadTexture(Texture::Type type, std::string path)
     {
         if (!textures.count(path))
         {
-            textures[path] = std::make_unique<Texture>(path);
+            textures[path] = std::make_unique<Texture>(type, path);
         }
         
         return *textures[path];

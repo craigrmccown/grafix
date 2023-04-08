@@ -85,7 +85,7 @@ namespace orc
         {
             lightShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
             lightShader->SetUniformVec3("lightColor", light->GetColor());
-            light->Draw(textureManager);
+            light->Draw();
         }
 
         // Draw objects
@@ -137,7 +137,7 @@ namespace orc
         {
             objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
             objectShader->SetUniformMat4("modelMx", object->GetModelMx());
-            object->Draw(textureManager);
+            object->Draw();
         }
     }
 

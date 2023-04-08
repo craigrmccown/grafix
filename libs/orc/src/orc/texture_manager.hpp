@@ -10,9 +10,19 @@ namespace orc
     class TextureManager
     {
         public:
-        Texture &LoadTexture(std::string path);
+        static TextureManager &Get();
+
+        Texture &LoadTexture(Texture::Type type, std::string path);
+
+        // Delete copy constructor and copy assignment since we use this as a
+        // singleton
+        TextureManager(TextureManager const &other) = delete;
+        void operator=(TextureManager const &other) = delete;
 
         private:
+        // Make constructor private since we use this as a singleton
+        TextureManager();
+
         std::map<std::string, std::unique_ptr<Texture>> textures;
     };
 }

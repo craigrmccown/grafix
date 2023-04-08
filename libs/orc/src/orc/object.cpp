@@ -25,11 +25,11 @@ namespace orc
         meshes.push_back(std::move(mesh));
     }
 
-    void Object::Draw(TextureManager &textureManager)
+    void Object::Draw()
     {
         for (const std::unique_ptr<Mesh> &mesh : meshes)
         {
-            mesh->Use(textureManager);
+            mesh->Use();
             mesh->Draw();
         }
     }

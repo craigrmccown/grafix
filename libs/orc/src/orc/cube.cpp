@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "cube.hpp"
 #include "mesh.hpp"
+#include "texture_ref.hpp"
 
 const std::vector<orc::Mesh::Vertex> vertices = {
     // Back face
@@ -151,10 +152,15 @@ namespace orc
 {
     std::unique_ptr<Mesh> BuildCubeMesh(std::string dataDir)
     {
+        std::string path =
+            std::filesystem::path(dataDir) /
+            std::filesystem::path("textures") /
+            std::filesystem::path("crate.png");
+
         return std::make_unique<Mesh>(
             vertices,
             indices,
-            std::filesystem::path(dataDir) / std::filesystem::path("textures") / std::filesystem::path("crate.png")
+            TextureRef(Texture::Type::Diffuse, path)
         );
     }
 }

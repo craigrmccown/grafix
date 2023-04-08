@@ -113,7 +113,10 @@ int main()
     {
         return kill("Failed to initialize GLAD");
     }
+
+    // TODO: Engine-supported API for initialization of graphics/rendering APIs
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB); // Enable hardware-implemented gamma correction
 
     mouse::listenForMovement(window);
 

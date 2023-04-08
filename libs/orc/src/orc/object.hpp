@@ -19,7 +19,7 @@ namespace orc
 
         void AddMesh(std::unique_ptr<Mesh> mesh);
 
-        void Draw(TextureManager &textureManager);
+        void Draw();
 
         protected:
         Object();

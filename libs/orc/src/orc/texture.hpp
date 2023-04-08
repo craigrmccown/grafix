@@ -7,7 +7,12 @@ namespace orc
     class Texture
     {
         public:
-        Texture(std::string path);
+        enum Type
+        {
+            Diffuse
+        };
+
+        Texture(Type type, std::string path);
 
         ~Texture();
 
@@ -18,7 +23,7 @@ namespace orc
 
         void Use();
 
-        unsigned int GetId();
+        unsigned int GetId() const;
 
         private:
         unsigned int id;

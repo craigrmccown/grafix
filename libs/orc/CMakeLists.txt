@@ -36,6 +36,7 @@ add_library(orc STATIC
     src/orc/stateful_visitor.cpp
     src/orc/texture.cpp
     src/orc/texture_manager.cpp
+    src/orc/texture_ref.cpp
 
     # Embedded resources
     src/orc/shaders/light.frag.cpp
