@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
     ExampleWindow window("basic_usage", windowWidth, windowHeight);
     loadOpenGL();
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_FRAMEBUFFER_SRGB);
 
     // Create scene and position camera
