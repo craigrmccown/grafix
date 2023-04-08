@@ -9,11 +9,6 @@ namespace orc
         float Ambient, Diffuse, Specular;
     };
 
-    struct Attenuation
-    {
-        float Constant, Linear, Quadratic;
-    };
-
     struct GlobalLight
     {
         glm::vec3 Direction;

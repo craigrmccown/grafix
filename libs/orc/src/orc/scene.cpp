@@ -27,8 +27,8 @@ namespace orc
         , camera(Camera::Create())
         , globalLight(GlobalLight{
             .Color = glm::vec3(1),
-            .Direction = glm::normalize(glm::vec3(-0.5, -1, 0)),
-            .Phong = Phong{.Ambient=0.2, .Diffuse=0.65, .Specular=0.5}
+            .Direction = glm::normalize(glm::vec3(0, -1, 0)),
+            .Phong = Phong{.Ambient=0.01, .Diffuse=0.05, .Specular=0.1}
         })
     {
         objectShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
@@ -112,9 +112,7 @@ namespace orc
             objectShader->SetUniformFloatElement("omniLights", "phong.ambient", i, light->GetPhong().Ambient);
             objectShader->SetUniformFloatElement("omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
             objectShader->SetUniformFloatElement("omniLights", "phong.specular", i, light->GetPhong().Specular);
-            objectShader->SetUniformFloatElement("omniLights", "constant", i, light->GetAttenuation().Constant);
-            objectShader->SetUniformFloatElement("omniLights", "linear", i, light->GetAttenuation().Linear);
-            objectShader->SetUniformFloatElement("omniLights", "quadratic", i, light->GetAttenuation().Quadratic);
+            objectShader->SetUniformFloatElement("omniLights", "brightness", i, light->GetBrightness());
         }
 
         if (spotLight)

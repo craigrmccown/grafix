@@ -25,9 +25,7 @@ struct OmniLight {
 
     Phong phong;
 
-    float constant;
-    float linear;
-    float quadratic;
+    float brightness;
 };
 
 struct SpotLight {
@@ -95,14 +93,16 @@ vec3 computeGlobalLighting(GlobalLight light, vec3 fragPos, vec3 normal)
 
 vec3 computePointLighting(OmniLight light, vec3 fragPos, vec3 normal)
 {
-    // Attenuation reduces the intensity of lighting effects as an object gets
-    // farther from the light source
     vec3 lightVec = light.position - fragPos;
     vec3 lightDir = normalize(lightVec);
-    float lightDistance = length(lightVec);
-    float attenuation = 1.0 / (light.constant + light.linear * lightDistance + light.quadratic * lightDistance * lightDistance);
 
-    return attenuation * computeLighting(light.phong, lightDir, fragPos, normal) * light.color;
+    // Attenuation reduces the intensity of lighting effects as an object gets
+    // farther from the light source. We use a linear attenuation function
+    // instead of quadratic because we assume gamma correction is enabled, which
+    // will transform color values to an exponential scale.
+    float attenuation = 1.0 / length(lightVec);
+
+    return light.brightness * attenuation * computeLighting(light.phong, lightDir, fragPos, normal) * light.color;
 }
 
 vec3 computeSpotLighting(SpotLight light, vec3 fragPos, vec3 normal)

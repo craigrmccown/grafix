@@ -33,15 +33,15 @@ namespace orc
 
         void Dispatch(NodeVisitor &visitor) override;
 
-        void SetRadius(float radius);
+        void SetBrightness(float brightness);
 
-        Attenuation GetAttenuation() const;
+        float GetBrightness() const;
 
         protected:
         OmniLight();
 
         private:
-        Attenuation attenuation;
+        float brightness;
     };
 
     class SpotLight : public Light

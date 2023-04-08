@@ -6,7 +6,7 @@ namespace orc
 {
     Light::Light()
         : color(glm::vec3(1.0f))
-        , phong(Phong{.Ambient = 0.15f, .Diffuse = 0.75f, .Specular = 0.6f})
+        , phong(Phong{.Ambient = 0.05f, .Diffuse = 0.5f, .Specular = 0.8f})
         {}
 
     void Light::SetColor(float r, float g, float b)
@@ -34,30 +34,21 @@ namespace orc
         return std::shared_ptr<OmniLight>(new OmniLight());
     }
 
-    OmniLight::OmniLight()
-    {
-        // TODO: Normalize distance units
-        SetRadius(50.0f);
-    }
+    OmniLight::OmniLight() : brightness(1.25f) {}
 
     void OmniLight::Dispatch(NodeVisitor &visitor)
     {
         visitor.VisitOmniLight(this);
     }
 
-    void OmniLight::SetRadius(float radius)
+    void OmniLight::SetBrightness(float brightness)
     {
-        // TODO: Tweak attenuation function for more realistic lighting effect
-        attenuation = Attenuation{
-            .Constant = 1.0f,
-            .Linear = 1.0f / radius * 5.0f,
-            .Quadratic = 1.0f / (radius * radius / 100.0f)
-        };
+        this->brightness = brightness;
     }
 
-    Attenuation OmniLight::GetAttenuation() const
+    float OmniLight::GetBrightness() const
     {
-        return attenuation;
+        return brightness;
     }
 
     std::shared_ptr<SpotLight> SpotLight::Create()

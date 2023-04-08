@@ -72,6 +72,7 @@ int main(int argc, char *argv[])
     ExampleWindow window("basic_usage", windowWidth, windowHeight);
     loadOpenGL();
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_FRAMEBUFFER_SRGB);
 
     // Create scene and position camera
     orc::Scene scene;

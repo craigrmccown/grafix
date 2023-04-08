@@ -126,12 +126,13 @@ int main()
 
     // This model is not checked into source control for practical reasons
     std::shared_ptr<orc::Object> object = orc::LoadModel("data/models/hovercar/scene.gltf");
+    object->Scale(2, 2, 2);
     scene.GetRoot().AttachChild(object);
 
     std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
     light->Translate(5, 3, 0);
+    light->Scale(0.5, 0.5, 0.5);
     light->SetColor(0, 1, 0);
-    light->SetRadius(50);
     light->AddMesh(orc::BuildCubeMesh("data"));
     scene.GetRoot().AttachChild(light);
 
