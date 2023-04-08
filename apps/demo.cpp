@@ -108,6 +108,8 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_FRAMEBUFFER_SRGB); // Enable hardware-implemented gamma correction
+    glEnable(GL_CULL_FACE); // Enable face culling (don't render faces that are facing away from us)
+    glCullFace(GL_BACK);
 
     mouse::listenForMovement(window);
 

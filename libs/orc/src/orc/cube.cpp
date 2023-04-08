@@ -8,13 +8,8 @@
 const std::vector<orc::Mesh::Vertex> vertices = {
     // Back face
     orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(-0.5f, -0.5f, -0.5f),
-        .TextureCoords = glm::vec2(0.0f, 0.0f),
-        .Normal = glm::vec3(0.0f, 0.0f, -1.0f),
-    },
-    orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(0.5f, -0.5f, -0.5f),
-        .TextureCoords = glm::vec2(1.0f, 0.0f),
+        .Coordinates = glm::vec3(-0.5f, 0.5f, -0.5f),
+        .TextureCoords = glm::vec2(0.0f, 1.0f),
         .Normal = glm::vec3(0.0f, 0.0f, -1.0f),
     },
     orc::Mesh::Vertex {
@@ -22,13 +17,23 @@ const std::vector<orc::Mesh::Vertex> vertices = {
         .TextureCoords = glm::vec2(1.0f, 1.0f),
         .Normal = glm::vec3(0.0f, 0.0f, -1.0f),
     },
+        orc::Mesh::Vertex {
+        .Coordinates = glm::vec3(0.5f, -0.5f, -0.5f),
+        .TextureCoords = glm::vec2(1.0f, 0.0f),
+        .Normal = glm::vec3(0.0f, 0.0f, -1.0f),
+    },
     orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(-0.5f, 0.5f, -0.5f),
-        .TextureCoords = glm::vec2(0.0f, 1.0f),
+        .Coordinates = glm::vec3(-0.5f, -0.5f, -0.5f),
+        .TextureCoords = glm::vec2(0.0f, 0.0f),
         .Normal = glm::vec3(0.0f, 0.0f, -1.0f),
     },
 
     // Front face
+    orc::Mesh::Vertex {
+        .Coordinates = glm::vec3(-0.5f, 0.5f, 0.5f),
+        .TextureCoords = glm::vec2(0.0f, 1.0f),
+        .Normal = glm::vec3(0.0f, 0.0f, 1.0f),
+    },
     orc::Mesh::Vertex {
         .Coordinates = glm::vec3(-0.5f, -0.5f, 0.5f),
         .TextureCoords = glm::vec2(0.0f, 0.0f),
@@ -42,11 +47,6 @@ const std::vector<orc::Mesh::Vertex> vertices = {
     orc::Mesh::Vertex {
         .Coordinates = glm::vec3(0.5f, 0.5f, 0.5f),
         .TextureCoords = glm::vec2(1.0f, 1.0f),
-        .Normal = glm::vec3(0.0f, 0.0f, 1.0f),
-    },
-    orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(-0.5f, 0.5f, 0.5f),
-        .TextureCoords = glm::vec2(0.0f, 1.0f),
         .Normal = glm::vec3(0.0f, 0.0f, 1.0f),
     },
 
@@ -79,8 +79,8 @@ const std::vector<orc::Mesh::Vertex> vertices = {
         .Normal = glm::vec3(1.0f, 0.0f, 0.0f),
     },
     orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(0.5f, 0.5f, -0.5f),
-        .TextureCoords = glm::vec2(1.0f, 1.0f),
+        .Coordinates = glm::vec3(0.5f, -0.5f, 0.5f),
+        .TextureCoords = glm::vec2(0.0f, 0.0f),
         .Normal = glm::vec3(1.0f, 0.0f, 0.0f),
     },
     orc::Mesh::Vertex {
@@ -89,8 +89,8 @@ const std::vector<orc::Mesh::Vertex> vertices = {
         .Normal = glm::vec3(1.0f, 0.0f, 0.0f),
     },
     orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(0.5f, -0.5f, 0.5f),
-        .TextureCoords = glm::vec2(0.0f, 0.0f),
+        .Coordinates = glm::vec3(0.5f, 0.5f, -0.5f),
+        .TextureCoords = glm::vec2(1.0f, 1.0f),
         .Normal = glm::vec3(1.0f, 0.0f, 0.0f),
     },
 
@@ -123,8 +123,8 @@ const std::vector<orc::Mesh::Vertex> vertices = {
         .Normal = glm::vec3(0.0f, 1.0f, 0.0f),
     },
     orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(0.5f,  0.5f, -0.5f),
-        .TextureCoords = glm::vec2(1.0f, 1.0f),
+        .Coordinates = glm::vec3(-0.5f,  0.5f, 0.5f),
+        .TextureCoords = glm::vec2(0.0f, 0.0f),
         .Normal = glm::vec3(0.0f, 1.0f, 0.0f),
     },
     orc::Mesh::Vertex {
@@ -133,8 +133,8 @@ const std::vector<orc::Mesh::Vertex> vertices = {
         .Normal = glm::vec3(0.0f, 1.0f, 0.0f),
     },
     orc::Mesh::Vertex {
-        .Coordinates = glm::vec3(-0.5f,  0.5f, 0.5f),
-        .TextureCoords = glm::vec2(0.0f, 0.0f),
+        .Coordinates = glm::vec3(0.5f,  0.5f, -0.5f),
+        .TextureCoords = glm::vec2(1.0f, 1.0f),
         .Normal = glm::vec3(0.0f, 1.0f, 0.0f),
     },
 };
