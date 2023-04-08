@@ -105,25 +105,26 @@ int main()
 
     // TODO: Engine-supported API for initialization of graphics/rendering APIs
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_FRAMEBUFFER_SRGB); // Enable hardware-implemented gamma correction
 
     mouse::listenForMovement(window);
 
     orc::Scene scene;
     scene.GetCamera().SetAspectRatio((float)windowWidth/(float)windowHeight);
-    scene.GetCamera().Translate(0, 0, 10);
+    scene.GetCamera().Translate(17.5, 1, -1);
+    scene.GetCamera().Rotate(glm::radians(90.0f), 0, 0);
 
     // This model is not checked into source control for practical reasons
-    std::shared_ptr<orc::Object> object = orc::LoadModel("data/models/hovercar/scene.gltf");
-    object->Scale(2, 2, 2);
+    std::shared_ptr<orc::Object> object = orc::LoadModel("data/models/sponza/scene.gltf");
     scene.GetRoot().AttachChild(object);
 
-    std::shared_ptr<orc::OmniLight> light = orc::OmniLight::Create();
-    light->Translate(5, 3, 0);
-    light->Scale(0.5, 0.5, 0.5);
-    light->SetColor(0, 1, 0);
-    light->AddMesh(orc::BuildCubeMesh("data"));
-    scene.GetRoot().AttachChild(light);
+    std::shared_ptr<orc::Object> object2 = orc::LoadModel("data/models/legion_commander/scene.gltf");
+    object2->Scale(0.01, 0.01, 0.01);
+    object2->Translate(0, 0.05, 0);
+    object2->Rotate(glm::radians(90.0f), 0, 0);
+    scene.GetRoot().AttachChild(object2);
 
     std::shared_ptr<orc::SpotLight> flash = orc::SpotLight::Create();
 
@@ -153,7 +154,6 @@ int main()
         );
         scene.GetCamera().Translate(cameraTranslation.x, cameraTranslation.y, cameraTranslation.z);
         scene.GetCamera().Rotate(cameraRotation.x, cameraRotation.y, cameraRotation.z);
-        object->SetTranslation(0, cos(glfwGetTime() * 3) / 6, 0);
 
         if (ctrl.isLeading(Controls::Signal::exit)) glfwSetWindowShouldClose(window, true);
         if (ctrl.isLeading(Controls::Signal::action2))

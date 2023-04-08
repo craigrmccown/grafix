@@ -131,6 +131,6 @@ void main()
     lighting += computeSpotLighting(spotLight, fragPos, normal);
 
     // Sample texture and apply lighting to get final color values
-    vec3 texColor = vec3(texture(tex, texCoord));
-    color = vec4(lighting * texColor, 1.0);
+    vec4 texColor = texture(tex, texCoord);
+    color = vec4(lighting * texColor.rgb, texColor.a);
 }

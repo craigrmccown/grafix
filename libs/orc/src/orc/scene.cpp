@@ -28,7 +28,7 @@ namespace orc
         , globalLight(GlobalLight{
             .Color = glm::vec3(1),
             .Direction = glm::normalize(glm::vec3(0, -1, 0)),
-            .Phong = Phong{.Ambient=0.01, .Diffuse=0.05, .Specular=0.1}
+            .Phong = Phong{.Ambient=0.02, .Diffuse=0.15, .Specular=0.3}
         })
     {
         objectShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
