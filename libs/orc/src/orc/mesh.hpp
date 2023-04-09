@@ -28,6 +28,11 @@ namespace orc
         Mesh(const Mesh &other) = delete;
         void operator=(const Mesh &other) = delete;
 
+        // Checks whether the underlying base texture has an alpha channel. In
+        // order to perform this check, the texture is fully loaded if it is not
+        // already.
+        bool IsTransparent();
+
         void Use();
 
         void Draw();
@@ -39,7 +44,7 @@ namespace orc
         // Vertex Buffer Object
         unsigned int vboId;
 
-        // Element Buffer Object (not currently used)
+        // Element Buffer Object
         unsigned int eboId;
 
         const std::vector<Vertex> vertices;

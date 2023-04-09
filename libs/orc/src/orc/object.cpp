@@ -20,17 +20,13 @@ namespace orc
         visitor.VisitObject(this);
     }
 
-    void Object::AddMesh(std::unique_ptr<Mesh> mesh)
+    void Object::AddMesh(std::shared_ptr<Mesh> mesh)
     {
-        meshes.push_back(std::move(mesh));
+        meshes.push_back(mesh);
     }
 
-    void Object::Draw()
+    const std::vector<const std::shared_ptr<Mesh>> &Object::GetMeshes()
     {
-        for (const std::unique_ptr<Mesh> &mesh : meshes)
-        {
-            mesh->Use();
-            mesh->Draw();
-        }
+        return meshes;
     }
 }

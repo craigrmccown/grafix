@@ -61,6 +61,7 @@ namespace orc
     // TODO: Traverse/compute matrices only when necessary
     // TODO: Batch render instead of individual draw calls
     // TODO: Set uniforms only when data has changed
+    // TODO: Maintain sort order of meshes by transparency, z-distance, etc.
     void Scene::Draw()
     {
         // Collect all nodes in scene graph and separate by type
@@ -85,7 +86,12 @@ namespace orc
         {
             lightShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
             lightShader->SetUniformVec3("lightColor", light->GetColor());
-            light->Draw();
+
+            for (const std::shared_ptr<Mesh> &mesh : light->GetMeshes())
+            {
+                mesh->Use();
+                mesh->Draw();
+            }
         }
 
         // Draw objects
@@ -131,11 +137,46 @@ namespace orc
             objectShader->SetUniformVec3("spotLight.color", glm::vec3(0));
         }
 
-        for (Object *object : objects)
+        // This is very hacky, but it's a means to an end. We pull out all of the
+        // transparent meshes and render them after the non-transparent meshes.
+        // This class is already a kitchen sink, so this is just one more thing
+        // that should be re-designed.
+        std::vector<std::pair<int, int>> transparentIdxs;
+        for (int oi = 0; oi < objects.size(); oi++)
         {
+            Object *object = objects[oi];
+
             objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
             objectShader->SetUniformMat4("modelMx", object->GetModelMx());
-            object->Draw();
+
+            const std::vector<const std::shared_ptr<Mesh>> &meshes = object->GetMeshes();
+
+            for (int mi = 0; mi < object->GetMeshes().size(); mi++)
+            {
+                const std::shared_ptr<Mesh> &mesh = object->GetMeshes()[mi];
+
+                if (mesh->IsTransparent())
+                {
+                    transparentIdxs.emplace_back(oi, mi);
+                }
+                else
+                {
+                    mesh->Use();
+                    mesh->Draw();
+                }
+            }
+        }
+
+        for (std::pair<int, int> idxs : transparentIdxs)
+        {
+            Object *object = objects[idxs.first];
+            const std::shared_ptr<Mesh> &mesh = object->GetMeshes()[idxs.second];
+
+            objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
+            objectShader->SetUniformMat4("modelMx", object->GetModelMx());
+
+            mesh->Use();
+            mesh->Draw();
         }
     }
 

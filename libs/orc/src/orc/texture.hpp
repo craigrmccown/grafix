@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <glad/glad.h>
 
 namespace orc
 {
@@ -25,7 +26,10 @@ namespace orc
 
         unsigned int GetId() const;
 
+        bool HasAlphaChannel() const;
+
         private:
         unsigned int id;
+        GLenum format;
     };
 }

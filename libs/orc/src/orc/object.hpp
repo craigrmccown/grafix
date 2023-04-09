@@ -17,14 +17,14 @@ namespace orc
 
         void Dispatch(NodeVisitor &visitor) override;
 
-        void AddMesh(std::unique_ptr<Mesh> mesh);
+        void AddMesh(std::shared_ptr<Mesh> mesh);
 
-        void Draw();
+        const std::vector<const std::shared_ptr<Mesh>> &GetMeshes();
 
         protected:
         Object();
 
         private:
-        std::vector<std::unique_ptr<Mesh>> meshes;
+        std::vector<const std::shared_ptr<Mesh>> meshes;
     };
 }

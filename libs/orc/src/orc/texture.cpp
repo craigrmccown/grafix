@@ -23,7 +23,7 @@ namespace orc
 
         // Load image file and pass to OpenGL. 
         Image image(path);
-        GLenum internalFormat, format;
+        GLenum internalFormat;
 
         // Perform gamma correction, only for diffuse textures (normal maps,
         // specular maps, etc. are assumed to be defined in linear space). All
@@ -74,5 +74,10 @@ namespace orc
     unsigned int Texture::GetId() const
     {
         return id;
+    }
+
+    bool Texture::HasAlphaChannel() const
+    {
+        return format == GL_RGBA;
     }
 }

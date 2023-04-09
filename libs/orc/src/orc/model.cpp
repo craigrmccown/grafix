@@ -115,8 +115,8 @@ namespace orc
             if (mesh.mMaterialIndex >= 0)
             {
                 aiMaterial *material = scene.mMaterials[mesh.mMaterialIndex];
-                if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-                    parent.AddMesh(std::make_unique<Mesh>(
+                if (material->GetTextureCount(aiTextureType_BASE_COLOR) > 0) {
+                    parent.AddMesh(std::make_shared<Mesh>(
                         getVerticesFromMesh(mesh),
                         getIndicesFromMesh(mesh),
                         TextureRef(

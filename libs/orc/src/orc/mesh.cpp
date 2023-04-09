@@ -45,6 +45,11 @@ namespace orc
         glDeleteBuffers(1, &eboId);
     }
 
+    bool Mesh::IsTransparent()
+    {
+        return texture.Load().HasAlphaChannel();
+    }
+
     void Mesh::Use()
     {
         // TODO: Default texture if none provided
