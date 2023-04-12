@@ -4,7 +4,6 @@
 #include <vector>
 #include "mesh.hpp"
 #include "node.hpp"
-#include "texture_manager.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
@@ -19,7 +18,7 @@ namespace orc
 
         void AddMesh(std::shared_ptr<Mesh> mesh);
 
-        const std::vector<const std::shared_ptr<Mesh>> &GetMeshes();
+        const std::vector<const std::shared_ptr<Mesh>> &GetMeshes() const;
 
         protected:
         Object();

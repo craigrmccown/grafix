@@ -8,12 +8,7 @@ namespace orc
     class Texture
     {
         public:
-        enum Type
-        {
-            Diffuse
-        };
-
-        Texture(Type type, std::string path);
+        Texture();
 
         ~Texture();
 
@@ -22,14 +17,27 @@ namespace orc
         Texture(const Texture &other) = delete;
         void operator=(const Texture &other) = delete;
 
-        void Use();
+        virtual void Use() = 0;
 
         unsigned int GetId() const;
 
-        bool HasAlphaChannel() const;
+        // This is a temporary measure to allow sorted rendering of objects. In
+        // the future, the material system will drive part of the sort order,
+        // and the position of each object will drive the other part.
+        virtual int64_t GetRenderSortKey() const = 0;
+
+        protected:
+        void Bind(GLenum target);
 
         private:
         unsigned int id;
-        GLenum format;
+    };
+
+    class TextureRef
+    {
+        public:
+        virtual Texture &Load() = 0;
+
+        virtual ~TextureRef() = default;
     };
 }

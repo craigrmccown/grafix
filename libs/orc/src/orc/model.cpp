@@ -7,7 +7,7 @@
 #include "mesh.hpp"
 #include "model.hpp"
 #include "object.hpp"
-#include "texture_ref.hpp"
+#include "texture_2d.hpp"
 
 #ifdef _WIN32
     const char pathSep = '\\';
@@ -119,8 +119,8 @@ namespace orc
                     parent.AddMesh(std::make_shared<Mesh>(
                         getVerticesFromMesh(mesh),
                         getIndicesFromMesh(mesh),
-                        TextureRef(
-                            Texture::Type::Diffuse,
+                        std::make_unique<Texture2DRef>(
+                            Texture2D::Type::BaseColor,
                             dir / getTexturePathFromMaterial(material)
                         )
                     ));

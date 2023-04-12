@@ -22,6 +22,13 @@ const size_t maxOmniLights = 4;
 
 namespace orc
 {
+    using ObjMeshPair = std::pair<Object *, std::shared_ptr<Mesh>>;
+
+    static bool compareObjMeshPairs(ObjMeshPair &a, ObjMeshPair &b)
+    {
+        return a.second->GetTexture().GetRenderSortKey() < b.second->GetTexture().GetRenderSortKey();
+    }
+
     Scene::Scene()
         : root(Node::Create())
         , camera(Camera::Create())
@@ -80,6 +87,17 @@ namespace orc
         }
         std::vector<Object *> objects = visitor.GetObjects();
 
+        // Sort meshes in order of material properties, like transparency
+        std::vector<ObjMeshPair> pairs;
+        for (Object *obj : objects)
+        {
+            for (std::shared_ptr<Mesh> mesh : obj->GetMeshes())
+            {
+                pairs.push_back(std::make_pair(obj, mesh));
+            }
+        }
+        std::sort(pairs.begin(), pairs.end(), compareObjMeshPairs);
+
         // Draw lights
         lightShader->Use();
         for (OmniLight *light : omniLights)
@@ -137,40 +155,10 @@ namespace orc
             objectShader->SetUniformVec3("spotLight.color", glm::vec3(0));
         }
 
-        // This is very hacky, but it's a means to an end. We pull out all of the
-        // transparent meshes and render them after the non-transparent meshes.
-        // This class is already a kitchen sink, so this is just one more thing
-        // that should be re-designed.
-        std::vector<std::pair<int, int>> transparentIdxs;
-        for (int oi = 0; oi < objects.size(); oi++)
+        for (ObjMeshPair pair : pairs)
         {
-            Object *object = objects[oi];
-
-            objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
-            objectShader->SetUniformMat4("modelMx", object->GetModelMx());
-
-            const std::vector<const std::shared_ptr<Mesh>> &meshes = object->GetMeshes();
-
-            for (int mi = 0; mi < object->GetMeshes().size(); mi++)
-            {
-                const std::shared_ptr<Mesh> &mesh = object->GetMeshes()[mi];
-
-                if (mesh->IsTransparent())
-                {
-                    transparentIdxs.emplace_back(oi, mi);
-                }
-                else
-                {
-                    mesh->Use();
-                    mesh->Draw();
-                }
-            }
-        }
-
-        for (std::pair<int, int> idxs : transparentIdxs)
-        {
-            Object *object = objects[idxs.first];
-            const std::shared_ptr<Mesh> &mesh = object->GetMeshes()[idxs.second];
+            const Object *object = pair.first;
+            const std::shared_ptr<Mesh> mesh = pair.second;
 
             objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
             objectShader->SetUniformMat4("modelMx", object->GetModelMx());

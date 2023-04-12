@@ -2,7 +2,6 @@
 #include <vector>
 #include "mesh.hpp"
 #include "object.hpp"
-#include "texture_manager.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
 
@@ -25,7 +24,7 @@ namespace orc
         meshes.push_back(mesh);
     }
 
-    const std::vector<const std::shared_ptr<Mesh>> &Object::GetMeshes()
+    const std::vector<const std::shared_ptr<Mesh>> &Object::GetMeshes() const
     {
         return meshes;
     }

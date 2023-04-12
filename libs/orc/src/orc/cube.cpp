@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include "cube.hpp"
 #include "mesh.hpp"
-#include "texture_ref.hpp"
+#include "texture_2d.hpp"
 
 const std::vector<orc::Mesh::Vertex> vertices = {
     // Back face
@@ -160,7 +160,7 @@ namespace orc
         return std::make_unique<Mesh>(
             vertices,
             indices,
-            TextureRef(Texture::Type::Diffuse, path)
+            std::make_unique<Texture2DRef>(Texture2D::Type::BaseColor, path)
         );
     }
 }

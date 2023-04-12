@@ -1,11 +1,11 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
 #include "texture.hpp"
-#include "texture_ref.hpp"
 
 namespace orc
 {
@@ -19,7 +19,7 @@ namespace orc
             glm::vec2 TextureCoords;
         };
 
-        Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, TextureRef texture);
+        Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, std::unique_ptr<TextureRef> texture);
 
         ~Mesh();
 
@@ -28,10 +28,7 @@ namespace orc
         Mesh(const Mesh &other) = delete;
         void operator=(const Mesh &other) = delete;
 
-        // Checks whether the underlying base texture has an alpha channel. In
-        // order to perform this check, the texture is fully loaded if it is not
-        // already.
-        bool IsTransparent();
+        Texture &GetTexture() const;
 
         void Use();
 
@@ -50,7 +47,7 @@ namespace orc
         const std::vector<Vertex> vertices;
         const std::vector<unsigned int> indices;
 
-        // TODO: Support multiple textures
-        TextureRef texture;
+        // TODO: Support multiple textures (material system)
+        std::unique_ptr<TextureRef> texture;
     };
 }
