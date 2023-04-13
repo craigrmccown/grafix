@@ -81,7 +81,7 @@ namespace orc
         return viewProjectionMx;
     }
 
-    glm::mat4 Camera::ComputeViewMx()
+    void Camera::ComputeViewMx()
     {
         glm::vec3 pos = GetPosition();
         glm::vec3 up = GetUp();
@@ -114,7 +114,7 @@ namespace orc
         viewMx[3][2] = -glm::dot(front, pos);
     }
 
-    glm::mat4 Camera::ComputeProjectionMx()
+    void Camera::ComputeProjectionMx()
     {
         projectionMx = glm::perspective(fieldOfView, aspectRatio, nearClip, farClip);
     }

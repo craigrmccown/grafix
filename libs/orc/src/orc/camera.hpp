@@ -49,7 +49,7 @@ namespace orc
         glm::mat4 viewMx, projectionMx, viewProjectionMx;
         float fieldOfView, aspectRatio, nearClip, farClip;
 
-        glm::mat4 ComputeViewMx();
-        glm::mat4 ComputeProjectionMx();
+        void ComputeViewMx();
+        void ComputeProjectionMx();
     };
 }
