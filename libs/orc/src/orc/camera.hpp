@@ -30,6 +30,14 @@ namespace orc
         // See Node.ComputeMxs. Also computes the view-projection matrix.
         void ComputeMxs() override;
 
+        // Returns a matrix that performs a transformation from world space to
+        // view space
+        glm::mat4 GetViewMx() const;
+
+        // Returns a matrix that performs a transformation from view space to
+        // clip space
+        glm::mat4 GetProjectionMx() const;
+
         // Returns the view-projection matrix that can be used to apply camera
         // perspective to all other nodes
         glm::mat4 GetViewProjectionMx() const;
@@ -38,10 +46,10 @@ namespace orc
         Camera();
 
         private:
-        glm::mat4 viewProjectionMx;
+        glm::mat4 viewMx, projectionMx, viewProjectionMx;
         float fieldOfView, aspectRatio, nearClip, farClip;
 
-        glm::mat4 ComputeViewMx() const;
-        glm::mat4 ComputeProjectionMx() const;
+        glm::mat4 ComputeViewMx();
+        glm::mat4 ComputeProjectionMx();
     };
 }

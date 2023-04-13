@@ -20,11 +20,22 @@ add_custom_command(
   COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.vert
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.vert
 )
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.frag.hpp
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.frag
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.frag
+)
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.vert.hpp
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.vert
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.vert
+)
 
 # Source
 add_library(orc STATIC
     src/orc/camera.cpp
     src/orc/cube.cpp
+    src/orc/cubemap.cpp
     src/orc/image.cpp
     src/orc/light.cpp
     src/orc/mesh.cpp
@@ -33,6 +44,7 @@ add_library(orc STATIC
     src/orc/object.cpp
     src/orc/scene.cpp
     src/orc/shader.cpp
+    src/orc/skybox.cpp
     src/orc/stateful_visitor.cpp
     src/orc/texture.cpp
     src/orc/texture_2d.cpp
@@ -42,6 +54,8 @@ add_library(orc STATIC
     src/orc/shaders/light.vert.cpp
     src/orc/shaders/object.frag.cpp
     src/orc/shaders/object.vert.cpp
+    src/orc/shaders/skybox.frag.cpp
+    src/orc/shaders/skybox.vert.cpp
 )
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(orc PRIVATE 

@@ -14,6 +14,9 @@
 #include "shaders/light.vert.hpp"
 #include "shaders/object.frag.hpp"
 #include "shaders/object.vert.hpp"
+#include "shaders/skybox.frag.hpp"
+#include "shaders/skybox.vert.hpp"
+#include "skybox.hpp"
 #include "stateful_visitor.hpp"
 #include "types.hpp"
 #include "visitor.hpp"
@@ -34,8 +37,8 @@ namespace orc
         , camera(Camera::Create())
         , globalLight(GlobalLight{
             .Color = glm::vec3(1),
-            .Direction = glm::normalize(glm::vec3(0, -1, 0)),
-            .Phong = Phong{.Ambient=0.02, .Diffuse=0.15, .Specular=0.3}
+            .Direction = glm::normalize(glm::vec3(0.25, -1, 0)),
+            .Phong = Phong{.Ambient=0.1, .Diffuse=0.4, .Specular=0.3}
         })
     {
         objectShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
@@ -45,6 +48,10 @@ namespace orc
         lightShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
             ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::light_vert, sizeof(shaders::light_vert))),
             ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::light_frag, sizeof(shaders::light_frag))),
+        });
+        skyboxShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
+            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::skybox_vert, sizeof(shaders::skybox_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::skybox_frag, sizeof(shaders::skybox_frag))),
         });
         root->AttachChild(camera);
     }
@@ -57,6 +64,11 @@ namespace orc
     Camera &Scene::GetCamera() const
     {
         return *camera;
+    }
+
+    void Scene::SetSkybox(std::unique_ptr<Skybox> skybox)
+    {
+        this->skybox.swap(skybox);
     }
 
     void Scene::Update()
@@ -165,6 +177,22 @@ namespace orc
 
             mesh->Use();
             mesh->Draw();
+        }
+
+        if (skybox)
+        {
+            skyboxShader->Use();
+
+            // Skybox never moves, so the model matrix will always be the
+            // identity. We also remove the translation component of the view
+            // matrix since the skybox shouldn't be influenced by camera
+            // position.
+            glm::mat4 skyboxMx = glm::mat4(glm::mat3(GetCamera().GetViewMx()));
+            skyboxMx = GetCamera().GetProjectionMx() * skyboxMx;
+
+            skyboxShader->SetUniformMat4("transformMx", skyboxMx);
+            skybox->Use();
+            skybox->Draw();
         }
     }
 

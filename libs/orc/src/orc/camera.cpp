@@ -5,7 +5,7 @@
 const float
     defaultFieldOfView = glm::radians(45.0f),
     defaultAspectRatio = 16.0f/9.0f,
-    defaultNearClip = 0.1f,
+    defaultNearClip = 1.0f,
     defaultFarClip = 200.0f;
 
 static void copyVecToRow(const glm::vec3 &v, glm::mat4 &m, int r)
@@ -61,14 +61,27 @@ namespace orc
     void Camera::ComputeMxs()
     {
         Node::ComputeMxs();
-        viewProjectionMx = ComputeProjectionMx() * ComputeViewMx();
+        ComputeViewMx();
+        ComputeProjectionMx();
+        viewProjectionMx = projectionMx * viewMx;
     }
 
-    glm::mat4 Camera::GetViewProjectionMx() const {
+    glm::mat4 Camera::GetViewMx() const
+    {
+        return viewMx;
+    }
+
+    glm::mat4 Camera::GetProjectionMx() const
+    {
+        return projectionMx;
+    }
+
+    glm::mat4 Camera::GetViewProjectionMx() const
+    {
         return viewProjectionMx;
     }
 
-    glm::mat4 Camera::ComputeViewMx() const
+    glm::mat4 Camera::ComputeViewMx()
     {
         glm::vec3 pos = GetPosition();
         glm::vec3 up = GetUp();
@@ -92,19 +105,17 @@ namespace orc
         // (translate, then rotate). The operations below are doing exactly
         // that, but we take a shortcut by putting each element directly in
         // place instead of actually performing matrix multiplication.
-        glm::mat4 viewMx(1.0f);
+        viewMx = glm::mat4(1.0f);
         copyVecToRow(right, viewMx, 0);
         copyVecToRow(up, viewMx, 1);
         copyVecToRow(front, viewMx, 2);
         viewMx[3][0] = -glm::dot(right, pos);
         viewMx[3][1] = -glm::dot(up, pos);
         viewMx[3][2] = -glm::dot(front, pos);
-
-        return viewMx;
     }
 
-    glm::mat4 Camera::ComputeProjectionMx() const
+    glm::mat4 Camera::ComputeProjectionMx()
     {
-        return glm::perspective(fieldOfView, aspectRatio, nearClip, farClip);
+        projectionMx = glm::perspective(fieldOfView, aspectRatio, nearClip, farClip);
     }
 }

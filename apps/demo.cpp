@@ -11,11 +11,12 @@
 #include <core/controls.hpp>
 #include <core/mouse.hpp>
 #include <orc/cube.hpp>
+#include <orc/cubemap.hpp>
 #include <orc/light.hpp>
 #include <orc/model.hpp>
 #include <orc/object.hpp>
 #include <orc/scene.hpp>
-#include <orc/shader.hpp>
+#include <orc/skybox.hpp>
 
 int kill(const char *message)
 {
@@ -114,12 +115,22 @@ int main()
     mouse::listenForMovement(window);
 
     orc::Scene scene;
+    scene.SetSkybox(std::make_unique<orc::Skybox>(std::make_unique<orc::CubemapRef>(
+        "data/textures/skybox/right.jpg",
+        "data/textures/skybox/left.jpg",
+        "data/textures/skybox/top.jpg",
+        "data/textures/skybox/bottom.jpg",
+        "data/textures/skybox/front.jpg",
+        "data/textures/skybox/back.jpg"
+    )));
+
     scene.GetCamera().SetAspectRatio((float)windowWidth/(float)windowHeight);
-    scene.GetCamera().Translate(17.5, 1, -1);
+    scene.GetCamera().Translate(13, 1.5, 0);
     scene.GetCamera().Rotate(glm::radians(90.0f), 0, 0);
 
     // This model is not checked into source control for practical reasons
-    std::shared_ptr<orc::Object> object = orc::LoadModel("data/models/sponza/scene.gltf");
+    std::shared_ptr<orc::Object> object = orc::LoadModel("data/models/sponza_scene/scene.gltf");
+    object->Scale(1.5, 1.5, 1.5);
     scene.GetRoot().AttachChild(object);
 
     std::shared_ptr<orc::Object> object2 = orc::LoadModel("data/models/legion_commander/scene.gltf");

@@ -8,8 +8,7 @@
 namespace orc
 {
     Mesh::Mesh(const std::vector<Vertex> &vertices, const std::vector<unsigned int> &indices, std::unique_ptr<TextureRef> texture)
-        : vertices(vertices)
-        , indices(indices)
+        : numIndices(indices.size())
         , texture(std::move(texture))
     {
         // TODO: Implement OpenGL RAII library to prevent leaks on error
@@ -60,6 +59,6 @@ namespace orc
 
     void Mesh::Draw()
     {
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
     }
 }

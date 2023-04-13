@@ -32,7 +32,7 @@ namespace orc
 
         void Use();
 
-        void Draw();
+        virtual void Draw();
 
         private:
         // Vertex Array Object
@@ -44,8 +44,8 @@ namespace orc
         // Element Buffer Object
         unsigned int eboId;
 
-        const std::vector<Vertex> vertices;
-        const std::vector<unsigned int> indices;
+        // The number of indices passed to glDrawElements
+        int numIndices;
 
         // TODO: Support multiple textures (material system)
         std::unique_ptr<TextureRef> texture;
