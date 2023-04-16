@@ -1,24 +1,23 @@
 #version 330 core
 
-// TODO: Naming convention for ins, outs, uniforms, etc.
-layout (location = 0) in vec3 _coord;
-layout (location = 1) in vec3 _normal;
-layout (location = 2) in vec2 _texCoord;
+layout (location = 0) in vec3 va_coords;
+layout (location = 1) in vec3 va_normal;
+layout (location = 2) in vec2 va_texCoords;
 
-out vec2 texCoord;
-out vec3 normal;
-out vec3 fragPos;
+out vec2 vs_out_texCoords;
+out vec3 vs_out_normal;
+out vec3 vs_out_fragPos;
 
-uniform mat4 transformMx;
-uniform mat4 modelMx;
+uniform mat4 u_transformMx;
+uniform mat4 u_modelMx;
 
 void main()
 {
-    gl_Position = transformMx * vec4(_coord, 1.0);
-    texCoord = _texCoord;
+    gl_Position = u_transformMx * vec4(va_coords, 1.0);
+    vs_out_texCoords = va_texCoords;
 
-    // Compute fragment position and normal direction in view-space by applying
-    // model-view transformation
-    normal = vec3(modelMx * vec4(_normal, 0.0));
-    fragPos = vec3(modelMx * vec4(_coord, 1.0));
+    // Compute fragment position and normal direction in world space by applying
+    // model transformation
+    vs_out_normal = vec3(u_modelMx * vec4(va_normal, 0.0));
+    vs_out_fragPos = vec3(u_modelMx * vec4(va_coords, 1.0));
 }

@@ -1,10 +1,6 @@
 #version 330 core
 
-in vec2 texCoord;
-in vec3 normal;
-in vec3 fragPos;
-
-out vec4 color;
+#define NUM_OMNI_LIGHTS 4
 
 struct Phong {
     float ambient;
@@ -44,13 +40,17 @@ struct SpotLight {
     Phong phong;
 };
 
-#define NUM_OMNI_LIGHTS 4
+in vec2 vs_out_texCoords;
+in vec3 vs_out_normal;
+in vec3 vs_out_fragPos;
 
-uniform sampler2D tex;
-uniform vec3 cameraPosition;
-uniform GlobalLight globalLight;
-uniform OmniLight omniLights[NUM_OMNI_LIGHTS];
-uniform SpotLight spotLight;
+out vec4 fs_out_color;
+
+uniform sampler2D u_texture;
+uniform vec3 u_cameraPosition;
+uniform GlobalLight u_globalLight;
+uniform OmniLight u_omniLights[NUM_OMNI_LIGHTS];
+uniform SpotLight u_spotLight;
 
 float computeLighting(Phong phong, vec3 lightDir, vec3 fragPos, vec3 normal)
 {
@@ -75,7 +75,7 @@ float computeLighting(Phong phong, vec3 lightDir, vec3 fragPos, vec3 normal)
     // Then, this vector can be compared to the surface normal using a dot
     // product. The closer the direction of the bisector to the direction of the
     // surface normal, the closer the camera is to the light's reflection.
-    vec3 viewDir = normalize(cameraPosition-fragPos);
+    vec3 viewDir = normalize(u_cameraPosition-fragPos);
     vec3 bisector = normalize((lightDir + viewDir) / 2);
 
     // Multiply by reflection angle so that we only get specular highlights on
@@ -121,16 +121,16 @@ vec3 computeSpotLighting(SpotLight light, vec3 fragPos, vec3 normal)
 
 void main()
 {
-    vec3 lighting = computeGlobalLighting(globalLight, fragPos, normal);
+    vec3 lighting = computeGlobalLighting(u_globalLight, vs_out_fragPos, vs_out_normal);
 
     for (int i = 0; i < NUM_OMNI_LIGHTS; i++)
     {
-        lighting += computePointLighting(omniLights[i], fragPos, normal);
+        lighting += computePointLighting(u_omniLights[i], vs_out_fragPos, vs_out_normal);
     }
 
-    lighting += computeSpotLighting(spotLight, fragPos, normal);
+    lighting += computeSpotLighting(u_spotLight, vs_out_fragPos, vs_out_normal);
 
     // Sample texture and apply lighting to get final color values
-    vec4 texColor = texture(tex, texCoord);
-    color = vec4(lighting * texColor.rgb, texColor.a);
+    vec4 texColor = texture(u_texture, vs_out_texCoords);
+    fs_out_color = vec4(lighting * texColor.rgb, texColor.a);
 }

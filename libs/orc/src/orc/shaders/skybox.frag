@@ -1,12 +1,12 @@
 #version 330 core
 
-in vec3 coord;
+in vec3 vs_out_coords;
 
-uniform samplerCube cubemap;
+uniform samplerCube u_cubemap;
 
-out vec4 color;
+out vec4 fs_out_color;
 
 void main()
 {
-    color = vec4(vec3(texture(cubemap, coord)), 1.0);
+    fs_out_color = vec4(vec3(texture(u_cubemap, vs_out_coords)), 1.0);
 }

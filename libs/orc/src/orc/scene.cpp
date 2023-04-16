@@ -114,8 +114,8 @@ namespace orc
         monochromeShader->Use();
         for (OmniLight *light : omniLights)
         {
-            monochromeShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
-            monochromeShader->SetUniformVec3("lightColor", light->GetColor());
+            monochromeShader->SetUniformMat4("u_transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
+            monochromeShader->SetUniformVec3("u_color", light->GetColor());
 
             for (const std::shared_ptr<Mesh> &mesh : light->GetMeshes())
             {
@@ -126,45 +126,45 @@ namespace orc
 
         // Draw objects
         phongShader->Use();
-        phongShader->SetUniformVec3("cameraPosition", GetCamera().GetPosition());
-        phongShader->SetUniformVec3("globalLight.color", globalLight.Color);
-        phongShader->SetUniformVec3("globalLight.direction", globalLight.Direction);
-        phongShader->SetUniformFloat("globalLight.phong.ambient", globalLight.Phong.Ambient);
-        phongShader->SetUniformFloat("globalLight.phong.diffuse", globalLight.Phong.Diffuse);
-        phongShader->SetUniformFloat("globalLight.phong.specular", globalLight.Phong.Specular);
+        phongShader->SetUniformVec3("u_cameraPosition", GetCamera().GetPosition());
+        phongShader->SetUniformVec3("u_globalLight.color", globalLight.Color);
+        phongShader->SetUniformVec3("u_globalLight.direction", globalLight.Direction);
+        phongShader->SetUniformFloat("u_globalLight.phong.ambient", globalLight.Phong.Ambient);
+        phongShader->SetUniformFloat("u_globalLight.phong.diffuse", globalLight.Phong.Diffuse);
+        phongShader->SetUniformFloat("u_globalLight.phong.specular", globalLight.Phong.Specular);
 
         for (int i = 0; i < maxOmniLights; i ++)
         {
             if (i >= omniLights.size())
             {
-                phongShader->SetUniformVec3Element("omniLights", "color", i, glm::vec3(0));
-                phongShader->SetUniformFloatElement("omniLights", "constant", i, 1); // Avoid divide by zero
+                phongShader->SetUniformVec3Element("u_omniLights", "color", i, glm::vec3(0));
+                phongShader->SetUniformFloatElement("u_omniLights", "constant", i, 1); // Avoid divide by zero
                 continue;
             }
 
             OmniLight *light = omniLights[i];
-            phongShader->SetUniformVec3Element("omniLights", "color", i, light->GetColor());
-            phongShader->SetUniformVec3Element("omniLights", "position", i, light->GetPosition());
-            phongShader->SetUniformFloatElement("omniLights", "phong.ambient", i, light->GetPhong().Ambient);
-            phongShader->SetUniformFloatElement("omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
-            phongShader->SetUniformFloatElement("omniLights", "phong.specular", i, light->GetPhong().Specular);
-            phongShader->SetUniformFloatElement("omniLights", "brightness", i, light->GetBrightness());
+            phongShader->SetUniformVec3Element("u_omniLights", "color", i, light->GetColor());
+            phongShader->SetUniformVec3Element("u_omniLights", "position", i, light->GetPosition());
+            phongShader->SetUniformFloatElement("u_omniLights", "phong.ambient", i, light->GetPhong().Ambient);
+            phongShader->SetUniformFloatElement("u_omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
+            phongShader->SetUniformFloatElement("u_omniLights", "phong.specular", i, light->GetPhong().Specular);
+            phongShader->SetUniformFloatElement("u_omniLights", "brightness", i, light->GetBrightness());
         }
 
         if (spotLight)
         {
-            phongShader->SetUniformVec3("spotLight.color", spotLight->GetColor());
-            phongShader->SetUniformVec3("spotLight.direction", spotLight->GetFront());
-            phongShader->SetUniformVec3("spotLight.position", spotLight->GetPosition());
-            phongShader->SetUniformFloat("spotLight.inner", spotLight->GetInnerBlur());
-            phongShader->SetUniformFloat("spotLight.outer", spotLight->GetOuterBlur());
-            phongShader->SetUniformFloat("spotLight.phong.ambient", spotLight->GetPhong().Ambient);
-            phongShader->SetUniformFloat("spotLight.phong.diffuse", spotLight->GetPhong().Diffuse);
-            phongShader->SetUniformFloat("spotLight.phong.specular", spotLight->GetPhong().Specular);
+            phongShader->SetUniformVec3("u_spotLight.color", spotLight->GetColor());
+            phongShader->SetUniformVec3("u_spotLight.direction", spotLight->GetFront());
+            phongShader->SetUniformVec3("u_spotLight.position", spotLight->GetPosition());
+            phongShader->SetUniformFloat("u_spotLight.inner", spotLight->GetInnerBlur());
+            phongShader->SetUniformFloat("u_spotLight.outer", spotLight->GetOuterBlur());
+            phongShader->SetUniformFloat("u_spotLight.phong.ambient", spotLight->GetPhong().Ambient);
+            phongShader->SetUniformFloat("u_spotLight.phong.diffuse", spotLight->GetPhong().Diffuse);
+            phongShader->SetUniformFloat("u_spotLight.phong.specular", spotLight->GetPhong().Specular);
         }
         else
         {
-            phongShader->SetUniformVec3("spotLight.color", glm::vec3(0));
+            phongShader->SetUniformVec3("u_spotLight.color", glm::vec3(0));
         }
 
         for (ObjMeshPair pair : pairs)
@@ -172,8 +172,8 @@ namespace orc
             const Object *object = pair.first;
             const std::shared_ptr<Mesh> mesh = pair.second;
 
-            phongShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
-            phongShader->SetUniformMat4("modelMx", object->GetModelMx());
+            phongShader->SetUniformMat4("u_transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
+            phongShader->SetUniformMat4("u_modelMx", object->GetModelMx());
 
             mesh->Use();
             mesh->Draw();
@@ -190,7 +190,7 @@ namespace orc
             glm::mat4 skyboxMx = glm::mat4(glm::mat3(GetCamera().GetViewMx()));
             skyboxMx = GetCamera().GetProjectionMx() * skyboxMx;
 
-            skyboxShader->SetUniformMat4("transformMx", skyboxMx);
+            skyboxShader->SetUniformMat4("u_transformMx", skyboxMx);
             skybox->Use();
             skybox->Draw();
         }

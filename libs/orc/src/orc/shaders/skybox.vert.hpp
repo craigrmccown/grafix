@@ -2,5 +2,5 @@
 
 namespace orc::shaders
 {
-    extern const char skybox_vert[515];
+    extern const char skybox_vert[544];
 }

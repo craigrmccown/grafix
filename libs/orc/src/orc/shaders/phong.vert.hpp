@@ -2,5 +2,5 @@
 
 namespace orc::shaders
 {
-    extern const char phong_vert[604];
+    extern const char phong_vert[673];
 }

@@ -1,10 +1,10 @@
 #version 330 core
 
-layout (location = 0) in vec3 _coord;
+layout (location = 0) in vec3 va_coords;
 
-uniform mat4 transformMx;
+uniform mat4 u_transformMx;
 
 void main()
 {
-    gl_Position = transformMx * vec4(_coord, 1.0);
+    gl_Position = u_transformMx * vec4(va_coords, 1.0);
 }

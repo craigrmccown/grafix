@@ -2,5 +2,5 @@
 
 namespace orc::shaders
 {
-    extern const char monochrome_frag[113];
+    extern const char monochrome_frag[121];
 }
