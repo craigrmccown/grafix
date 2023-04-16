@@ -32,7 +32,7 @@ namespace orc
         private:
         std::shared_ptr<Node> root;
         std::shared_ptr<Camera> camera;
-        std::unique_ptr<OpenGLShader> objectShader, lightShader, skyboxShader;
+        std::unique_ptr<OpenGLShader> phongShader, monochromeShader, skyboxShader;
         std::unique_ptr<Skybox> skybox;
 
         // TODO: API to set global light properties

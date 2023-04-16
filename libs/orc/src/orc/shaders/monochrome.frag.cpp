@@ -1,8 +1,8 @@
-#include "light.frag.hpp"
+#include "monochrome.frag.hpp"
 
 namespace orc::shaders
 {
-    const char light_frag[113] = {
+    const char monochrome_frag[113] = {
         '\x23','\x76','\x65','\x72','\x73','\x69','\x6f','\x6e','\x20','\x33','\x33','\x30','\x20','\x63','\x6f','\x72',
         '\x65','\x0a','\x0a','\x6f','\x75','\x74','\x20','\x76','\x65','\x63','\x34','\x20','\x63','\x6f','\x6c','\x6f',
         '\x72','\x3b','\x0a','\x0a','\x75','\x6e','\x69','\x66','\x6f','\x72','\x6d','\x20','\x76','\x65','\x63','\x33',

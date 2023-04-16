@@ -1,8 +1,8 @@
-#include "light.vert.hpp"
+#include "monochrome.vert.hpp"
 
 namespace orc::shaders
 {
-    const char light_vert[152] = {
+    const char monochrome_vert[152] = {
         '\x23','\x76','\x65','\x72','\x73','\x69','\x6f','\x6e','\x20','\x33','\x33','\x30','\x20','\x63','\x6f','\x72',
         '\x65','\x0a','\x0a','\x6c','\x61','\x79','\x6f','\x75','\x74','\x20','\x28','\x6c','\x6f','\x63','\x61','\x74',
         '\x69','\x6f','\x6e','\x20','\x3d','\x20','\x30','\x29','\x20','\x69','\x6e','\x20','\x76','\x65','\x63','\x33',

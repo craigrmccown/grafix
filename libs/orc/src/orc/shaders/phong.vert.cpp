@@ -1,8 +1,8 @@
-#include "object.vert.hpp"
+#include "phong.vert.hpp"
 
 namespace orc::shaders
 {
-    const char object_vert[604] = {
+    const char phong_vert[604] = {
         '\x23','\x76','\x65','\x72','\x73','\x69','\x6f','\x6e','\x20','\x33','\x33','\x30','\x20','\x63','\x6f','\x72',
         '\x65','\x0a','\x0a','\x2f','\x2f','\x20','\x54','\x4f','\x44','\x4f','\x3a','\x20','\x4e','\x61','\x6d','\x69',
         '\x6e','\x67','\x20','\x63','\x6f','\x6e','\x76','\x65','\x6e','\x74','\x69','\x6f','\x6e','\x20','\x66','\x6f',

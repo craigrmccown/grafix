@@ -1,24 +1,24 @@
 # Resources
 # TODO: CMake scripts to DRY up embedded resource configuration
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag.hpp
-  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.frag
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.frag.hpp
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.frag
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.frag
 )
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert.hpp
-  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/light.vert
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.vert.hpp
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.vert
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/monochrome.vert
 )
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.frag.hpp
-  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.frag
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.frag
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.frag.hpp
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.frag
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.frag
 )
 add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.vert.hpp
-  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.vert
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/object.vert
+  OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.vert.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.vert.hpp
+  COMMAND binembed orc::shaders ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.vert
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/phong.vert
 )
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.frag.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/orc/shaders/skybox.frag.hpp
@@ -50,10 +50,10 @@ add_library(orc STATIC
     src/orc/texture_2d.cpp
 
     # Embedded resources
-    src/orc/shaders/light.frag.cpp
-    src/orc/shaders/light.vert.cpp
-    src/orc/shaders/object.frag.cpp
-    src/orc/shaders/object.vert.cpp
+    src/orc/shaders/monochrome.frag.cpp
+    src/orc/shaders/monochrome.vert.cpp
+    src/orc/shaders/phong.frag.cpp
+    src/orc/shaders/phong.vert.cpp
     src/orc/shaders/skybox.frag.cpp
     src/orc/shaders/skybox.vert.cpp
 )

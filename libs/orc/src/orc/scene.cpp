@@ -10,10 +10,10 @@
 #include "object.hpp"
 #include "scene.hpp"
 #include "shader.hpp"
-#include "shaders/light.frag.hpp"
-#include "shaders/light.vert.hpp"
-#include "shaders/object.frag.hpp"
-#include "shaders/object.vert.hpp"
+#include "shaders/monochrome.frag.hpp"
+#include "shaders/monochrome.vert.hpp"
+#include "shaders/phong.frag.hpp"
+#include "shaders/phong.vert.hpp"
 #include "shaders/skybox.frag.hpp"
 #include "shaders/skybox.vert.hpp"
 #include "skybox.hpp"
@@ -41,13 +41,13 @@ namespace orc
             .Phong = Phong{.Ambient=0.1, .Diffuse=0.4, .Specular=0.3}
         })
     {
-        objectShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::object_vert, sizeof(shaders::object_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::object_frag, sizeof(shaders::object_frag))),
+        phongShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
+            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::phong_vert, sizeof(shaders::phong_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::phong_frag, sizeof(shaders::phong_frag))),
         });
-        lightShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::light_vert, sizeof(shaders::light_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::light_frag, sizeof(shaders::light_frag))),
+        monochromeShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
+            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::monochrome_vert, sizeof(shaders::monochrome_vert))),
+            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::monochrome_frag, sizeof(shaders::monochrome_frag))),
         });
         skyboxShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
             ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::skybox_vert, sizeof(shaders::skybox_vert))),
@@ -111,11 +111,11 @@ namespace orc
         std::sort(pairs.begin(), pairs.end(), compareObjMeshPairs);
 
         // Draw lights
-        lightShader->Use();
+        monochromeShader->Use();
         for (OmniLight *light : omniLights)
         {
-            lightShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
-            lightShader->SetUniformVec3("lightColor", light->GetColor());
+            monochromeShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * light->GetModelMx());
+            monochromeShader->SetUniformVec3("lightColor", light->GetColor());
 
             for (const std::shared_ptr<Mesh> &mesh : light->GetMeshes())
             {
@@ -125,46 +125,46 @@ namespace orc
         }
 
         // Draw objects
-        objectShader->Use();
-        objectShader->SetUniformVec3("cameraPosition", GetCamera().GetPosition());
-        objectShader->SetUniformVec3("globalLight.color", globalLight.Color);
-        objectShader->SetUniformVec3("globalLight.direction", globalLight.Direction);
-        objectShader->SetUniformFloat("globalLight.phong.ambient", globalLight.Phong.Ambient);
-        objectShader->SetUniformFloat("globalLight.phong.diffuse", globalLight.Phong.Diffuse);
-        objectShader->SetUniformFloat("globalLight.phong.specular", globalLight.Phong.Specular);
+        phongShader->Use();
+        phongShader->SetUniformVec3("cameraPosition", GetCamera().GetPosition());
+        phongShader->SetUniformVec3("globalLight.color", globalLight.Color);
+        phongShader->SetUniformVec3("globalLight.direction", globalLight.Direction);
+        phongShader->SetUniformFloat("globalLight.phong.ambient", globalLight.Phong.Ambient);
+        phongShader->SetUniformFloat("globalLight.phong.diffuse", globalLight.Phong.Diffuse);
+        phongShader->SetUniformFloat("globalLight.phong.specular", globalLight.Phong.Specular);
 
         for (int i = 0; i < maxOmniLights; i ++)
         {
             if (i >= omniLights.size())
             {
-                objectShader->SetUniformVec3Element("omniLights", "color", i, glm::vec3(0));
-                objectShader->SetUniformFloatElement("omniLights", "constant", i, 1); // Avoid divide by zero
+                phongShader->SetUniformVec3Element("omniLights", "color", i, glm::vec3(0));
+                phongShader->SetUniformFloatElement("omniLights", "constant", i, 1); // Avoid divide by zero
                 continue;
             }
 
             OmniLight *light = omniLights[i];
-            objectShader->SetUniformVec3Element("omniLights", "color", i, light->GetColor());
-            objectShader->SetUniformVec3Element("omniLights", "position", i, light->GetPosition());
-            objectShader->SetUniformFloatElement("omniLights", "phong.ambient", i, light->GetPhong().Ambient);
-            objectShader->SetUniformFloatElement("omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
-            objectShader->SetUniformFloatElement("omniLights", "phong.specular", i, light->GetPhong().Specular);
-            objectShader->SetUniformFloatElement("omniLights", "brightness", i, light->GetBrightness());
+            phongShader->SetUniformVec3Element("omniLights", "color", i, light->GetColor());
+            phongShader->SetUniformVec3Element("omniLights", "position", i, light->GetPosition());
+            phongShader->SetUniformFloatElement("omniLights", "phong.ambient", i, light->GetPhong().Ambient);
+            phongShader->SetUniformFloatElement("omniLights", "phong.diffuse", i, light->GetPhong().Diffuse);
+            phongShader->SetUniformFloatElement("omniLights", "phong.specular", i, light->GetPhong().Specular);
+            phongShader->SetUniformFloatElement("omniLights", "brightness", i, light->GetBrightness());
         }
 
         if (spotLight)
         {
-            objectShader->SetUniformVec3("spotLight.color", spotLight->GetColor());
-            objectShader->SetUniformVec3("spotLight.direction", spotLight->GetFront());
-            objectShader->SetUniformVec3("spotLight.position", spotLight->GetPosition());
-            objectShader->SetUniformFloat("spotLight.inner", spotLight->GetInnerBlur());
-            objectShader->SetUniformFloat("spotLight.outer", spotLight->GetOuterBlur());
-            objectShader->SetUniformFloat("spotLight.phong.ambient", spotLight->GetPhong().Ambient);
-            objectShader->SetUniformFloat("spotLight.phong.diffuse", spotLight->GetPhong().Diffuse);
-            objectShader->SetUniformFloat("spotLight.phong.specular", spotLight->GetPhong().Specular);
+            phongShader->SetUniformVec3("spotLight.color", spotLight->GetColor());
+            phongShader->SetUniformVec3("spotLight.direction", spotLight->GetFront());
+            phongShader->SetUniformVec3("spotLight.position", spotLight->GetPosition());
+            phongShader->SetUniformFloat("spotLight.inner", spotLight->GetInnerBlur());
+            phongShader->SetUniformFloat("spotLight.outer", spotLight->GetOuterBlur());
+            phongShader->SetUniformFloat("spotLight.phong.ambient", spotLight->GetPhong().Ambient);
+            phongShader->SetUniformFloat("spotLight.phong.diffuse", spotLight->GetPhong().Diffuse);
+            phongShader->SetUniformFloat("spotLight.phong.specular", spotLight->GetPhong().Specular);
         }
         else
         {
-            objectShader->SetUniformVec3("spotLight.color", glm::vec3(0));
+            phongShader->SetUniformVec3("spotLight.color", glm::vec3(0));
         }
 
         for (ObjMeshPair pair : pairs)
@@ -172,8 +172,8 @@ namespace orc
             const Object *object = pair.first;
             const std::shared_ptr<Mesh> mesh = pair.second;
 
-            objectShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
-            objectShader->SetUniformMat4("modelMx", object->GetModelMx());
+            phongShader->SetUniformMat4("transformMx", GetCamera().GetViewProjectionMx() * object->GetModelMx());
+            phongShader->SetUniformMat4("modelMx", object->GetModelMx());
 
             mesh->Use();
             mesh->Draw();

@@ -2,5 +2,5 @@
 
 namespace orc::shaders
 {
-    extern const char light_frag[113];
+    extern const char phong_frag[4654];
 }
