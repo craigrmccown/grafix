@@ -8,7 +8,7 @@
 
 // Allow floating point precision error up to this value. Should consider using
 // more precise data types if this becomes an issue.
-const float errorMargin = 0.02;
+const float errorMargin = 0.00001;
 
 namespace testutils
 {

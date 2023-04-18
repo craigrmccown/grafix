@@ -5,8 +5,12 @@
 #include "camera.hpp"
 
 TEST_CASE("View-projection matrix", "[orc]") {
-    float fov = 45.0f, aspect = 16.0f/9.0f;
+    float fov = glm::radians(45.0f), aspect = 16.0f/9.0f, nearClip = 1.0f, farClip = 100.0f;
     std::shared_ptr<orc::Camera> camera = orc::Camera::Create();
+    camera->SetFieldOfView(fov);
+    camera->SetAspectRatio(aspect);
+    camera->SetClippingDistance(nearClip, farClip);
+    camera->ComputeMxs();
 
     // Initially, we should be looking in the -Z direction at the origin. The
     // view matrix is constructed as follows:
@@ -19,7 +23,7 @@ TEST_CASE("View-projection matrix", "[orc]") {
     // Where R, U, F, and T are the right, up, front, and translation vectors,
     // respectively. The first matrix represents a rotation, and the second a
     // translation.
-    glm::mat4 projectionMx = glm::perspective(glm::radians(fov), aspect, 0.1f, 100.0f);
+    glm::mat4 projectionMx = glm::perspective(fov, aspect, nearClip, farClip);
     glm::mat4 rotationMx(1.0f);
     glm::mat4 translationMx(1.0f);
     REQUIRE(testutils::Mat4Equals(projectionMx * rotationMx * translationMx, camera->GetViewProjectionMx()));
