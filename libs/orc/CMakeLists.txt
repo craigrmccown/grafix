@@ -71,6 +71,7 @@ add_executable(orc_test
     src/orc/camera.test.cpp
     src/orc/node.test.cpp
     src/orc/scene.test.cpp
+    src/orc/shader.test.cpp
 )
 target_link_libraries(orc_test PRIVATE
     Catch2::Catch2

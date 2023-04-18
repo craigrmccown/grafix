@@ -41,18 +41,18 @@ namespace orc
             .Phong = Phong{.Ambient=0.1, .Diffuse=0.4, .Specular=0.3}
         })
     {
-        phongShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::phong_vert, sizeof(shaders::phong_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::phong_frag, sizeof(shaders::phong_frag))),
-        });
-        monochromeShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::monochrome_vert, sizeof(shaders::monochrome_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::monochrome_frag, sizeof(shaders::monochrome_frag))),
-        });
-        skyboxShader = std::make_unique<OpenGLShader>(std::vector<ShaderSrc>{
-            ShaderSrc(GL_VERTEX_SHADER, std::string(shaders::skybox_vert, sizeof(shaders::skybox_vert))),
-            ShaderSrc(GL_FRAGMENT_SHADER, std::string(shaders::skybox_frag, sizeof(shaders::skybox_frag))),
-        });
+        phongShader = std::make_unique<OpenGLShader>(
+            std::string(shaders::phong_vert, sizeof(shaders::phong_vert)),
+            std::string(shaders::phong_frag, sizeof(shaders::phong_frag))
+        );
+        monochromeShader = std::make_unique<OpenGLShader>(
+            std::string(shaders::monochrome_vert, sizeof(shaders::monochrome_vert)),
+            std::string(shaders::monochrome_frag, sizeof(shaders::monochrome_frag))
+        );
+        skyboxShader = std::make_unique<OpenGLShader>(
+            std::string(shaders::skybox_vert, sizeof(shaders::skybox_vert)),
+            std::string(shaders::skybox_frag, sizeof(shaders::skybox_frag))
+        );
         root->AttachChild(camera);
     }
 

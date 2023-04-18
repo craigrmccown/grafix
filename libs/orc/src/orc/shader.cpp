@@ -19,7 +19,7 @@ static std::string buildIndexedUniformName(std::string name, std::string propert
 
 namespace orc
 {
-    OpenGLShaderSource::OpenGLShaderSource(GLenum type, std::string src)
+    OpenGLShaderSource::OpenGLShaderSource(GLenum type, const std::string &src)
     {
         id = glCreateShader(type);
         const char *srcPtr = src.c_str();
@@ -34,6 +34,7 @@ namespace orc
         if (!success)
         {
             glGetShaderInfoLog(id, info_log_buf_size, NULL, logBuf);
+            glDeleteShader(id);
 
             // Info log should be null-terminated
             throw std::runtime_error("Failed to compile shader\n" + std::string(logBuf));
@@ -75,6 +76,7 @@ namespace orc
         if (!success)
         {
             glGetProgramInfoLog(id, info_log_buf_size, NULL, logBuf);
+            glDeleteProgram(id);
 
             // Info log should be null-terminated
             throw std::runtime_error("Failed to link shader program\n" + std::string(logBuf));
@@ -93,23 +95,12 @@ namespace orc
         return id;
     }
 
-    OpenGLShader::OpenGLShader(std::vector<ShaderSrc> srcs)
+    OpenGLShader::OpenGLShader(const std::string &vSrc, const std::string &fSrc)
     {
-        // Map shader source code to compiled OpenGL objects. Once the program is linked,
-        // these objects will fall out of scope and be deallocated.
-        std::vector<std::unique_ptr<OpenGLShaderSource>> sources;
-        for (const ShaderSrc &src : srcs)
-        {
-            sources.push_back(std::make_unique<OpenGLShaderSource>(src.type, src.code.c_str()));
-        }
-
-        // Extract shader IDs, using a reference to avoid copies
-        std::vector<unsigned int> shaders;
-        for (const std::unique_ptr<OpenGLShaderSource> &source : sources)
-        {
-            shaders.push_back(source->GetId());
-        }
-        program = std::make_unique<OpenGLShaderProgram>(shaders);
+        // Compile each shader. Once the program is linked, these objects will
+        // fall out of scope and be deallocated.
+        OpenGLShaderSource vShader(GL_VERTEX_SHADER, vSrc), fShader(GL_FRAGMENT_SHADER, fSrc);
+        program = std::make_unique<OpenGLShaderProgram>(std::vector<unsigned int>{ vShader.GetId(), fShader.GetId() });
     }
 
     void OpenGLShader::Use()
@@ -140,29 +131,8 @@ namespace orc
         SetUniformFloat(buildIndexedUniformName(name, property, idx), f);
     }
 
-    static GLenum mapPathToShaderType(std::string path)
+    static std::string loadShaderSrc(const std::string &path)
     {
-        std::filesystem::path fsPath = path;
-        std::string ext = fsPath.extension();
-
-        if (ext == ".vert")
-        {
-            return GL_VERTEX_SHADER;
-        }
-        else if (ext == ".frag")
-        {
-            return GL_FRAGMENT_SHADER;
-        }
-        else
-        {
-            throw std::logic_error("Unsupported file type: " + path);
-        }
-    }
-
-    static ShaderSrc loadShaderSrc(std::string path)
-    {
-        GLenum type = mapPathToShaderType(path);
-
         // Open file for reading
         std::ifstream file(path);
         if (file.fail()) {
@@ -173,17 +143,11 @@ namespace orc
         std::stringstream buf;
         buf << file.rdbuf();
 
-        return ShaderSrc(type, buf.str());
+        return buf.str();
     }
 
-    std::unique_ptr<OpenGLShader> LoadShaderFromFiles(std::vector<std::string> paths)
+    std::unique_ptr<OpenGLShader> LoadShaderFromFiles(const std::string &vPath, const std::string &fPath)
     {
-        std::vector<ShaderSrc> srcs;
-        for (const std::string &path : paths)
-        {
-            srcs.push_back(loadShaderSrc(path));
-        }
-
-        return std::make_unique<OpenGLShader>(srcs);
+        return std::make_unique<OpenGLShader>(loadShaderSrc(vPath), loadShaderSrc(fPath));
     }
 }

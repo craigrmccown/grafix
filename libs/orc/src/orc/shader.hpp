@@ -14,7 +14,7 @@ namespace orc
     class OpenGLShaderSource 
     {
         public:
-        OpenGLShaderSource(GLenum type, std::string src);
+        OpenGLShaderSource(GLenum type, const std::string &src);
 
         ~OpenGLShaderSource();
 
@@ -50,21 +50,13 @@ namespace orc
         unsigned int id;
     };
 
-    struct ShaderSrc
-    {
-        GLenum type;
-        std::string code;
-
-        ShaderSrc(GLenum type, std::string code) : type(type), code(code) { }
-    };
-
     /**
      * Primary API by which to create and use OpenGL shaders
      */
     class OpenGLShader
     {
         public:
-        OpenGLShader(std::vector<ShaderSrc> srcs);
+        OpenGLShader(const std::string &vertexShader, const std::string &fragmentShader);
 
         // Associate this shader with the current OpenGL context. Subsequent
         // draw commands will be rendered using this shader.
@@ -81,10 +73,7 @@ namespace orc
     };
 
     /**
-     * Compiles and links shader program from GLSL source files. Shaders are
-     * classified based on the extension of each file.
-     *
-     * Supported extensions are .vert and .frag
+     * Compiles and links shader program from GLSL source files.
      */
-    std::unique_ptr<OpenGLShader> LoadShaderFromFiles(std::vector<std::string> paths);
+    std::unique_ptr<OpenGLShader> LoadShaderFromFiles(const std::string &vPath, const std::string &fPath);
 }
