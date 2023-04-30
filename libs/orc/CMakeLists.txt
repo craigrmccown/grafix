@@ -58,7 +58,7 @@ add_library(orc STATIC
     src/orc/shaders/skybox.vert.cpp
 )
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(orc PRIVATE 
+target_link_libraries(orc PRIVATE
     assimp
     glad
     glm::glm
