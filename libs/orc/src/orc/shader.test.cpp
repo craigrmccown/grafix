@@ -25,7 +25,6 @@ const std::string fragmentShader =
 "}\n";
 
 TEST_CASE("Compile shaders", "[orc]") {
-    std::cout << vertexShader << std::endl;
     CHECK_NOTHROW(orc::OpenGLShader(vertexShader, fragmentShader));
     CHECK_THROWS(orc::OpenGLShader(vertexShader, "#version invalid!!"));
 }
