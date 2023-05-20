@@ -30,7 +30,7 @@ namespace slim::utf8
     static uint8_t getCodePointLength(uint8_t b)
     {
         if (b < 0x80) return 1; // Leading zero (ASCII)
-        if (b >> 5 == 6) return 2; // Bit pattern 110
+        if (b >> 5 == 0x6) return 2; // Bit pattern 110
         else if (b >> 4 == 0xE) return 3; // Bit pattern 1110
         else if (b >> 3 == 0x1E) return 4; // Bit pattern 11110
         else return 0; // Caller must check for 0 to detect invalid marker
@@ -86,7 +86,7 @@ namespace slim::utf8
 
                 // Shift up one byte and copy current into least significant
                 // byte (little endian)
-                next = (next << (i * 8)) | b;
+                next = next <<  8 | b;
                 ++begin;
             }
 
