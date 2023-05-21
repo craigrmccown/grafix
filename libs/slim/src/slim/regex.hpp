@@ -52,25 +52,32 @@ namespace slim::regex
         utf8::Glyph curr;
     };
 
+    // Decodes each code point of a UTF-8 encoded string, tracking minimal state
+    // as each token is consumed
     class TokenStream
     {
         public:
-        TokenStream(std::string tokens);
+        TokenStream(const std::string &tokens);
 
+        // Returns the current glyph. If the entire stream has been consumed,
+        // returns EOF.
         utf8::Glyph Current() const;
 
+        // Advances the stream by a single glyph. Throws if invalid UTF-8 is
+        // detected.
         bool Advance();
 
-        void Throw(std::string message);
+        // Throws an exception containing helpful debugging context
+        void Throw(const std::string &message) const;
 
         private:
-        utf8::Decoder<std::string::iterator> decoder;
+        utf8::Decoder<std::string::const_iterator> decoder;
         utf8::Glyph curr;
         unsigned int consumed;
     };
 
     // Initial character is ASCII NUL
-    TokenStream::TokenStream(std::string tokens)
+    TokenStream::TokenStream(const std::string &tokens)
         : decoder(utf8::Decoder(tokens.begin(), tokens.end()))
         , curr(0)
         , consumed(0)
@@ -100,69 +107,70 @@ namespace slim::regex
         return true;
     }
 
-    static std::unique_ptr<Node> rExpr(Utf8StrDecoder &decoder, ParseState &state);
-    static std::unique_ptr<Node> rGroup(Utf8StrDecoder &decoder, ParseState &state);
-    static std::unique_ptr<Node> rUnion(Utf8StrDecoder &decoder, ParseState &state);
-    static std::unique_ptr<Node> rConcat(Utf8StrDecoder &decoder, ParseState &state);
-    static std::unique_ptr<Node> rQuant(Utf8StrDecoder &decoder, ParseState &state);
-    static std::unique_ptr<Node> rAtom(Utf8StrDecoder &decoder, ParseState &state);
-    static std::unique_ptr<Node> rLit(Utf8StrDecoder &decoder, ParseState &state);
+    void TokenStream::Throw(const std::string &message) const
+    {
+        throw std::runtime_error("Error at position " + std::to_string(consumed) + ": " + message);
+    }
+
+    static std::unique_ptr<Node> rExpr(TokenStream &tokens);
+    static std::unique_ptr<Node> rGroup(TokenStream &tokens);
+    static std::unique_ptr<Node> rUnion(TokenStream &tokens);
+    static std::unique_ptr<Node> rConcat(TokenStream &tokens);
+    static std::unique_ptr<Node> rQuant(TokenStream &tokens);
+    static std::unique_ptr<Node> rAtom(TokenStream &tokens);
+    static std::unique_ptr<Node> rLit(TokenStream &tokens);
 
     // The entry point of a regular expression. Either starts with a group or a
     // union.
-    static std::unique_ptr<Node> rExpr(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rExpr(TokenStream &tokens)
     {
-        if (decoder.Next(state.curr))
+        if (tokens.Advance())
         {
             // If the first character is '(', start a new group. Otherwise,
             // interpret as a union.
-            switch (state.curr)
+            switch (tokens.Current())
             {
                 case '(':
-                    return rGroup(decoder, state);
+                    return rGroup(tokens);
                 default:
-                    return rUnion(decoder, state);
+                    return rUnion(tokens);
             }
         }
-        if (decoder.Err())
-        {
-            // error: invalid utf8
-        }
 
-        throw std::runtime_error("Empty pattern");
+        tokens.Throw("Empty pattern");
     }
 
     // An explicit group, surrounded by parenthesis. Affects the shape of the
     // resulting parse tree by composing other node types, but does not create
     // nodes itself.
-    static std::unique_ptr<Node> rGroup(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rGroup(TokenStream &tokens)
     {
         // In order to transition into a group in the first place, assume the
         // caller already matched '('. Assert for debugging purposes.
-        assert(state.curr == '(');
+        assert(tokens.Current() == '(');
 
         // Advance past the open parenthesis.
         // TODO: function to keep track of position, advance, and check decoder
         // error state
-        if (!decoder.Next(state.curr))
+        if (!tokens.Advance())
         {
-            throw std::runtime_error("Unexpected end of input, unclosed group");
+            tokens.Throw("Unexpected end of input, unclosed group");
         }
 
         // The top-level construct of a group is a union, even if the union set
         // has only one element
-        std::unique_ptr<Node> tree = rUnion(decoder, state);
+        std::unique_ptr<Node> tree = rUnion(tokens);
 
         // Ensure parentheses are balanced.
-        if (state.curr != ')')
+        if (tokens.Current() != ')')
         {
-            throw std::runtime_error("Unclosed group");
+            tokens.Throw("Unclosed group");
         }
 
         // Disallow empty groups
         if (!tree)
         {
-            throw std::runtime_error("Groups cannot be empty");
+            tokens.Throw("Groups cannot be empty");
         }
 
         return tree;
@@ -170,16 +178,16 @@ namespace slim::regex
 
     // One or more concatenations, separated by pipes. A single concatenation is
     // logically treated as a union set with one element.
-    static std::unique_ptr<Node> rUnion(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rUnion(TokenStream &tokens)
     {
-        std::unique_ptr<Node> tree = rConcat(decoder, state);
+        std::unique_ptr<Node> tree = rConcat(tokens);
 
         // If the current character is a pipe, create a union node in the parse
         // tree and advance the decoder. If there are no pipes, no extraneous
         // union nodes will be created.
-        while (state.curr == '|' && decoder.Next(state.curr))
+        while (tokens.Current() == '|' && tokens.Advance())
         {
-            tree = std::make_unique<Node>(Node::Union, std::move(tree), rConcat(decoder, state));
+            tree = std::make_unique<Node>(Node::Union, std::move(tree), rConcat(tokens));
         }
         return tree;
     }
@@ -187,15 +195,15 @@ namespace slim::regex
     // There is no metacharacter to represent concatenation. Instead, we create
     // a concat node in the parse tree whenever we see consecutive (maybe
     // quantified) atoms.
-    static std::unique_ptr<Node> rConcat(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rConcat(TokenStream &tokens)
     {
-        std::unique_ptr<Node> tree = rQuant(decoder, state);
+        std::unique_ptr<Node> tree = rQuant(tokens);
 
         // Attempt to greedily exhaust all characters. If only a single atom is
         // detected, no concatenation node will be added to the parse tree.
-        while (!decoder.Done())
+        while (tokens.Current() != EOF)
         {
-            std::unique_ptr<Node> right = rQuant(decoder, state);
+            std::unique_ptr<Node> right = rQuant(tokens);
 
             // If we can't match a quantified atom, concatenation is complete
             if (!right) {
@@ -209,20 +217,20 @@ namespace slim::regex
  
     // Parses an atom with an optional quantifier. Returns nullptr if an atom
     // can't be matched.
-    static std::unique_ptr<Node> rQuant(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rQuant(TokenStream &tokens)
     {
         // First, try to parse an atom
-        std::unique_ptr<Node> tree = rAtom(decoder, state);
+        std::unique_ptr<Node> tree = rAtom(tokens);
         if (!tree)
         {
             return tree;
         }
 
         // Then, look for a quantifier metacharacter
-        if (decoder.Next(state.curr))
+        if (tokens.Advance())
         {
             Node::Kind kind = Node::Invalid;
-            switch (state.curr)
+            switch (tokens.Current())
             {
                 case '?':
                     kind = Node::Maybe;
@@ -240,7 +248,7 @@ namespace slim::regex
             if (kind != Node::Invalid)
             {
                 tree = std::make_unique<Node>(kind, std::move(tree));
-                decoder.Next(state.curr);
+                tokens.Advance();
             }
         }
 
@@ -249,57 +257,55 @@ namespace slim::regex
 
     // An atom is any singular expression that can be quantified, such as a
     // character literal, character class, wildcard, or group.
-    static std::unique_ptr<Node> rAtom(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rAtom(TokenStream &tokens)
     {
         std::unique_ptr<Node> tree;
 
         // If we receive a close parenthesis or a pipe, refuse to parse an atom.
         // Returning nullptr signals to the caller that it should return control
         // to a higher-level parse state.
-        switch (state.curr)
+        switch (tokens.Current())
         {
             case ')':
             case '|':
                 return nullptr;
             case '(':
-                return rGroup(decoder, state);
+                return rGroup(tokens);
             case '.':
                 return std::make_unique<Node>(Node::Wildcard, 0);
             default:
-                return rLit(decoder, state);
+                return rLit(tokens);
         }
     }
 
     // Parses a character literal that is potentially escaped.
-    static std::unique_ptr<Node> rLit(Utf8StrDecoder &decoder, ParseState &state)
+    static std::unique_ptr<Node> rLit(TokenStream &tokens)
     {
         // Assume the caller has already checked for certain metacharacters.
         // Assert for debugging purposes.
-        assert(state.curr != '(' && state.curr != ')' && state.curr != '.' && state.curr != '|');
+        assert(tokens.Current() != '(' && tokens.Current() != ')' && tokens.Current() != '.' && tokens.Current() != '|');
 
-        switch (state.curr)
+        switch (tokens.Current())
         {
             case '?':
             case '*':
             case '+':
-                throw std::runtime_error("Unexpected metacharacter");
+                tokens.Throw("Unexpected metacharacter");
             case '\\':
-                if (!decoder.Next(state.curr))
+                if (!tokens.Advance())
                 {
-                    throw std::runtime_error("Unterminated escape sequence");
+                    tokens.Throw("Unterminated escape sequence");
                 }
 
                 // TODO: properly handle escapes
-                return std::make_unique<Node>(Node::Char, state.curr);
+                return std::make_unique<Node>(Node::Char, tokens.Current());
             default:
-                return std::make_unique<Node>(Node::Char, state.curr);
+                return std::make_unique<Node>(Node::Char, tokens.Current());
         }
     }
 
     std::unique_ptr<Node> parse(std::string re) {
-        utf8::Decoder decoder(re.begin(), re.end());
-        ParseState state { .curr = 0 };
-
-        return rExpr(decoder, state);
+        TokenStream tokens(re);
+        return rExpr(tokens);
     }
 }
