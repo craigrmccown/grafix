@@ -269,7 +269,23 @@ namespace slim::regex
                     tokens.Throw("Unterminated escape sequence");
                 }
 
-                // TODO: properly handle escapes
+                switch(tokens.Current())
+                {
+                    case '\\':
+                    case '?':
+                    case '*':
+                    case '+':
+                    case '|':
+                    case '(':
+                    case ')':
+                    case '.':
+                        break;
+                    case 'n': // Newline
+                        return std::make_unique<Node>(Node::Literal, 0xA);
+                    default:
+                        tokens.Throw("Invalid escape sequence");
+                }
+
                 return std::make_unique<Node>(Node::Literal, tokens.Current());
             default:
                 return std::make_unique<Node>(Node::Literal, tokens.Current());

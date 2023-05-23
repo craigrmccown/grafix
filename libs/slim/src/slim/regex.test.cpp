@@ -147,6 +147,29 @@ TEST_CASE("group then literal", "[slim]")
     REQUIRE(treesEq(*expected, *actual));
 }
 
+TEST_CASE("escaped metacharacters", "[slim]")
+{
+    std::string pattern = "\\(ab\\+\\.*";
+    std::unique_ptr<slim::regex::Node> expected = slim::regex::makeConcat(
+        slim::regex::makeConcat(
+            slim::regex::makeConcat(
+                slim::regex::makeConcat(
+                    slim::regex::makeLit('('),
+                    slim::regex::makeLit('a')
+                ),
+                slim::regex::makeLit('b')
+            ),
+            slim::regex::makeLit('+')
+        ),
+        slim::regex::makeZeroPlus(
+            slim::regex::makeLit('.')
+        )
+    );
+    std::unique_ptr<slim::regex::Node> actual = slim::regex::Parse(pattern);
+
+    REQUIRE(treesEq(*expected, *actual));
+}
+
 TEST_CASE("complex expression", "[slim]")
 {
     std::string pattern = "(ab(c|x(de|fg)|h))+";
@@ -199,6 +222,8 @@ TEST_CASE("invalid patterns", "[slim]")
         "?",
         "a|*",
         "a++",
+        "\\ab",
+        "a\\b",
         "ab\\",
         "|abc",
         "(abc)|",
