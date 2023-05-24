@@ -63,6 +63,7 @@ namespace slim::regex
     std::unique_ptr<Node> makeMaybe(std::unique_ptr<Node> left);
     std::unique_ptr<Node> makeZeroPlus(std::unique_ptr<Node> left);
     std::unique_ptr<Node> makeOnePlus(std::unique_ptr<Node> left);
+    std::unique_ptr<Node> makeRange(std::unique_ptr<Node> left, std::unique_ptr<Node> right);
     std::unique_ptr<Node> makeLit(utf8::Glyph g);
     std::unique_ptr<Node> makeWild();
 

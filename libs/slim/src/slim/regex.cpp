@@ -73,6 +73,11 @@ namespace slim::regex
         return std::make_unique<Node>(Node::OnePlus, std::move(left), nullptr);
     }
 
+    std::unique_ptr<Node> makeRange(std::unique_ptr<Node> left, std::unique_ptr<Node> right)
+    {
+        return std::make_unique<Node>(Node::Range, std::move(left), std::move(right));
+    }
+
     std::unique_ptr<Node> makeLit(utf8::Glyph g)
     {
         return std::make_unique<Node>(Node::Literal, g);
@@ -89,6 +94,9 @@ namespace slim::regex
     static std::unique_ptr<Node> rQuant(TokenStream &tokens);
     static std::unique_ptr<Node> rAtom(TokenStream &tokens);
     static std::unique_ptr<Node> rGroup(TokenStream &tokens);
+    static std::unique_ptr<Node> rClass(TokenStream &tokens);
+    static std::unique_ptr<Node> rRange(TokenStream &tokens);
+    static std::unique_ptr<Node> rClassLit(TokenStream &tokens);
     static std::unique_ptr<Node> rLit(TokenStream &tokens);
 
     // The entry point of a regular expression
@@ -132,61 +140,42 @@ namespace slim::regex
 
     // There is no metacharacter to represent concatenation. Instead, we create
     // a concat node in the parse tree whenever we see consecutive (maybe
-    // quantified) atoms. Always returns a tree or throws.
+    // quantified) atoms.
     static std::unique_ptr<Node> rConcat(TokenStream &tokens)
     {
         std::unique_ptr<Node> tree = rQuant(tokens);
-        if (!tree)
+
+        // A concatenation ends at the end of the expression, a union, or the
+        // end of a group.
+        while (tokens.Current() != EOF && tokens.Current() != '|' && tokens.Current() != ')')
         {
-            throw std::runtime_error("Unexpected character, expected group, character literal, or wildcard");
+            tree = makeConcat(std::move(tree), rQuant(tokens));
         }
 
-        // Attempt to greedily exhaust all characters. If only a single atom is
-        // detected, no concatenation node will be added to the parse tree.
-        while (tokens.Current() != EOF)
-        {
-            std::unique_ptr<Node> right = rQuant(tokens);
-
-            // If we can't match a quantified atom, concatenation is complete
-            if (!right) {
-                return tree;
-            }
-
-            tree = makeConcat(std::move(tree), std::move(right));
-        }
         return tree;
     }
 
-    // Parses an atom with an optional quantifier. Returns nullptr if an atom
-    // can't be matched.
+    // Parses an atom with an optional quantifier
     static std::unique_ptr<Node> rQuant(TokenStream &tokens)
     {
-        // First, try to parse an atom
         std::unique_ptr<Node> tree = rAtom(tokens);
-        if (!tree)
-        {
-            return tree;
-        }
 
-        // Then, look for a quantifier metacharacter. If we find one, add a node
-        // to the parse tree and consume the token
-        if (tokens.Advance())
+        // Look for a quantifier operator. If found, add a node to the parse
+        // tree and consume the token.
+        switch (tokens.Current())
         {
-            switch (tokens.Current())
-            {
-                case '?':
-                    tree = makeMaybe(std::move(tree));
-                    tokens.Advance();
-                    break;
-                case '*':
-                    tree = makeZeroPlus(std::move(tree));
-                    tokens.Advance();
-                    break;
-                case '+':
-                    tree = makeOnePlus(std::move(tree));
-                    tokens.Advance();
-                    break;
-            }
+            case '?':
+                tree = makeMaybe(std::move(tree));
+                tokens.Advance();
+                break;
+            case '*':
+                tree = makeZeroPlus(std::move(tree));
+                tokens.Advance();
+                break;
+            case '+':
+                tree = makeOnePlus(std::move(tree));
+                tokens.Advance();
+                break;
         }
 
         return tree;
@@ -196,21 +185,16 @@ namespace slim::regex
     // character literal, character class, wildcard, or group.
     static std::unique_ptr<Node> rAtom(TokenStream &tokens)
     {
-        std::unique_ptr<Node> tree;
-
-        // If we receive a close parenthesis or a pipe, refuse to parse an atom.
-        // Returning nullptr signals to the caller that it should return control
-        // to a higher-level parse state.
         switch (tokens.Current())
         {
-            case ')':
-            case '|':
-                return nullptr;
             case '(':
                 return rGroup(tokens);
+            case '[':
+                return rClass(tokens);
             case '.':
+                // Remember to consume the wildcard token
+                tokens.Advance();
                 return std::make_unique<Node>(Node::Wildcard, 0);
-            // TODO: Support char classes
             default:
                 return rLit(tokens);
         }
@@ -235,18 +219,103 @@ namespace slim::regex
         // has only one element
         std::unique_ptr<Node> tree = rUnion(tokens);
 
-        // Ensure parentheses are balanced.
+        // Ensure parentheses are balanced
         if (tokens.Current() != ')')
         {
             tokens.Throw("Unclosed group");
         }
 
-        // Disallow empty groups
-        if (!tree)
+        // Consume the close parenthesis
+        tokens.Advance();
+        return tree;
+    }
+
+    // A character class, expressed as a union of character literals and ranges
+    static std::unique_ptr<Node> rClass(TokenStream &tokens)
+    {
+        // The caller should have checked for an open bracket before calling
+        // this function. Assert for debugging purposes.
+        assert(tokens.Current() == '[');
+
+        // Consume the open bracket
+        if (!tokens.Advance())
         {
-            tokens.Throw("Groups cannot be empty");
+            tokens.Throw("Unclosed character class");
         }
 
+        std::unique_ptr<Node> tree = rRange(tokens);
+
+        // Continue to consume ranges until a closing bracket is reached
+        while (tokens.Current() != ']')
+        {
+            tree = makeUnion(std::move(tree), rRange(tokens));
+        }
+
+        // Consume the closing bracket
+        tokens.Advance();
+        return tree;
+    }
+
+    // A range of characters. The order of characters in the range is not
+    // validated - a range whose left character is greater than its right will
+    // not match anything. Only evaluated within a character class.
+    static std::unique_ptr<Node> rRange(TokenStream &tokens)
+    {
+        std::unique_ptr<Node> tree = rClassLit(tokens);
+
+        // If we encounter a hyphen, consume it and add a range node to the
+        // parse tree. Otherwise, return the class literal node directly.
+        if (tokens.Current() == '-')
+        {
+            if (!tokens.Advance())
+            {
+                tokens.Throw("Unterminated character range");
+            }
+
+            tree = makeRange(std::move(tree), rClassLit(tokens));
+        }
+
+        return tree;
+    }
+
+    // Parses a literal within a character class, which follows slightly
+    // different rules than literals outside of character classes
+    static std::unique_ptr<Node> rClassLit(TokenStream &tokens)
+    {
+        std::unique_ptr<Node> tree;
+
+        switch (tokens.Current())
+        {
+            case '[':
+            case ']':
+            case '-':
+                tokens.Throw("Illegal character");
+            case '\\':
+                if (!tokens.Advance())
+                {
+                    tokens.Throw("Unterminated escape sequence");
+                }
+
+                switch(tokens.Current())
+                {
+                    case '\\':
+                    case '[':
+                    case ']':
+                    case '-':
+                        tree = std::make_unique<Node>(Node::Literal, tokens.Current());
+                        break;
+                    case 'n': // Newline
+                        tree = std::make_unique<Node>(Node::Literal, 0xA);
+                        break;
+                    default:
+                        tokens.Throw("Invalid escape sequence");
+                }
+            default:
+                tree = std::make_unique<Node>(Node::Literal, tokens.Current());
+        }
+
+        // Consume the class literal token
+        tokens.Advance();
         return tree;
     }
 
@@ -255,14 +324,23 @@ namespace slim::regex
     {
         // Assume the caller has already checked for certain metacharacters.
         // Assert for debugging purposes.
-        assert(tokens.Current() != '(' && tokens.Current() != ')' && tokens.Current() != '.' && tokens.Current() != '|');
+        assert(
+            tokens.Current() != '(' &&
+            tokens.Current() != '.' &&
+            tokens.Current() != '['
+        );
+
+        std::unique_ptr<Node> tree;
 
         switch (tokens.Current())
         {
             case '?':
             case '*':
             case '+':
-                tokens.Throw("Unexpected quantifier operator");
+            case '|':
+            case ')':
+            case ']':
+                tokens.Throw("Illegal character");
             case '\\':
                 if (!tokens.Advance())
                 {
@@ -278,18 +356,24 @@ namespace slim::regex
                     case '|':
                     case '(':
                     case ')':
+                    case '[':
+                    case ']':
                     case '.':
+                        tree = std::make_unique<Node>(Node::Literal, tokens.Current());
                         break;
                     case 'n': // Newline
-                        return std::make_unique<Node>(Node::Literal, 0xA);
+                        tree = std::make_unique<Node>(Node::Literal, 0xA);
+                        break;
                     default:
                         tokens.Throw("Invalid escape sequence");
                 }
-
-                return std::make_unique<Node>(Node::Literal, tokens.Current());
             default:
-                return std::make_unique<Node>(Node::Literal, tokens.Current());
+                tree = std::make_unique<Node>(Node::Literal, tokens.Current());
         }
+
+        // Consume the character literal token
+        tokens.Advance();
+        return tree;
     }
 
     std::unique_ptr<Node> Parse(std::string re) {

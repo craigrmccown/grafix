@@ -170,34 +170,72 @@ TEST_CASE("escaped metacharacters", "[slim]")
     REQUIRE(treesEq(*expected, *actual));
 }
 
-TEST_CASE("complex expression", "[slim]")
+TEST_CASE("single character class", "[slim]")
 {
-    std::string pattern = "(ab(c|x(de|fg)|h))+";
-    std::unique_ptr<slim::regex::Node> expected = slim::regex::makeOnePlus(
-        slim::regex::makeConcat(
-            slim::regex::makeConcat(
-                slim::regex::makeLit('a'),
-                slim::regex::makeLit('b')
-            ),
+    std::string pattern = "[a]";
+    std::unique_ptr<slim::regex::Node> expected = slim::regex::makeLit('a');
+    std::unique_ptr<slim::regex::Node> actual = slim::regex::Parse(pattern);
+
+    REQUIRE(treesEq(*expected, *actual));
+}
+
+TEST_CASE("complex character class", "[slim]")
+{
+    std::string pattern = "[ab-d\\-(]?";
+    std::unique_ptr<slim::regex::Node> expected = slim::regex::makeMaybe(
+        slim::regex::makeUnion(
             slim::regex::makeUnion(
                 slim::regex::makeUnion(
-                    slim::regex::makeLit('c'),
-                    slim::regex::makeConcat(
-                        slim::regex::makeLit('x'),
-                        slim::regex::makeUnion(
-                            slim::regex::makeConcat(
-                                slim::regex::makeLit('d'),
-                                slim::regex::makeLit('e')
-                            ),
-                            slim::regex::makeConcat(
-                                slim::regex::makeLit('f'),
-                                slim::regex::makeLit('g')
-                            )
-                        )
+                    slim::regex::makeLit('a'),
+                    slim::regex::makeRange(
+                        slim::regex::makeLit('b'),
+                        slim::regex::makeLit('d')
                     )
                 ),
-                slim::regex::makeLit('h')
+                slim::regex::makeLit('-')
+            ),
+            slim::regex::makeLit('(')
+        )
+    );
+    std::unique_ptr<slim::regex::Node> actual = slim::regex::Parse(pattern);
+
+    REQUIRE(treesEq(*expected, *actual));
+}
+
+TEST_CASE("complex expression", "[slim]")
+{
+    std::string pattern = "(ab(c|x(de|[fg])|h))+[i-k]";
+    std::unique_ptr<slim::regex::Node> expected = slim::regex::makeConcat(
+        slim::regex::makeOnePlus(
+            slim::regex::makeConcat(
+                slim::regex::makeConcat(
+                    slim::regex::makeLit('a'),
+                    slim::regex::makeLit('b')
+                ),
+                slim::regex::makeUnion(
+                    slim::regex::makeUnion(
+                        slim::regex::makeLit('c'),
+                        slim::regex::makeConcat(
+                            slim::regex::makeLit('x'),
+                            slim::regex::makeUnion(
+                                slim::regex::makeConcat(
+                                    slim::regex::makeLit('d'),
+                                    slim::regex::makeLit('e')
+                                ),
+                                slim::regex::makeUnion(
+                                    slim::regex::makeLit('f'),
+                                    slim::regex::makeLit('g')
+                                )
+                            )
+                        )
+                    ),
+                    slim::regex::makeLit('h')
+                )
             )
+        ),
+        slim::regex::makeRange(
+            slim::regex::makeLit('i'),
+            slim::regex::makeLit('k')
         )
     );
     std::unique_ptr<slim::regex::Node> actual = slim::regex::Parse(pattern);
@@ -215,10 +253,17 @@ TEST_CASE("invalid patterns", "[slim]")
         "?",
         "*",
         "+",
+        "[",
+        "]",
+        "()",
+        "[]",
         "ab)",
         "ab|",
         "ab()",
         "ab|)",
+        "ab]",
+        "ab[]",
+        "[a[]",
         "?",
         "a|*",
         "a++",
@@ -228,7 +273,10 @@ TEST_CASE("invalid patterns", "[slim]")
         "|abc",
         "(abc)|",
         "a||b",
-        "(abc))"
+        "(abc))",
+        "[-ab]",
+        "[a--]",
+        "[ab]**"
     };
 
     for (std::string pattern : patterns)
