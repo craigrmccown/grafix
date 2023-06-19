@@ -34,7 +34,7 @@ namespace slim
         // breaker.
         static u_int64_t getBoundSortKey(Alphabet::Bound b)
         {
-            return ((u_int64_t)b.first << 1) | b.second;
+            return ((u_int64_t)b.first << 1) | !b.second;
         }
 
         // Construct consecutive, non-overlapping ranges from the unordered,
@@ -70,11 +70,13 @@ namespace slim
 
                 if (overlap == 0)
                 {
+                    // If the input is well-formed, we should always start a new
+                    // range here
+                    assert(start);
+
                     // We aren't in an overlapping range, so it's okay if we
                     // leave a gap between the last and current ranges. Only add
                     // the current glyph.
-
-                    // TODO: assert start and complete
                     overlap++;
                     ranges.push_back(g);
                     prev = curr;
@@ -147,7 +149,7 @@ namespace slim
                     {
                         if (ranges[i] == end)
                         {
-                            return RangeIndex{.i = startIdx, .len = i - startIdx};
+                            return RangeIndex{.i = startIdx / 2, .len = (i + 1 - startIdx) / 2};
                         }
                     }
                 }
