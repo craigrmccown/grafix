@@ -47,8 +47,16 @@ namespace slim::regex
         };
 
         Kind kind;
+
+        // Always has a value for operator kinds. Used as the left operand for
+        // binary operators or the only operand for unary operators.
         std::unique_ptr<Node> left;
+
+        // Only has a value for binary operators, such as concatenation and
+        // union
         std::unique_ptr<Node> right;
+
+        // Only contains a meaningful value if the kind is literal
         utf8::Glyph g;
 
         // Used for operators, such as concatenation and union
