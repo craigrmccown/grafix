@@ -2,6 +2,7 @@
 add_library(slim STATIC
     src/slim/alphabet.cpp
     src/slim/lexer.cpp
+    src/slim/nfa.cpp
     src/slim/regex.cpp
 )
 target_include_directories(slim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -10,6 +11,7 @@ target_include_directories(slim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_executable(slim_test
     src/slim/alphabet.test.cpp
     src/slim/lexer.test.cpp
+    src/slim/nfa.test.cpp
     src/slim/regex.test.cpp
     src/slim/utf8.test.cpp
 )
