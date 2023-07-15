@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <functional>
 #include <memory>
 #include <set>
 #include <stack>
@@ -72,11 +74,25 @@ namespace slim::nfa
             nfa.Chain(newState(i));
             head->TransitionTo(constants::epsilon, nfa.head);
         }
+
+        // Later, when converting to a DFA, we will need to efficiently iterate
+        // transitions from a set of states, grouping transitions by character.
+        // Keep transitions sorted to do this efficiently.
+        traverse([](State *s) {
+            std::sort(
+                s->transitions.begin(),
+                s->transitions.end(),
+                [](const std::shared_ptr<Transition> &a, const std::shared_ptr<Transition> &b)
+                {
+                    return a->iAlphabet < b->iAlphabet;
+                }
+            );
+        });
     }
 
     Nfa::~Nfa()
     {
-        free(head);
+        traverse([](State *s) { delete s; });
     }
 
     State *Nfa::newState()
@@ -236,16 +252,16 @@ namespace slim::nfa
         }
     }
 
-    void Nfa::free(State *s)
+    void Nfa::traverse(std::function<void (State *)> visit)
     {
         std::stack<State *> stack;
         std::set<State *> visited;
 
-        stack.push(s);
+        stack.push(head);
 
         while (!stack.empty())
         {
-            s = stack.top();
+            State *s = stack.top();
             stack.pop();
 
             for (const std::shared_ptr<Transition> t : s->transitions)
@@ -257,7 +273,7 @@ namespace slim::nfa
             }
 
             visited.insert(s);
-            delete s;
+            visit(s);
         }
     }
 
