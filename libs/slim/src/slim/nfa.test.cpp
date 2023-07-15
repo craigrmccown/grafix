@@ -29,6 +29,8 @@ TEST_CASE("simple expression", "[slim]")
     exprs.push_back(slim::regex::Parse("abc"));
 
     slim::nfa::Nfa nfa(exprs);
+    REQUIRE(nfa.Size() == 5);
+
     const slim::nfa::State *state = nfa.GetHead();
     checkState(state, -1, {slim::nfa::constants::epsilon});
 

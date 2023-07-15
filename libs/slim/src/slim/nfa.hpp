@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include "alphabet.hpp"
 #include "regex.hpp"
 
 namespace slim::nfa
@@ -40,8 +41,10 @@ namespace slim::nfa
         // Will be negative for non-accepting states
         int token;
 
-        State(int token);
-        State();
+        // Used to identify the state within the NFA
+        int n;
+
+        State(int n, int token);
 
         // Creates a new transition to the specified state
         std::shared_ptr<Transition> TransitionTo(int iAlphabet, State *to);
@@ -75,9 +78,16 @@ namespace slim::nfa
         Nfa(const Nfa &other) = delete;
         Nfa &operator=(const Nfa &other) = delete;
 
+        int Size() const;
         const State *GetHead() const;
 
         private:
+        int size;
         State *head;
+
+        State *newState();
+        State *newState(int token);
+        Partial build(const regex::Node &expr, const Alphabet &alphabet);
+        void free(State *s);
     };
 }
