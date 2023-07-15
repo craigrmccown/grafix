@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 #include "alphabet.hpp"
@@ -9,12 +10,12 @@ namespace slim::nfa
 {
     namespace constants
     {
+        // Marks a transition representing all ranges not in the alphabet
+        inline constexpr int negative = -1;
+
         // Marks an empty string transition that moves the NFA into multiple,
         // simultaneous states
-        inline constexpr int epsilon = -1;
-
-        // Marks a transition representing all ranges not in the alphabet
-        inline constexpr int negative = -2;
+        inline constexpr int epsilon = -2;
     }
 
     struct State;
@@ -36,6 +37,8 @@ namespace slim::nfa
     // other states.
     struct State
     {
+        // Transitions will be sorted by alphabet index after NFA construction.
+        // Epsilon transitions always come first.
         std::vector<std::shared_ptr<Transition>> transitions;
 
         // Will be negative for non-accepting states
@@ -88,6 +91,6 @@ namespace slim::nfa
         State *newState();
         State *newState(int token);
         Partial build(const regex::Node &expr, const Alphabet &alphabet);
-        void free(State *s);
+        void traverse(std::function<void (State *)> visit);
     };
 }
