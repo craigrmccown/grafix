@@ -53,6 +53,14 @@ namespace slim::nfa
         std::shared_ptr<Transition> TransitionTo(int iAlphabet, State *to);
     };
 
+    // Performs a depth-first traversal over the NFA graph. Each state will be
+    // visited exactly once.
+    void Traverse(
+        std::vector<State *> states,
+        std::function<void (State *)> visit,
+        std::function<bool (const Transition &)> follow
+    );
+
     // Represents a partial NFA that can be combined with other partial NFAs to
     // form the complete state machine. Points to an entry state and keeps track
     // of dangling transitions reachable from that state that do not yet point
@@ -72,17 +80,19 @@ namespace slim::nfa
     class Nfa
     {
         public:
-        Nfa(const std::vector<std::unique_ptr<regex::Node>> &exprs);
+        Nfa(const Alphabet &alpha, const std::vector<std::unique_ptr<regex::Node>> &exprs);
         ~Nfa();
 
         // Copy construction and assignment are deleted out of pure laziness.
         // Ideally, we would implement copy semantics by cloning the state
-        // machine graph.
+        // machine graph. It is, however, convenient that State pointers can be
+        // used to identify states because they will never be moved or copied
+        // (e.g. we can keep a set of visited pointers during traversal)
         Nfa(const Nfa &other) = delete;
         Nfa &operator=(const Nfa &other) = delete;
 
         int Size() const;
-        const State *GetHead() const;
+        State *GetHead() const;
 
         private:
         int size;
@@ -91,6 +101,5 @@ namespace slim::nfa
         State *newState();
         State *newState(int token);
         Partial build(const regex::Node &expr, const Alphabet &alphabet);
-        void traverse(std::function<void (State *)> visit);
     };
 }
