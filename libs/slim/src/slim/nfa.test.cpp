@@ -23,15 +23,20 @@ void checkState(const slim::nfa::State * s, int token, std::vector<int> transiti
     }
 }
 
-TEST_CASE("simple expression", "[slim]")
+TEST_CASE("simple expression", "[slim][nfa]")
 {
     std::vector<std::unique_ptr<slim::regex::Node>> exprs;
     exprs.push_back(slim::regex::Parse("abc"));
 
-    slim::nfa::Nfa nfa(exprs);
+    slim::Alphabet::Buffer buf;
+    buf.Write('a');
+    buf.Write('b');
+    buf.Write('c');
+
+    slim::nfa::Nfa nfa(slim::Alphabet(buf), exprs);
     REQUIRE(nfa.Size() == 5);
 
-    const slim::nfa::State *state = nfa.GetHead();
+    slim::nfa::State *state = nfa.GetHead();
     checkState(state, -1, {slim::nfa::constants::epsilon});
 
     state = state->transitions[0]->to;
@@ -45,4 +50,35 @@ TEST_CASE("simple expression", "[slim]")
 
     state = state->transitions[0]->to;
     checkState(state, 0, {});
+}
+
+TEST_CASE("zero or more", "[slim][nfa]")
+{
+    std::vector<std::unique_ptr<slim::regex::Node>> exprs;
+    exprs.push_back(slim::regex::Parse("ab*"));
+
+    slim::Alphabet::Buffer buf;
+    buf.Write('a');
+    buf.Write('b');
+
+    slim::nfa::Nfa nfa(slim::Alphabet(buf), exprs);
+    REQUIRE(nfa.Size() == 5);
+
+    slim::nfa::State *state = nfa.GetHead();
+    checkState(state, -1, {slim::nfa::constants::epsilon});
+
+    state = state->transitions[0]->to;
+    checkState(state, -1, {0});
+
+    state = state->transitions[0]->to;
+    checkState(state, -1, {slim::nfa::constants::epsilon, slim::nfa::constants::epsilon});
+
+    slim::nfa::State
+        *left = state->transitions[0]->to,
+        *right = state->transitions[1]->to;
+
+    checkState(left, -1, {1});
+    REQUIRE(left->transitions[0]->to == state);
+
+    checkState(right, 0, {});
 }

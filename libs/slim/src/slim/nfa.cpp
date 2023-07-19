@@ -11,23 +11,6 @@
 
 namespace slim::nfa
 {
-    static void extractAlphabet(const regex::Node &expr, Alphabet::Buffer &buf)
-    {
-        switch (expr.kind)
-        {
-            case regex::Node::Literal:
-                buf.Write(expr.g);
-                break;
-            case regex::Node::Range:
-                buf.Write(expr.left->g, expr.right->g);
-                break;
-            default:
-                extractAlphabet(*expr.left, buf);
-                extractAlphabet(*expr.right, buf);
-                break;
-        }
-    }
-
     Transition::Transition(int iAlphabet, State *to) : iAlphabet(iAlphabet), to(to) { }
 
     State::State(int n, int token) : n(n), token(token) { }
@@ -37,6 +20,35 @@ namespace slim::nfa
         std::shared_ptr<Transition> t = std::make_shared<Transition>(iAlphabet, to);
         transitions.push_back(t);
         return t;
+    }
+
+    void Traverse(
+        std::vector<State *> states,
+        std::function<void (State *)> visit,
+        std::function<bool (const Transition &)> follow
+    )
+    {
+        // We take the initial state set by value so we can mutate our own local
+        // copy as a stack
+        std::stack<State *, std::vector<State *>> stack(states);
+        std::set<State *> visited;
+        std::copy(states.begin(), states.end(), std::inserter(visited, visited.begin()));
+
+        while (!stack.empty())
+        {
+            State *s = stack.top();
+            stack.pop();
+
+            visit(s);
+
+            for (const std::shared_ptr<Transition> t : s->transitions)
+            {
+                if (t->to == nullptr || visited.count(t->to) || !follow(*t)) continue;
+
+                visited.insert(t->to);
+                stack.push(t->to);
+            }
+        }
     }
 
     void Partial::Chain(State *s)
@@ -49,17 +61,8 @@ namespace slim::nfa
         for (std::shared_ptr<Transition> d : dangling) d->to = s;
     }
 
-    Nfa::Nfa(const std::vector<std::unique_ptr<regex::Node>> &exprs) : size(0)
+    Nfa::Nfa(const Alphabet &alpha, const std::vector<std::unique_ptr<regex::Node>> &exprs) : size(0)
     {
-        // First, construct a global alphabet common across all expressions
-        Alphabet::Buffer buf;
-
-        for (const std::unique_ptr<regex::Node> &expr : exprs)
-        {
-            extractAlphabet(*expr, buf);
-        }
-
-        Alphabet alpha(buf);
         head = newState();
 
         // Build an NFA for each expression, then connect each NFA to the entry
@@ -78,21 +81,26 @@ namespace slim::nfa
         // Later, when converting to a DFA, we will need to efficiently iterate
         // transitions from a set of states, grouping transitions by character.
         // Keep transitions sorted to do this efficiently.
-        traverse([](State *s) {
-            std::sort(
-                s->transitions.begin(),
-                s->transitions.end(),
-                [](const std::shared_ptr<Transition> &a, const std::shared_ptr<Transition> &b)
-                {
-                    return a->iAlphabet < b->iAlphabet;
-                }
-            );
-        });
+        Traverse(
+            {head},
+            [](State *s)
+            {
+                std::sort(
+                    s->transitions.begin(),
+                    s->transitions.end(),
+                    [](const std::shared_ptr<Transition> &a, const std::shared_ptr<Transition> &b)
+                    {
+                        return a->iAlphabet < b->iAlphabet;
+                    }
+                );
+            },
+            [](const Transition &t) { return true; }
+        );
     }
 
     Nfa::~Nfa()
     {
-        traverse([](State *s) { delete s; });
+        Traverse({head}, [](State *s) { delete s; }, [](const Transition &t) { return true; });
     }
 
     State *Nfa::newState()
@@ -186,7 +194,7 @@ namespace slim::nfa
                 s->TransitionTo(constants::epsilon, left.head);
                 std::shared_ptr<Transition> dangle = s->TransitionTo(constants::epsilon, nullptr);
 
-                return Partial{ .head = s, .dangling = std::vector<std::shared_ptr<Transition>>{dangle} };
+                return Partial{ .head = s, .dangling = {dangle} };
             }
             case regex::Node::OnePlus:
             {
@@ -194,7 +202,7 @@ namespace slim::nfa
                 // epsilon transition, but position it after the NFA to require
                 // the pattern at least once.
                 //
-                // ┌─ε─────> S ──>
+                // ┌───────> S ─ε─>
                 // L <─────ε─┘
 
                 State *s = newState();
@@ -204,7 +212,7 @@ namespace slim::nfa
                 s->TransitionTo(constants::epsilon, left.head);
                 std::shared_ptr<Transition> dangle = s->TransitionTo(constants::epsilon, nullptr);
 
-                return Partial{ .head = left.head, .dangling = std::vector<std::shared_ptr<Transition>>{dangle} };
+                return Partial{ .head = left.head, .dangling = {dangle} };
             }
             case regex::Node::Range:
             {
@@ -214,7 +222,7 @@ namespace slim::nfa
                 State *s = newState();
                 Alphabet::RangeIndex idx = alphabet.Map(expr.left->g, expr.right->g);
 
-                for (int i = idx.i; i < idx.len; i++)
+                for (int i = idx.i; i < idx.i + idx.len; i++)
                 {
                     s->TransitionTo(i, nullptr);
                 }
@@ -252,37 +260,12 @@ namespace slim::nfa
         }
     }
 
-    void Nfa::traverse(std::function<void (State *)> visit)
-    {
-        std::stack<State *> stack;
-        std::set<State *> visited;
-
-        stack.push(head);
-
-        while (!stack.empty())
-        {
-            State *s = stack.top();
-            stack.pop();
-
-            for (const std::shared_ptr<Transition> t : s->transitions)
-            {
-                if (t->to == nullptr || visited.count(t->to)) continue;
-
-                visited.insert(t->to);
-                stack.push(t->to);
-            }
-
-            visited.insert(s);
-            visit(s);
-        }
-    }
-
     int Nfa::Size() const
     {
         return size;
     }
 
-    const State *Nfa::GetHead() const
+    State *Nfa::GetHead() const
     {
         return head;
     }

@@ -156,16 +156,16 @@ namespace slim
         throw std::logic_error("Could not map range to alphabet");
     }
 
-    Alphabet::Range Alphabet::Get(int i) const
+    int Alphabet::IndexOf(utf8::Glyph g) const
     {
-        i *= 2;
-
-        if (i >= ranges.size() || i < 0)
+        for (int i = 0; i < ranges.size(); i += 2)
         {
-            throw std::logic_error("Index out of bounds");
+            // Falls within a gap between ranges, exit early
+            if (ranges[i] > g) return -1;
+            if (ranges[i] <= g && ranges[i+1] >= g) return i / 2;
         }
 
-        return Range(ranges[i], ranges[i + 1]);
+        return -1;
     }
 
     int Alphabet::Length() const

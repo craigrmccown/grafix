@@ -47,8 +47,9 @@ namespace slim
         // end
         RangeIndex Map(utf8::Glyph start, utf8::Glyph end) const;
 
-        // Returns the range at the given index
-        Range Get(int i) const;
+        // Returns the index of the range that contains the given glyph or -1 if
+        // it does not fall within a range
+        int IndexOf(utf8::Glyph g) const;
 
         // Returns the number of ranges in the alphabet
         int Length() const;
