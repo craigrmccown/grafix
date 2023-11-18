@@ -136,11 +136,7 @@ namespace slim
             else if (check(TokenType::OpenParen))
             {
                 // Function call
-                if (!check(TokenType::CloseParen))
-                {
-                    pArgList();
-                    expect(TokenType::CloseParen);
-                }
+                pArgList();
             }
             else if (check(TokenType::Dot))
             {
@@ -156,12 +152,20 @@ namespace slim
 
     void Parser::pArgList()
     {
+        if (check(TokenType::CloseParen))
+        {
+            // No arguments
+            return;
+        }
+
         pExpr();
 
         while (check(TokenType::Comma))
         {
             pExpr();
         }
+
+        expect(TokenType::CloseParen);
     }
 
     void Parser::pValueExpr()
@@ -169,6 +173,11 @@ namespace slim
         if (check(TokenType::BoolLiteral) || check(TokenType::NumericLiteral) || check(TokenType::Identifier))
         {
             // Simply allow this for now
+        }
+        else if (check(TokenType::DataType))
+        {
+            expect(TokenType::OpenParen);
+            pArgList();
         }
         else if (check(TokenType::OpenParen))
         {

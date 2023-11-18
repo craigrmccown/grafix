@@ -338,6 +338,17 @@ TEST_CASE("valid expressions", "[slim]")
             }
         },
 
+        // e.g. obj.property.nested
+        TestCase {
+            .tokens = {
+                slim::Token{.i = slim::TokenType::Identifier},
+                slim::Token{.i = slim::TokenType::Dot},
+                slim::Token{.i = slim::TokenType::Identifier},
+                slim::Token{.i = slim::TokenType::Dot},
+                slim::Token{.i = slim::TokenType::Identifier},
+            }
+        },
+
         // e.g. (obj.prop1 + obj.prop2) * obj.prop3
         TestCase {
             .tokens = {
@@ -375,6 +386,20 @@ TEST_CASE("valid expressions", "[slim]")
                 slim::Token{.i = slim::TokenType::CloseBracket},
             }
         },
+
+        // e.g. vec3(1, 2, 3)
+        TestCase {
+            .tokens = {
+                slim::Token{.i = slim::TokenType::DataType},
+                slim::Token{.i = slim::TokenType::OpenParen},
+                slim::Token{.i = slim::TokenType::NumericLiteral},
+                slim::Token{.i = slim::TokenType::Comma},
+                slim::Token{.i = slim::TokenType::NumericLiteral},
+                slim::Token{.i = slim::TokenType::Comma},
+                slim::Token{.i = slim::TokenType::NumericLiteral},
+                slim::Token{.i = slim::TokenType::CloseParen},
+            }
+        }
     };
 
     for (TestCase &tc : testCases)
