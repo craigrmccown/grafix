@@ -89,8 +89,16 @@ namespace slim
         }
     };
 
+    // Abstracts the lexer implementation. Allows the parser to consumer tokens
+    // from any source without relying on an underlying implementation.
+    class TokenIter
+    {
+        public:
+        virtual bool Next(Token &token) = 0;
+    };
+
     template <typename ByteIterator>
-    class Lexer
+    class Lexer : public TokenIter
     {
         public:
         Lexer(

@@ -1,0 +1,195 @@
+syntax() {
+    loop {
+        switch tok {
+            case TAG_IDENTIFIER:
+                tagged_property_decl()
+            case KEYWORD_PROPERTY:
+                property_decl()
+            case KEYWORD_FEATURE:
+                feature_decl()
+            case KEYWORD_SHARED:
+                shared_decl()
+            case KEYWORD_SHADER:
+                shader_decl()
+            default:
+                break
+        }
+    }
+    expect(EOF)
+}
+
+tagged_property_decl() {
+    tag_list()
+    property_decl()
+}
+
+tag_list() {
+    tag()
+    loop {
+        switch tok {
+            case TAG_IDENTIFIER:
+                tag()
+            default:
+                break
+        }
+    }
+}
+
+tag() {
+    expect(TAG_IDENTIFIER)
+    if check(OPEN_BRACKET) {
+        expect(ANY) // TODO
+        expect(CLOSE_BRACKET)
+    }
+}
+
+property_decl() {
+    expect(KEYWORD_PROPERTY)
+    data_type()
+    expect(IDENTIFIER)
+    if check(ASSIGN_OP) {
+        expr()
+    }
+    expect(SEMICOLON)
+}
+
+feature_decl() {
+    expect(KEYWORD_FEATURE)
+    expect(IDENTIFIER)
+    expect(OPEN_BRACE)
+    property_decl_block()
+    expect(CLOSE_BRACE)
+}
+
+property_decl_block() {
+    loop {
+        switch tok {
+            case KEYWORD_PROPERTY:
+                property_decl()
+            default:
+                break
+        }
+    }
+}
+
+shared_decl() {
+    expect(KEYWORD_SHARED)
+    data_type()
+    expect(IDENTIFIER)
+    expect(SEMICOLON)
+}
+
+expr() {
+    or_expr()
+}
+
+or_expr() {
+    and_expr()
+    loop {
+        if check(OP_OR) {
+            and_expr()
+        } else {
+            break
+        }
+    }
+}
+
+and_expr() {
+    equality_expr()
+    loop {
+        if check(OP_AND) {
+            equality_expr()
+        } else {
+            break
+        }
+    }
+}
+
+equality_expr() {
+    comparison_expr()
+    loop {
+        if check(OP_EQ, OP_NEQ) {
+            comparison_expr()
+        } else {
+            break
+        }
+    }
+}
+
+comparison_expr() {
+    add_expr()
+    loop {
+        if check(OP_GT, OP_LT, OP_GE, OP_LE) {
+            add_expr()
+        } else {
+            break
+        }
+    }
+}
+
+add_expr() {
+    mul_expr()
+    loop {
+        if check(OP_ADD, OP_SUB) {
+            mul_expr()
+        } else {
+            break
+        }
+    }
+}
+
+mul_expr() {
+    unary_expr()
+    loop {
+        if check(OP_MUL, OP_DIV, OP_MOD) {
+            unary_expr()
+        } else {
+            break
+        }
+    }
+}
+
+unary_expr() {
+    if check(OP_SUB, OP_BANG) {
+        // is unary
+    }
+    postfix_expr()
+}
+
+postfix_expr() {
+    value_expr()
+
+    loop {
+        switch tok {
+            case OPEN_BRACKET:
+                expr()
+                expect(CLOSE_BRACKET)
+            case OPEN_PAREN:
+                expect(OPEN_PAREN)
+                arg_list()
+                expect(CLOSE_PAREN)
+            case DOT:
+                expect(DOT)
+                expect(IDENTIFIER)
+            default:
+                break
+        }
+    }
+}
+
+value_expr() {
+    switch tok {
+        case BOOL_LITERAL:
+            expect(BOOL_LITERAL)
+        case NUMERIC_LITERAL:
+            expect(NUMERIC_LITERAL)
+        case DATA_TYPE:
+            data_type_call()
+        case OPEN_PAREN:
+            expect(OPEN_PAREN)
+            expr()
+            expect(CLOSE_PAREN)
+        default:
+            error()
+    }
+}
