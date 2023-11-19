@@ -3,6 +3,7 @@
 namespace slim
 {
     enum TokenType {
+        Eof,
         OpOr,
         OpAnd,
         OpEq,
@@ -35,6 +36,7 @@ namespace slim
         Parser(TokenIter &tokens);
 
         void Parse();
+        void ParseExpression();
 
         private:
         Token current;
@@ -43,7 +45,6 @@ namespace slim
         bool check(TokenType);
         void expect(TokenType);
 
-        void pExpr();
         void pOrExpr();
         void pAndExpr();
         void pEqualityExpr();

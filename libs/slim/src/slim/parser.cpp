@@ -10,14 +10,18 @@ namespace slim
     }
 
     void Parser::Parse() {
-        pExpr();
+        ParseExpression();
     }
 
     bool Parser::check(TokenType type)
     {
         if (type == current.i)
         {
-            tokens.Next(current);
+            if (!tokens.Next(current))
+            {
+                current = Token{ .i = EOF };
+            }
+
             return true;
         }
 
@@ -37,7 +41,7 @@ namespace slim
         }
     }
 
-    void Parser::pExpr()
+    void Parser::ParseExpression()
     {
         pOrExpr();
     }
@@ -130,7 +134,7 @@ namespace slim
             if (check(TokenType::OpenBracket))
             {
                 // Index expression
-                pExpr();
+                ParseExpression();
                 expect(TokenType::CloseBracket);
             }
             else if (check(TokenType::OpenParen))
@@ -158,11 +162,11 @@ namespace slim
             return;
         }
 
-        pExpr();
+        ParseExpression();
 
         while (check(TokenType::Comma))
         {
-            pExpr();
+            ParseExpression();
         }
 
         expect(TokenType::CloseParen);
@@ -181,7 +185,7 @@ namespace slim
         }
         else if (check(TokenType::OpenParen))
         {
-            pExpr();
+            ParseExpression();
             expect(TokenType::CloseParen);
         }
         else

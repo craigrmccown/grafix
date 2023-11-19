@@ -36,12 +36,12 @@ TEST_CASE("valid expressions", "[slim]")
             .tokens = { { .i = slim::TokenType::NumericLiteral} },
         },
 
-        // e.g. true"
+        // e.g. true
         TestCase {
             .tokens = { { .i = slim::TokenType::BoolLiteral} },
         },
 
-        // "e.g. myVar"
+        // "e.g. myVar
         TestCase {
             .tokens = { { .i = slim::TokenType::Identifier} },
         },
@@ -405,6 +405,72 @@ TEST_CASE("valid expressions", "[slim]")
     for (TestCase &tc : testCases)
     {
         slim::Parser parser(tc.tokens);
-        CHECK_NOTHROW(parser.Parse());
+        CHECK_NOTHROW(parser.ParseExpression());
+    }
+}
+
+TEST_CASE("invalid expressions", "[slim]")
+{
+    struct TestCase {
+        TestTokenIter tokens;
+    };
+
+    std::vector<TestCase> testCases{
+        // e.g. 5 +
+        TestCase{
+            .tokens = {
+                { .i = slim::TokenType::NumericLiteral},
+                { .i = slim::TokenType::OpAdd},
+            },
+        },
+
+        // e.g. ((3 + 1)
+        TestCase{
+            .tokens = {
+                { .i = slim::TokenType::OpenParen},
+                { .i = slim::TokenType::OpenParen},
+                { .i = slim::TokenType::NumericLiteral},
+                { .i = slim::TokenType::OpAdd},
+                { .i = slim::TokenType::NumericLiteral},
+                { .i = slim::TokenType::CloseParen},
+            },
+        },
+
+        // e.g. myVar..property
+        TestCase{
+            .tokens = {
+                { .i = slim::TokenType::Identifier},
+                { .i = slim::TokenType::Dot},
+                { .i = slim::TokenType::Dot},
+                { .i = slim::TokenType::Identifier},
+            },
+        },
+
+        // e.g. myVar[
+        TestCase{
+            .tokens = {
+                { .i = slim::TokenType::Identifier},
+                { .i = slim::TokenType::OpenBracket},
+            },
+        },
+
+        // e.g. fn(1, 2,)
+        TestCase{
+            .tokens = {
+                { .i = slim::TokenType::Identifier},
+                { .i = slim::TokenType::OpenParen},
+                { .i = slim::TokenType::NumericLiteral},
+                { .i = slim::TokenType::Comma},
+                { .i = slim::TokenType::NumericLiteral},
+                { .i = slim::TokenType::Comma},
+                { .i = slim::TokenType::CloseParen},
+            },
+        },
+    };
+
+    for (TestCase &tc : testCases)
+    {
+        slim::Parser parser(tc.tokens);
+        CHECK_THROWS(parser.ParseExpression());
     }
 }

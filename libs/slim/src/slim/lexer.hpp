@@ -91,6 +91,9 @@ namespace slim
 
     // Abstracts the lexer implementation. Allows the parser to consumer tokens
     // from any source without relying on an underlying implementation.
+    //
+    // TODO: Produce a sentinel EOF token when input ends instead of returning
+    // boolean
     class TokenIter
     {
         public:
