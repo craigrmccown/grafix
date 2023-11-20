@@ -1,6 +1,7 @@
 # Source
 add_library(slim STATIC
     src/slim/alphabet.cpp
+    src/slim/ast.cpp
     src/slim/dfa.cpp
     src/slim/nfa.cpp
     src/slim/parser.cpp

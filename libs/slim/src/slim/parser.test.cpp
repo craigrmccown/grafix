@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators.hpp>
+#include <string>
 #include <vector>
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "utf8.hpp"
 
 class TestTokenIter : public slim::TokenIter
 {
@@ -23,389 +25,405 @@ class TestTokenIter : public slim::TokenIter
     int i;
 };
 
+// TODO: Possibly move this util into utf8.hpp if generally useful elsewhere
+std::vector<slim::utf8::Glyph> decodeString(std::string s)
+{
+    std::vector<slim::utf8::Glyph> decoded;
+    slim::utf8::Decoder decoder(s.begin(), s.end());
+    slim::utf8::Glyph g;
+
+    while (decoder.Next(g))
+    {
+        decoded.push_back(g);
+    }
+
+    assert(!decoder.Err());
+    return decoded;
+}
+
+slim::Token makeToken(slim::TokenType tt, std::string data)
+{
+    return {.i = tt, .data = decodeString(data)};
+}
 
 TEST_CASE("valid expressions", "[slim]")
 {
     struct TestCase {
         TestTokenIter tokens;
+        std::string debug;
     };
 
     std::vector<TestCase> testCases{
-        // e.g. 10
         TestCase{
-            .tokens = { { .i = slim::TokenType::NumericLiteral} },
+            .tokens = {makeToken(slim::TokenType::NumericLiteral, "10")},
+            .debug = "i{10}",
         },
-
-        // e.g. true
         TestCase {
-            .tokens = { { .i = slim::TokenType::BoolLiteral} },
+            .tokens = {makeToken(slim::TokenType::BoolLiteral, "true")},
+            .debug = "b{true}",
         },
-
-        // "e.g. myVar
         TestCase {
-            .tokens = { { .i = slim::TokenType::Identifier} },
+            .tokens = {makeToken(slim::TokenType::Identifier, "myVar")},
+            .debug = "id{myVar}",
         },
-
-        // e.g. true && false
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-                slim::Token{.i = slim::TokenType::OpAnd},
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-            }
+                makeToken(slim::TokenType::BoolLiteral, "true"),
+                makeToken(slim::TokenType::OpAnd, "&&"),
+                makeToken(slim::TokenType::BoolLiteral, "false"),
+            },
+            .debug = "(&& b{true} b{false})",
         },
-
-        // e.g. true && false
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-                slim::Token{.i = slim::TokenType::OpAnd},
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-            }
+                makeToken(slim::TokenType::BoolLiteral, "true"),
+                makeToken(slim::TokenType::OpOr, "||"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::BoolLiteral, "false"),
+                makeToken(slim::TokenType::OpAnd, "&&"),
+                makeToken(slim::TokenType::BoolLiteral, "true"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(|| b{true} (&& b{false} b{true}))",
         },
-
-        // e.g. true || (false && true)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-                slim::Token{.i = slim::TokenType::OpOr},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-                slim::Token{.i = slim::TokenType::OpAnd},
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::OpBang, "!"),
+                makeToken(slim::TokenType::BoolLiteral, "true"),
+                makeToken(slim::TokenType::OpOr, "||"),
+                makeToken(slim::TokenType::BoolLiteral, "false"),
+            },
+            .debug = "(|| (! b{true}) b{false})",
         },
-
-        // e.g. !true || false
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::OpBang},
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-                slim::Token{.i = slim::TokenType::OpOr},
-                slim::Token{.i = slim::TokenType::BoolLiteral},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::OpGt, ">"),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpOr, "||"),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpLe, "<="),
+                makeToken(slim::TokenType::NumericLiteral, "4"),
+            },
+            .debug = "(|| (> i{1} i{2}) (<= i{3} i{4}))",
         },
-
-        // e.g. 1 > 2 || 3 <= 4
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpGt},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpOr},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpLe},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::OpEq, "=="),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpAnd, "&&"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "6"),
+                makeToken(slim::TokenType::OpNeq, "!="),
+                makeToken(slim::TokenType::NumericLiteral, "6"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(&& (== i{5} i{5}) (!= i{6} i{6}))",
         },
-
-        // e.g. (5 == 5) && !(6 != 6)
-
-        // e.g. cond1 && cond2 || (cond3 || cond4) && cond5
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpAnd},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpOr},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpOr},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpAnd},
-                slim::Token{.i = slim::TokenType::Identifier},
-            }
+                makeToken(slim::TokenType::Identifier, "cond1"),
+                makeToken(slim::TokenType::OpAnd, "&&"),
+                makeToken(slim::TokenType::Identifier, "cond2"),
+                makeToken(slim::TokenType::OpOr, "||"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::Identifier, "cond3"),
+                makeToken(slim::TokenType::OpOr, "||"),
+                makeToken(slim::TokenType::Identifier, "cond4"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpAnd, "&&"),
+                makeToken(slim::TokenType::Identifier, "cond5"),
+            },
+            .debug = "(|| (&& id{cond1} id{cond2}) (&& (|| id{cond3} id{cond4}) id{cond5}))",
         },
-
-        // e.g. 3 + 2
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+            },
+            .debug = "(+ i{3} i{2})",
         },
-
-        // e.g. 8 / 3
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpDiv},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "8"),
+                makeToken(slim::TokenType::OpDiv, "/"),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+            },
+            .debug = "(/ i{8} i{3})",
         },
-
-        // e.g. 5 + 10 / 3
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpDiv},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "10"),
+                makeToken(slim::TokenType::OpDiv, "/"),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+            },
+            .debug = "(+ i{5} (/ i{10} i{3}))",
         },
-
-        // e.g. 4 * (2 + 3) - 7
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpSub},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "4"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpSub, "-"),
+                makeToken(slim::TokenType::NumericLiteral, "7"),
+            },
+            .debug = "(- (* i{4} (+ i{2} i{3})) i{7})",
         },
-
-        // e.g. 2 * (3 + 4) - (5 * 6)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpSub},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "4"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpSub, "-"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::NumericLiteral, "6"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(- (* i{2} (+ i{3} i{4})) (* i{5} i{6}))",
         },
-
-        // e.g. (3 * (2 + 5)) / 4 + 6
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpDiv},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpDiv, "/"),
+                makeToken(slim::TokenType::NumericLiteral, "4"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "6"),
+            },
+            .debug = "(+ (/ (* i{3} (+ i{2} i{5})) i{4}) i{6})",
         },
-
-        // e.g. 4 + 3 - 2 * (1 + 5)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpSub},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "4"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpSub, "-"),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(- (+ i{4} i{3}) (* i{2} (+ i{1} i{5})))",
         },
-
-        // e.g. myVar + 1 > otherVar && myVar % 2 == 0
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpGt},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpAnd},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpMod},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::OpEq},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-            }
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "4"),
+            },
+            .debug = "(+ (+ (+ i{1} i{2}) i{3}) i{4})",
         },
-
-        // e.g. sqrt(16)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::Identifier, "myVar"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::OpGt, ">"),
+                makeToken(slim::TokenType::Identifier, "otherVar"),
+                makeToken(slim::TokenType::OpAnd, "&&"),
+                makeToken(slim::TokenType::Identifier, "myVar"),
+                makeToken(slim::TokenType::OpMod, "%"),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::OpEq, "=="),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+            },
+            .debug = "(&& (> (+ id{myVar} i{1}) id{otherVar}) (== (% id{myVar} i{2}) i{0}))",
         },
-
-        // e.g. max(5, 10) - min(2, 7)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::Comma},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpSub},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::Comma},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::Identifier, "sqrt"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "16"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(id{sqrt} i{16})",
         },
-
-        // e.g. abs(-7) * pow(2, 3)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::OpSub},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::Comma},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::Identifier, "max"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "10"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpSub, "-"),
+                makeToken(slim::TokenType::Identifier, "min"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "7"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(- (id{max} i{5} i{10}) (id{min} i{2} i{7}))",
         },
-
-        // e.g. array[0] + array[1]
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-            }
+                makeToken(slim::TokenType::Identifier, "abs"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::OpSub, "-"),
+                makeToken(slim::TokenType::NumericLiteral, "7"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::Identifier, "pow"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(* (id{abs} (- i{7})) (id{pow} i{2} i{3}))",
         },
-
-        // e.g. (matrix[1][2] + matrix[2][1]) * matrix[0][0]
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::Identifier, "arr"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::Identifier, "arr"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+            },
+            .debug = "(+ ([] id{arr} i{0}) ([] id{arr} i{1}))",
         },
-
-        // e.g. obj.property
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-            }
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::Identifier, "matrix"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::Identifier, "matrix"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::Identifier, "matrix"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(* (+ ([] ([] id{matrix} i{1}) i{2}) ([] ([] id{matrix} i{2}) i{1})) ([] ([] id{matrix} i{0}) i{0}))",
         },
-
-        // e.g. obj.property.nested
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-            }
+                makeToken(slim::TokenType::Identifier, "obj"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "property"),
+            },
+            .debug = "(. id{obj} id{property})",
         },
-
-        // e.g. (obj.prop1 + obj.prop2) * obj.prop3
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpMul},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-            }
+                makeToken(slim::TokenType::Identifier, "obj"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "property"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "nested"),
+            },
+            .debug = "(. (. id{obj} id{property}) id{nested})",
         },
-
-        // e.g. arr[1].foo()[i + 1]
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-                slim::Token{.i = slim::TokenType::Dot},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::CloseParen},
-                slim::Token{.i = slim::TokenType::OpenBracket},
-                slim::Token{.i = slim::TokenType::Identifier},
-                slim::Token{.i = slim::TokenType::OpAdd},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseBracket},
-            }
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::Identifier, "obj"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "prop1"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::Identifier, "obj"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "prop2"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpMul, "*"),
+                makeToken(slim::TokenType::Identifier, "obj"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "prop3"),
+            },
+            .debug = "(* (+ (. id{obj} id{prop1}) (. id{obj} id{prop2})) (. id{obj} id{prop3}))",
         },
-
-        // e.g. vec3(1, 2, 3)
         TestCase {
             .tokens = {
-                slim::Token{.i = slim::TokenType::DataType},
-                slim::Token{.i = slim::TokenType::OpenParen},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::Comma},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::Comma},
-                slim::Token{.i = slim::TokenType::NumericLiteral},
-                slim::Token{.i = slim::TokenType::CloseParen},
-            }
+                makeToken(slim::TokenType::Identifier, "arr"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "foo"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::OpenBracket, "["),
+                makeToken(slim::TokenType::Identifier, "i"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::CloseBracket, "]"),
+            },
+            .debug = "([] ((. ([] id{arr} i{1}) id{foo})) (+ id{i} i{1}))",
+        },
+        TestCase {
+            .tokens = {
+                makeToken(slim::TokenType::DataType, "vec3"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+            },
+            .debug = "(id{vec3} i{1} i{2} i{3})",
         }
     };
 
+    int i = 0;
     for (TestCase &tc : testCases)
     {
+        i++;
         slim::Parser parser(tc.tokens);
-        CHECK_NOTHROW(parser.ParseExpression());
+        std::unique_ptr<slim::ast::Expr> expr = parser.ParseExpression();
+        CHECK(tc.debug == expr->Debug());
     }
 }
 
@@ -416,54 +434,45 @@ TEST_CASE("invalid expressions", "[slim]")
     };
 
     std::vector<TestCase> testCases{
-        // e.g. 5 +
         TestCase{
             .tokens = {
-                { .i = slim::TokenType::NumericLiteral},
-                { .i = slim::TokenType::OpAdd},
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+                makeToken(slim::TokenType::OpAdd, "+"),
             },
         },
-
-        // e.g. ((3 + 1)
         TestCase{
             .tokens = {
-                { .i = slim::TokenType::OpenParen},
-                { .i = slim::TokenType::OpenParen},
-                { .i = slim::TokenType::NumericLiteral},
-                { .i = slim::TokenType::OpAdd},
-                { .i = slim::TokenType::NumericLiteral},
-                { .i = slim::TokenType::CloseParen},
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "3"),
+                makeToken(slim::TokenType::OpAdd, "+"),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::CloseParen, ")"),
             },
         },
-
-        // e.g. myVar..property
         TestCase{
             .tokens = {
-                { .i = slim::TokenType::Identifier},
-                { .i = slim::TokenType::Dot},
-                { .i = slim::TokenType::Dot},
-                { .i = slim::TokenType::Identifier},
+                makeToken(slim::TokenType::Identifier, "myVar"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "property"),
             },
         },
-
-        // e.g. myVar[
         TestCase{
             .tokens = {
-                { .i = slim::TokenType::Identifier},
-                { .i = slim::TokenType::OpenBracket},
+                makeToken(slim::TokenType::Identifier, "myVar"),
+                makeToken(slim::TokenType::OpenBracket, "["),
             },
         },
-
-        // e.g. fn(1, 2,)
         TestCase{
             .tokens = {
-                { .i = slim::TokenType::Identifier},
-                { .i = slim::TokenType::OpenParen},
-                { .i = slim::TokenType::NumericLiteral},
-                { .i = slim::TokenType::Comma},
-                { .i = slim::TokenType::NumericLiteral},
-                { .i = slim::TokenType::Comma},
-                { .i = slim::TokenType::CloseParen},
+                makeToken(slim::TokenType::Identifier, "fn"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "1"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "2"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::CloseParen, ")"),
             },
         },
     };

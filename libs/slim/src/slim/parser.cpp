@@ -1,6 +1,9 @@
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include "parser.hpp"
+#include "ast.hpp"
 #include "lexer.hpp"
 
 namespace slim
@@ -13,20 +16,28 @@ namespace slim
         ParseExpression();
     }
 
+    bool Parser::is(TokenType type)
+    {
+        return type == current.i;
+    }
+
+    Token Parser::advance()
+    {
+        Token tok = current;
+        if (!tokens.Next(current))
+        {
+            current = Token{ .i = EOF };
+        }
+        return tok;
+    }
+
     bool Parser::check(TokenType type)
     {
-        if (type == current.i)
-        {
-            if (!tokens.Next(current))
-            {
-                current = Token{ .i = EOF };
-            }
-
-            return true;
-        }
-
-        return false;
+        if (!is(type)) return false;
+        advance();
+        return true;
     }
+
 
     void Parser::expect(TokenType type)
     {
@@ -41,156 +52,186 @@ namespace slim
         }
     }
 
-    void Parser::ParseExpression()
+    std::unique_ptr<ast::Expr> Parser::ParseExpression()
     {
-        pOrExpr();
+        return pOrExpr();
     }
 
-    void Parser::pOrExpr()
+    std::unique_ptr<ast::Expr> Parser::pOrExpr()
     {
-        pAndExpr();
+        std::unique_ptr<ast::Expr> expr = pAndExpr();
 
-        while (check(TokenType::OpOr))
+        while (is(TokenType::OpOr))
         {
-            pAndExpr();
+            expr = std::make_unique<ast::BooleanExpr>(advance(), std::move(expr), pAndExpr());
         }
+
+        return expr;
     }
 
-    void Parser::pAndExpr()
+    std::unique_ptr<ast::Expr> Parser::pAndExpr()
     {
-        pEqualityExpr();
+        std::unique_ptr<ast::Expr> expr = pEqualityExpr();
 
-        while (check(TokenType::OpAnd))
+        while (is(TokenType::OpAnd))
         {
-            pEqualityExpr();
+            expr = std::make_unique<ast::BooleanExpr>(advance(), std::move(expr), pEqualityExpr());
         }
+
+        return expr;
     }
 
-    void Parser::pEqualityExpr()
+    std::unique_ptr<ast::Expr> Parser::pEqualityExpr()
     {
-        pComparisonExpr();
+        std::unique_ptr<ast::Expr> expr = pComparisonExpr();
 
-        while (check(TokenType::OpEq) || check(TokenType::OpNeq))
+        while (is(TokenType::OpEq) || is(TokenType::OpNeq))
         {
-            pComparisonExpr();
+            expr = std::make_unique<ast::ComparisonExpr>(advance(), std::move(expr), pComparisonExpr());
         }
+
+        return expr;
     }
 
-    void Parser::pComparisonExpr()
+    std::unique_ptr<ast::Expr> Parser::pComparisonExpr()
     {
-        pAddExpr();
+        std::unique_ptr<ast::Expr> expr = pAddExpr();
 
         while (
-            check(TokenType::OpGt) ||
-            check(TokenType::OpLt) ||
-            check(TokenType::OpGe) ||
-            check(TokenType::OpLe)
+            is(TokenType::OpGt) ||
+            is(TokenType::OpLt) ||
+            is(TokenType::OpGe) ||
+            is(TokenType::OpLe)
         )
         {
-            pAddExpr();
+            expr = std::make_unique<ast::ComparisonExpr>(advance(), std::move(expr), pAddExpr());
         }
+
+        return expr;
     }
 
-    void Parser::pAddExpr()
+    std::unique_ptr<ast::Expr> Parser::pAddExpr()
     {
-        pMulExpr();
+        std::unique_ptr<ast::Expr> expr = pMulExpr();
 
-        while (check(TokenType::OpAdd) || check(TokenType::OpSub))
+        while (is(TokenType::OpAdd) || is(TokenType::OpSub))
         {
-            pMulExpr();
+            expr = std::make_unique<ast::ArithmeticExpr>(advance(), std::move(expr), pMulExpr());
         }
+
+        return expr;
     }
 
-    void Parser::pMulExpr()
+    std::unique_ptr<ast::Expr> Parser::pMulExpr()
     {
-        pPrefixExpr();
+        std::unique_ptr<ast::Expr> expr = pPrefixExpr();
 
         while (
-            check(TokenType::OpMul) ||
-            check(TokenType::OpDiv) ||
-            check(TokenType::OpMod)
+            is(TokenType::OpMul) ||
+            is(TokenType::OpDiv) ||
+            is(TokenType::OpMod)
         )
         {
-            pPrefixExpr();
+            expr = std::make_unique<ast::ArithmeticExpr>(advance(), std::move(expr), pPrefixExpr());
         }
+
+        return expr;
     }
 
-    void Parser::pPrefixExpr()
+    std::unique_ptr<ast::Expr> Parser::pPrefixExpr()
     {
-        if (check(TokenType::OpSub) || check(TokenType::OpBang))
+        if (is(TokenType::OpSub) || is(TokenType::OpBang))
         {
-            // Simply allow this for now
+            return std::make_unique<ast::UnaryExpr>(advance(), pPostfixExpr());
         }
 
-        pPostfixExpr();
+        return pPostfixExpr();
     }
 
-    void Parser::pPostfixExpr()
+    std::unique_ptr<ast::Expr> Parser::pPostfixExpr()
     {
-        pValueExpr();
+        std::unique_ptr<ast::Expr> expr = pValueExpr();
 
         while (true)
         {
-            if (check(TokenType::OpenBracket))
+            if (is(TokenType::OpenBracket))
             {
-                // Index expression
-                ParseExpression();
+                expr = std::make_unique<ast::IndexAccess>(advance(), std::move(expr), ParseExpression());
                 expect(TokenType::CloseBracket);
             }
-            else if (check(TokenType::OpenParen))
+            else if (is(TokenType::OpenParen))
             {
-                // Function call
-                pArgList();
+                expr = std::make_unique<ast::FunctionCall>(advance(), std::move(expr), pArgList());
             }
-            else if (check(TokenType::Dot))
+            else if (is(TokenType::Dot))
             {
-                // Property access
+                Token dot = advance();
+                Token identifier = current;
                 expect(TokenType::Identifier);
+                expr = std::make_unique<ast::PropertyAccess>(dot, std::move(expr), std::make_unique<ast::Identifier>(identifier));
             }
             else
             {
                 break;
             }
         }
+
+        return expr;
     }
 
-    void Parser::pArgList()
+    std::vector<std::unique_ptr<ast::Expr>> Parser::pArgList()
     {
+        std::vector<std::unique_ptr<ast::Expr>> args;
+
         if (check(TokenType::CloseParen))
         {
-            // No arguments
-            return;
+            return args;
         }
 
-        ParseExpression();
+        args.push_back(ParseExpression());
 
         while (check(TokenType::Comma))
         {
-            ParseExpression();
+            args.push_back(ParseExpression());
         }
 
         expect(TokenType::CloseParen);
+        return args;
     }
 
-    void Parser::pValueExpr()
+    std::unique_ptr<ast::Expr> Parser::pValueExpr()
     {
-        if (check(TokenType::BoolLiteral) || check(TokenType::NumericLiteral) || check(TokenType::Identifier))
+        std::unique_ptr<ast::Expr> expr;
+
+        if (is(TokenType::BoolLiteral))
         {
-            // Simply allow this for now
+            expr = std::make_unique<ast::BooleanLiteral>(advance());
         }
-        else if (check(TokenType::DataType))
+        else if (is(TokenType::NumericLiteral))
         {
+            expr = std::make_unique<ast::NumericLiteral>(advance());
+        }
+        else if (is(TokenType::Identifier))
+        {
+            expr = std::make_unique<ast::Identifier>(advance());
+        }
+        else if (is(TokenType::DataType))
+        {
+            Token dataType = advance();
+            Token openParen = current;
             expect(TokenType::OpenParen);
-            pArgList();
-        }
-        else if (check(TokenType::OpenParen))
-        {
-            ParseExpression();
-            expect(TokenType::CloseParen);
+
+            // Coerce data type token into an identifier - built in data type
+            // functions will be prepopulated into the global symbol table
+            expr = std::make_unique<ast::FunctionCall>(openParen, std::make_unique<ast::Identifier>(dataType), pArgList());
         }
         else
         {
-            throw std::runtime_error("Unexpected token " + std::to_string(current.i));
+            expect(TokenType::OpenParen);
+            expr = ParseExpression();
+            expect(TokenType::CloseParen);
         }
+
+        return expr;
     }
 }
