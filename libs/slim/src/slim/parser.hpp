@@ -9,6 +9,7 @@ namespace slim
 {
     enum TokenType {
         Eof,
+        KeywordProperty,
         OpOr,
         OpAnd,
         OpEq,
@@ -23,24 +24,31 @@ namespace slim
         OpDiv,
         OpMod,
         OpBang,
+        OpAssign,
         OpenParen,
         CloseParen,
         OpenBracket,
         CloseBracket,
         Dot,
+        Comma,
+        Semicolon,
         BoolLiteral,
         NumericLiteral,
+        StringLiteral,
         Identifier,
         DataType,
-        Comma,
+        TagIdentifier,
     };
 
+    // TODO: Encapsulate lists within class definitions instead of returning
+    // vectors directly
     class Parser
     {
         public:
         Parser(TokenIter &tokens);
 
         void Parse();
+        std::unique_ptr<ast::Statement> ParseStatement();
         std::unique_ptr<ast::Expr> ParseExpression();
 
         private:
@@ -50,7 +58,7 @@ namespace slim
         bool is(TokenType);
         Token advance();
         bool check(TokenType);
-        void expect(TokenType);
+        Token expect(TokenType);
 
         std::unique_ptr<ast::Expr> pOrExpr();
         std::unique_ptr<ast::Expr> pAndExpr();
@@ -62,5 +70,8 @@ namespace slim
         std::unique_ptr<ast::Expr> pPostfixExpr();
         std::vector<std::unique_ptr<ast::Expr>> pArgList();
         std::unique_ptr<ast::Expr> pValueExpr();
+        std::unique_ptr<ast::Tag> pTag();
+        std::vector<std::unique_ptr<ast::Tag>> pTagList();
+        std::unique_ptr<ast::PropertyDecl> pPropertyDecl();
     };
 }

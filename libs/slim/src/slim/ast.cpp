@@ -77,6 +77,17 @@ namespace slim::ast
         return ss.str();
     }
 
+    std::string StringLiteral::Debug()
+    {
+        // Surrounding double quotes are implicitly included
+        return token.ToString();
+    }
+
+    std::string DataType::Debug()
+    {
+        return token.ToString();
+    }
+
     PropertyAccess::PropertyAccess(
         Token token,
         std::unique_ptr<Expr> accessed,
@@ -117,6 +128,60 @@ namespace slim::ast
         {
             ss << " " << arg->Debug();
         }
+        ss << ")";
+        return ss.str();
+    }
+
+    Tag::Tag(Token token, std::unique_ptr<StringLiteral> meta)
+        : Node(token)
+        , meta(std::move(meta))
+    { }
+
+    // Example: (#mytag "meta")
+    std::string Tag::Debug()
+    {
+        std::stringstream ss;
+        ss << "(" << token.ToString();
+        if (meta)
+        {
+            ss << " " << meta->Debug();
+        }
+        ss << ")";
+        return ss.str();
+    }
+
+    PropertyDecl::PropertyDecl(
+        Token token,
+        std::vector<std::unique_ptr<Tag>> tags,
+        std::unique_ptr<DataType> type,
+        std::unique_ptr<Identifier> identifier,
+        std::unique_ptr<Expr> initializer
+    )
+        : Statement(token)
+        , tags(std::move(tags))
+        , type(std::move(type))
+        , identifier(std::move(identifier))
+        , initializer(std::move(initializer))
+    { }
+
+    // e.g. (property (tags (#mytag "meta") (#othertag)) vec3 id{myprop} (id{vec3} i{0} i{0} i{0}))
+    std::string PropertyDecl::Debug()
+    {
+        std::stringstream ss;
+        ss << "(property (tags";
+
+        for (const std::unique_ptr<ast::Tag> &tag : tags)
+        {
+            ss << " " << tag->Debug();
+        }
+
+        ss << ") " << type->Debug() << " " << identifier->Debug();
+
+        if (initializer)
+        {
+            ss << " " << initializer->Debug();
+        }
+
         ss << ")";
         return ss.str();
     }

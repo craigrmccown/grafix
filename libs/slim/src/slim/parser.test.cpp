@@ -417,10 +417,8 @@ TEST_CASE("valid expressions", "[slim]")
         }
     };
 
-    int i = 0;
     for (TestCase &tc : testCases)
     {
-        i++;
         slim::Parser parser(tc.tokens);
         std::unique_ptr<slim::ast::Expr> expr = parser.ParseExpression();
         CHECK(tc.debug == expr->Debug());
@@ -481,5 +479,62 @@ TEST_CASE("invalid expressions", "[slim]")
     {
         slim::Parser parser(tc.tokens);
         CHECK_THROWS(parser.ParseExpression());
+    }
+}
+
+TEST_CASE("property declaration", "[slim]")
+{
+    struct TestCase {
+        TestTokenIter tokens;
+        std::string debug;
+    };
+
+    std::vector<TestCase> testCases{
+       TestCase {
+            .tokens = {
+                makeToken(slim::TokenType::KeywordProperty, "property"),
+                makeToken(slim::TokenType::DataType, "vec3"),
+                makeToken(slim::TokenType::Identifier, "color"),
+                makeToken(slim::TokenType::Semicolon, ";"),
+            },
+            .debug = "(property (tags) vec3 id{color})",
+        },
+        TestCase {
+            .tokens = {
+                makeToken(slim::TokenType::TagIdentifier, "#display"),
+                makeToken(slim::TokenType::StringLiteral, "\"Colour\""),
+                makeToken(slim::TokenType::TagIdentifier, "#colorpicker"),
+                makeToken(slim::TokenType::KeywordProperty, "property"),
+                makeToken(slim::TokenType::DataType, "vec3"),
+                makeToken(slim::TokenType::Identifier, "color"),
+                makeToken(slim::TokenType::Semicolon, ";"),
+            },
+            .debug = "(property (tags (#display \"Colour\") (#colorpicker)) vec3 id{color})",
+        },
+        TestCase {
+            .tokens = {
+                makeToken(slim::TokenType::KeywordProperty, "property"),
+                makeToken(slim::TokenType::DataType, "vec3"),
+                makeToken(slim::TokenType::Identifier, "color"),
+                makeToken(slim::TokenType::OpAssign, "="),
+                makeToken(slim::TokenType::DataType, "vec3"),
+                makeToken(slim::TokenType::OpenParen, "("),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+                makeToken(slim::TokenType::Comma, ","),
+                makeToken(slim::TokenType::NumericLiteral, "0"),
+                makeToken(slim::TokenType::CloseParen, ")"),
+                makeToken(slim::TokenType::Semicolon, ";"),
+            },
+            .debug = "(property (tags) vec3 id{color} (id{vec3} i{0} i{0} i{0}))",
+        },
+    };
+
+    for (TestCase &tc : testCases)
+    {
+        slim::Parser parser(tc.tokens);
+        std::unique_ptr<slim::ast::Statement> stat = parser.ParseStatement();
+        CHECK(tc.debug == stat->Debug());
     }
 }

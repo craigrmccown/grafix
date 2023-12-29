@@ -8,12 +8,33 @@
 
 namespace slim
 {
-    Parser::Parser(TokenIter &tokens) : tokens(tokens) {
+    Parser::Parser(TokenIter &tokens) : tokens(tokens)
+    {
         tokens.Next(current);
     }
 
-    void Parser::Parse() {
+    void Parser::Parse()
+    {
         ParseExpression();
+    }
+
+    std::unique_ptr<ast::Statement> Parser::ParseStatement()
+    {
+        std::unique_ptr<ast::Statement> stat;
+        if (is(TokenType::TagIdentifier) || is(TokenType::KeywordProperty))
+        {
+            stat = pPropertyDecl();
+        }
+        else
+        {
+            throw std::runtime_error(
+                "Expected start of statement, got " +
+                std::to_string(current.i)
+            );
+        }
+
+        expect(TokenType::Semicolon);
+        return stat;
     }
 
     bool Parser::is(TokenType type)
@@ -39,17 +60,19 @@ namespace slim
     }
 
 
-    void Parser::expect(TokenType type)
+    Token Parser::expect(TokenType type)
     {
-        if (!check(type))
+        if (!is(type))
         {
             throw std::runtime_error(
-                "expected token " +
+                "Expected token " +
                 std::to_string(type) +
                 ", got " +
                 std::to_string(current.i)
             );
         }
+
+        return advance();
     }
 
     std::unique_ptr<ast::Expr> Parser::ParseExpression()
@@ -233,5 +256,60 @@ namespace slim
         }
 
         return expr;
+    }
+
+    std::unique_ptr<ast::Tag> Parser::pTag()
+    {
+        assert(is(TokenType::TagIdentifier));
+        Token tok = advance();
+
+        if (is(TokenType::StringLiteral))
+        {
+            return std::make_unique<ast::Tag>(tok, std::make_unique<ast::StringLiteral>(advance()));
+        }
+
+        return std::make_unique<ast::Tag>(tok);
+    }
+
+    std::vector<std::unique_ptr<ast::Tag>> Parser::pTagList()
+    {
+        std::vector<std::unique_ptr<ast::Tag>> tags;
+
+        while (is(TokenType::TagIdentifier))
+        {
+            tags.push_back(pTag());
+        }
+
+        return tags;
+    }
+
+    std::unique_ptr<ast::PropertyDecl> Parser::pPropertyDecl()
+    {
+        // The token marking this property declaration will either be a tag
+        // identifier or the property keyword if no tags are present.
+        Token start = current;
+        std::vector<std::unique_ptr<ast::Tag>> tags = pTagList();
+        expect(TokenType::KeywordProperty);
+        Token type = expect(TokenType::DataType);
+        Token identifier = expect(TokenType::Identifier);
+
+        // Optionally parse default assignment
+        if (check(TokenType::OpAssign))
+        {
+            return std::make_unique<ast::PropertyDecl>(
+                start,
+                std::move(tags),
+                std::make_unique<ast::DataType>(type),
+                std::make_unique<ast::Identifier>(identifier),
+                ParseExpression()
+            );
+        }
+
+        return std::make_unique<ast::PropertyDecl>(
+            start,
+            std::move(tags),
+            std::make_unique<ast::DataType>(type),
+            std::make_unique<ast::Identifier>(identifier)
+        );
     }
 }
