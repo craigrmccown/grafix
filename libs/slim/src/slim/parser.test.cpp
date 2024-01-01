@@ -53,7 +53,7 @@ TEST_CASE("valid expressions", "[slim]")
         std::string debug;
     };
 
-    std::vector<TestCase> testCases{
+    TestCase tc = GENERATE(
         TestCase{
             .tokens = {makeToken(slim::TokenType::NumericLiteral, "10")},
             .debug = "i{10}",
@@ -415,14 +415,11 @@ TEST_CASE("valid expressions", "[slim]")
             },
             .debug = "(id{vec3} i{1} i{2} i{3})",
         }
-    };
+    );
 
-    for (TestCase &tc : testCases)
-    {
-        slim::Parser parser(tc.tokens);
-        std::unique_ptr<slim::ast::Expr> expr = parser.ParseExpression();
-        CHECK(tc.debug == expr->Debug());
-    }
+    slim::Parser parser(tc.tokens);
+    std::unique_ptr<slim::ast::Expr> expr = parser.ParseExpression();
+    CHECK(tc.debug == expr->Debug());
 }
 
 TEST_CASE("invalid expressions", "[slim]")
@@ -431,7 +428,7 @@ TEST_CASE("invalid expressions", "[slim]")
         TestTokenIter tokens;
     };
 
-    std::vector<TestCase> testCases{
+    TestCase tc = GENERATE(
         TestCase{
             .tokens = {
                 makeToken(slim::TokenType::NumericLiteral, "5"),
@@ -472,14 +469,11 @@ TEST_CASE("invalid expressions", "[slim]")
                 makeToken(slim::TokenType::Comma, ","),
                 makeToken(slim::TokenType::CloseParen, ")"),
             },
-        },
-    };
+        }
+    );
 
-    for (TestCase &tc : testCases)
-    {
-        slim::Parser parser(tc.tokens);
-        CHECK_THROWS(parser.ParseExpression());
-    }
+    slim::Parser parser(tc.tokens);
+    CHECK_THROWS(parser.ParseExpression());
 }
 
 TEST_CASE("property declaration", "[slim]")
@@ -489,7 +483,7 @@ TEST_CASE("property declaration", "[slim]")
         std::string debug;
     };
 
-    std::vector<TestCase> testCases{
+    TestCase tc = GENERATE(
        TestCase {
             .tokens = {
                 makeToken(slim::TokenType::KeywordProperty, "property"),
@@ -528,13 +522,10 @@ TEST_CASE("property declaration", "[slim]")
                 makeToken(slim::TokenType::Semicolon, ";"),
             },
             .debug = "(property (tags) vec3 id{color} (id{vec3} i{0} i{0} i{0}))",
-        },
-    };
+        }
+    );
 
-    for (TestCase &tc : testCases)
-    {
-        slim::Parser parser(tc.tokens);
-        std::unique_ptr<slim::ast::Statement> stat = parser.ParseStatement();
-        CHECK(tc.debug == stat->Debug());
-    }
+    slim::Parser parser(tc.tokens);
+    std::unique_ptr<slim::ast::Statement> stat = parser.ParseStatement();
+    CHECK(tc.debug == stat->Debug());
 }
