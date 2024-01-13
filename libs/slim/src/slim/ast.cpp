@@ -139,4 +139,14 @@ namespace slim::ast
         , identifier(std::move(identifier))
         , initializer(std::move(initializer))
     { }
+
+    FeatureBlock::FeatureBlock(
+        Token token,
+        std::unique_ptr<Identifier> identifier,
+        std::vector<std::unique_ptr<PropertyDecl>> decls
+    )
+        : Node(token)
+        , identifier(std::move(identifier))
+        , decls(std::move(decls))
+    { }
 }

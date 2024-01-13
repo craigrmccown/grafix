@@ -156,4 +156,18 @@ namespace slim::ast
         std::unique_ptr<Identifier> identifier;
         std::unique_ptr<Expr> initializer;
     };
+
+    class FeatureBlock : public Node
+    {
+        public:
+        FeatureBlock(
+            Token token,
+            std::unique_ptr<Identifier> identifier,
+            std::vector<std::unique_ptr<PropertyDecl>> decls
+        );
+
+        private:
+        std::unique_ptr<Identifier> identifier;
+        std::vector<std::unique_ptr<PropertyDecl>> decls;
+    };
 }

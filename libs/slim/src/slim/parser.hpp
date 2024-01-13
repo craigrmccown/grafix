@@ -10,6 +10,7 @@ namespace slim
     enum TokenType {
         Eof,
         KeywordProperty,
+        KeywordFeature,
         OpOr,
         OpAnd,
         OpEq,
@@ -29,6 +30,8 @@ namespace slim
         CloseParen,
         OpenBracket,
         CloseBracket,
+        OpenBrace,
+        CloseBrace,
         Dot,
         Comma,
         Semicolon,
@@ -72,5 +75,6 @@ namespace slim
         std::unique_ptr<ast::Tag> pTag();
         std::vector<std::unique_ptr<ast::Tag>> pTagList();
         std::unique_ptr<ast::PropertyDecl> pPropertyDecl();
+        std::unique_ptr<ast::FeatureBlock> pFeatureBlock();
     };
 }

@@ -269,10 +269,14 @@ namespace slim
         // The token marking this property declaration will either be a tag
         // identifier or the property keyword if no tags are present.
         Token start = current;
+
+        // First parse tags, if any
         std::vector<std::unique_ptr<ast::Tag>> tags = pTagList();
+
+        // Keyword, data type, and identifier are always required
         expect(TokenType::KeywordProperty);
-        Token type = expect(TokenType::DataType);
-        Token identifier = expect(TokenType::Identifier);
+        std::unique_ptr<ast::DataType> type = std::make_unique<ast::DataType>(expect(TokenType::DataType));
+        std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
 
         // Optionally parse default assignment
         if (check(TokenType::OpAssign))
@@ -280,8 +284,8 @@ namespace slim
             return std::make_unique<ast::PropertyDecl>(
                 start,
                 std::move(tags),
-                std::make_unique<ast::DataType>(type),
-                std::make_unique<ast::Identifier>(identifier),
+                std::move(type),
+                std::move(identifier),
                 ParseExpression()
             );
         }
@@ -291,8 +295,24 @@ namespace slim
         return std::make_unique<ast::PropertyDecl>(
             start,
             std::move(tags),
-            std::make_unique<ast::DataType>(type),
-            std::make_unique<ast::Identifier>(identifier)
+            std::move(type),
+            std::move(identifier)
         );
+    }
+
+    std::unique_ptr<ast::FeatureBlock> Parser::pFeatureBlock()
+    {
+        Token start = expect(TokenType::KeywordFeature);
+        std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
+        expect(TokenType::OpenBrace);
+
+        std::vector<std::unique_ptr<ast::PropertyDecl>> decls;
+
+        while (!check(TokenType::CloseBrace))
+        {
+            decls.push_back(pPropertyDecl());
+        }
+
+        return std::make_unique<ast::FeatureBlock>(start, std::move(identifier), std::move(decls));
     }
 }
