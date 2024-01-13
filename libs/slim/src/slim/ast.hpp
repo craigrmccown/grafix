@@ -11,25 +11,17 @@ namespace slim::ast
     {
         public:
         Node(Token token);
-        virtual std::string Debug() = 0;
 
         protected:
         Token token;
-    };
-
-    class Statement : public Node
-    {
-        public:
-        using Node::Node;
-
-        // Ensure destructor of subclass is called when deleted
-        virtual ~Statement() = default;
     };
 
     class Expr : public Node
     {
         public:
         using Node::Node;
+
+        virtual std::string Debug() = 0;
 
         // Ensure destructor of subclass is called when deleted
         virtual ~Expr() = default;
@@ -108,14 +100,12 @@ namespace slim::ast
     {
         public:
         using Node::Node;
-        std::string Debug() override;
     };
 
     class DataType : public Node
     {
         public:
         using Node::Node;
-        std::string Debug() override;
     };
 
     class PropertyAccess : public Expr
@@ -144,13 +134,12 @@ namespace slim::ast
     {
         public:
         Tag(Token token, std::unique_ptr<StringLiteral> meta = nullptr);
-        std::string Debug() override;
 
         private:
         std::unique_ptr<StringLiteral> meta;
     };
 
-    class PropertyDecl: public Statement
+    class PropertyDecl : public Node
     {
         public:
         PropertyDecl(
@@ -160,7 +149,6 @@ namespace slim::ast
             std::unique_ptr<Identifier> identifier,
             std::unique_ptr<Expr> initializer = nullptr
         );
-        std::string Debug() override;
 
         private:
         std::vector<std::unique_ptr<Tag>> tags;

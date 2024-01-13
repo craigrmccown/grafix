@@ -18,25 +18,6 @@ namespace slim
         ParseExpression();
     }
 
-    std::unique_ptr<ast::Statement> Parser::ParseStatement()
-    {
-        std::unique_ptr<ast::Statement> stat;
-        if (is(TokenType::TagIdentifier) || is(TokenType::KeywordProperty))
-        {
-            stat = pPropertyDecl();
-        }
-        else
-        {
-            throw std::runtime_error(
-                "Expected start of statement, got " +
-                std::to_string(current.i)
-            );
-        }
-
-        expect(TokenType::Semicolon);
-        return stat;
-    }
-
     bool Parser::is(TokenType type)
     {
         return type == current.i;
@@ -304,6 +285,8 @@ namespace slim
                 ParseExpression()
             );
         }
+
+        expect(TokenType::Semicolon);
 
         return std::make_unique<ast::PropertyDecl>(
             start,

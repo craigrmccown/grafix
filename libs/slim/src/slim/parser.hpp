@@ -48,7 +48,6 @@ namespace slim
         Parser(TokenIter &tokens);
 
         void Parse();
-        std::unique_ptr<ast::Statement> ParseStatement();
         std::unique_ptr<ast::Expr> ParseExpression();
 
         private:
