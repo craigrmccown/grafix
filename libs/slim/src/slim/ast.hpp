@@ -157,6 +157,20 @@ namespace slim::ast
         std::unique_ptr<Expr> initializer;
     };
 
+    class SharedDecl : public Node
+    {
+        public:
+        SharedDecl(
+            Token token,
+            std::unique_ptr<DataType> type,
+            std::unique_ptr<Identifier> identifier
+        );
+
+        private:
+        std::unique_ptr<DataType> type;
+        std::unique_ptr<Identifier> identifier;
+    };
+
     class FeatureBlock : public Node
     {
         public:

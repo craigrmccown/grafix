@@ -300,6 +300,16 @@ namespace slim
         );
     }
 
+    std::unique_ptr<ast::SharedDecl> Parser::pSharedDecl()
+    {
+        Token start = expect(TokenType::KeywordShared);
+        std::unique_ptr<ast::DataType> type = std::make_unique<ast::DataType>(expect(TokenType::DataType));
+        std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
+        expect(TokenType::Semicolon);
+
+        return std::make_unique<ast::SharedDecl>(start, std::move(type), std::move(identifier));
+    }
+
     std::unique_ptr<ast::FeatureBlock> Parser::pFeatureBlock()
     {
         Token start = expect(TokenType::KeywordFeature);

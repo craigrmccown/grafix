@@ -10,6 +10,7 @@ namespace slim
     enum TokenType {
         Eof,
         KeywordProperty,
+        KeywordShared,
         KeywordFeature,
         OpOr,
         OpAnd,
@@ -75,6 +76,7 @@ namespace slim
         std::unique_ptr<ast::Tag> pTag();
         std::vector<std::unique_ptr<ast::Tag>> pTagList();
         std::unique_ptr<ast::PropertyDecl> pPropertyDecl();
+        std::unique_ptr<ast::SharedDecl> pSharedDecl();
         std::unique_ptr<ast::FeatureBlock> pFeatureBlock();
     };
 }

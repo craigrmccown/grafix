@@ -140,6 +140,16 @@ namespace slim::ast
         , initializer(std::move(initializer))
     { }
 
+    SharedDecl::SharedDecl(
+        Token token,
+        std::unique_ptr<DataType> type,
+        std::unique_ptr<Identifier> identifier
+    )
+        : Node(token)
+        , type(std::move(type))
+        , identifier(std::move(identifier))
+    { }
+
     FeatureBlock::FeatureBlock(
         Token token,
         std::unique_ptr<Identifier> identifier,
