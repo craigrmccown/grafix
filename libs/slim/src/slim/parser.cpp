@@ -67,7 +67,8 @@ namespace slim
 
         while (is(TokenType::OpOr))
         {
-            expr = std::make_unique<ast::BooleanExpr>(advance(), std::move(expr), pAndExpr());
+            Token op = advance();
+            expr = std::make_unique<ast::BooleanExpr>(op, std::move(expr), pAndExpr());
         }
 
         return expr;
@@ -79,7 +80,8 @@ namespace slim
 
         while (is(TokenType::OpAnd))
         {
-            expr = std::make_unique<ast::BooleanExpr>(advance(), std::move(expr), pEqualityExpr());
+            Token op = advance();
+            expr = std::make_unique<ast::BooleanExpr>(op, std::move(expr), pEqualityExpr());
         }
 
         return expr;
@@ -91,7 +93,8 @@ namespace slim
 
         while (is(TokenType::OpEq) || is(TokenType::OpNeq))
         {
-            expr = std::make_unique<ast::ComparisonExpr>(advance(), std::move(expr), pComparisonExpr());
+            Token op = advance();
+            expr = std::make_unique<ast::ComparisonExpr>(op, std::move(expr), pComparisonExpr());
         }
 
         return expr;
@@ -108,7 +111,8 @@ namespace slim
             is(TokenType::OpLe)
         )
         {
-            expr = std::make_unique<ast::ComparisonExpr>(advance(), std::move(expr), pAddExpr());
+            Token op = advance();
+            expr = std::make_unique<ast::ComparisonExpr>(op, std::move(expr), pAddExpr());
         }
 
         return expr;
@@ -120,7 +124,8 @@ namespace slim
 
         while (is(TokenType::OpAdd) || is(TokenType::OpSub))
         {
-            expr = std::make_unique<ast::ArithmeticExpr>(advance(), std::move(expr), pMulExpr());
+            Token op = advance();
+            expr = std::make_unique<ast::ArithmeticExpr>(op, std::move(expr), pMulExpr());
         }
 
         return expr;
@@ -136,7 +141,8 @@ namespace slim
             is(TokenType::OpMod)
         )
         {
-            expr = std::make_unique<ast::ArithmeticExpr>(advance(), std::move(expr), pPrefixExpr());
+            Token op = advance();
+            expr = std::make_unique<ast::ArithmeticExpr>(op, std::move(expr), pPrefixExpr());
         }
 
         return expr;
@@ -146,7 +152,8 @@ namespace slim
     {
         if (is(TokenType::OpSub) || is(TokenType::OpBang))
         {
-            return std::make_unique<ast::UnaryExpr>(advance(), pPostfixExpr());
+            Token op = advance();
+            return std::make_unique<ast::UnaryExpr>(op, pPostfixExpr());
         }
 
         return pPostfixExpr();
@@ -160,12 +167,14 @@ namespace slim
         {
             if (is(TokenType::OpenBracket))
             {
-                expr = std::make_unique<ast::IndexAccess>(advance(), std::move(expr), ParseExpression());
+                Token open = advance();
+                expr = std::make_unique<ast::IndexAccess>(open, std::move(expr), ParseExpression());
                 expect(TokenType::CloseBracket);
             }
             else if (is(TokenType::OpenParen))
             {
-                expr = std::make_unique<ast::FunctionCall>(advance(), std::move(expr), pArgList());
+                Token open = advance();
+                expr = std::make_unique<ast::FunctionCall>(open, std::move(expr), pArgList());
             }
             else if (is(TokenType::Dot))
             {
