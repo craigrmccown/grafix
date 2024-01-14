@@ -6,6 +6,7 @@ add_library(slim STATIC
     src/slim/nfa.cpp
     src/slim/parser.cpp
     src/slim/regex.cpp
+    src/slim/tokens.cpp
 )
 target_include_directories(slim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

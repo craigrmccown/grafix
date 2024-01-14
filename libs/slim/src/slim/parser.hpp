@@ -4,46 +4,10 @@
 #include <vector>
 #include "ast.hpp"
 #include "lexer.hpp"
+#include "tokens.hpp"
 
 namespace slim
 {
-    enum TokenType {
-        Eof,
-        KeywordProperty,
-        KeywordShared,
-        KeywordFeature,
-        OpOr,
-        OpAnd,
-        OpEq,
-        OpNeq,
-        OpGt,
-        OpLt,
-        OpGe,
-        OpLe,
-        OpAdd,
-        OpSub,
-        OpMul,
-        OpDiv,
-        OpMod,
-        OpBang,
-        OpAssign,
-        OpenParen,
-        CloseParen,
-        OpenBracket,
-        CloseBracket,
-        OpenBrace,
-        CloseBrace,
-        Dot,
-        Comma,
-        Semicolon,
-        BoolLiteral,
-        NumericLiteral,
-        StringLiteral,
-        Identifier,
-        DataType,
-        TagIdentifier,
-    };
-
     // TODO: Encapsulate lists within class definitions instead of returning
     // vectors directly
     class Parser

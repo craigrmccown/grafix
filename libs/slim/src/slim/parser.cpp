@@ -2,9 +2,10 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "parser.hpp"
 #include "ast.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
+#include "tokens.hpp"
 
 namespace slim
 {
