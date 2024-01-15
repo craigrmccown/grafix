@@ -57,11 +57,11 @@ namespace slim
 
     struct Token
     {
-        int i;
+        int i, line, col;
         std::vector<utf8::Glyph> data;
 
         // TODO: Move this logic to utf8.hpp
-        std::string ToString()
+        std::string ToString() const
         {
             std::stringstream ss;
 
@@ -257,7 +257,7 @@ namespace slim
 
             std::vector<utf8::Glyph> data(tokBuf.begin(), tokBuf.end());
             tokBuf.clear();
-            token = Token{ .i = i, .data = data };
+            token = Token{ .i = i, .line = line, .col = col, .data = data };
         }
     };
 }

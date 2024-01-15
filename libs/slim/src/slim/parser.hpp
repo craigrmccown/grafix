@@ -22,7 +22,8 @@ namespace slim
         Token current;
         TokenIter &tokens;
 
-        bool is(TokenType);
+        void fail(const std::string &message) const;
+        bool is(TokenType) const;
         Token advance();
         bool check(TokenType);
         Token expect(TokenType);

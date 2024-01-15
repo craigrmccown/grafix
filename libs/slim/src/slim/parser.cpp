@@ -1,4 +1,5 @@
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -32,12 +33,22 @@ namespace slim
             }
             else
             {
-                throw std::runtime_error("Unexpected token: " + std::to_string(current.i));
+                fail("Unexpected token: " + std::to_string(current.i));
             }
         }
     }
 
-    bool Parser::is(TokenType type)
+    void Parser::fail(const std::string &message) const
+    {
+        std::stringstream ss;
+        ss
+            << "Error at " << current.line << ":" << current.col << ": "
+            << current.ToString() << "\n"
+            << "  " << message;
+        throw std::runtime_error(ss.str());
+    }
+
+    bool Parser::is(TokenType type) const
     {
         return type == current.i;
     }
@@ -64,7 +75,7 @@ namespace slim
     {
         if (!is(type))
         {
-            throw std::runtime_error(
+            fail(
                 "Expected token " +
                 std::to_string(type) +
                 ", got " +
