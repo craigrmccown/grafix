@@ -16,7 +16,25 @@ namespace slim
 
     void Parser::Parse()
     {
-        ParseExpression();
+        while (current.i != EOF)
+        {
+            if (is(TokenType::KeywordProperty) || is(TokenType::TagIdentifier))
+            {
+                pPropertyDecl();
+            }
+            else if (is(TokenType::KeywordFeature))
+            {
+                pFeatureBlock();
+            }
+            else if (is(TokenType::KeywordShared))
+            {
+                pSharedDecl();
+            }
+            else
+            {
+                throw std::runtime_error("Unexpected token: " + std::to_string(current.i));
+            }
+        }
     }
 
     bool Parser::is(TokenType type)

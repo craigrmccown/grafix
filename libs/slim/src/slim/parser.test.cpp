@@ -1,9 +1,12 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/generators/catch_generators.hpp>
+#include <fstream>
 #include <string>
 #include <vector>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
+#include <testutils/dirgen.hpp>
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "tokens.hpp"
 #include "utf8.hpp"
 
 class TestTokenIter : public slim::TokenIter
@@ -474,4 +477,24 @@ TEST_CASE("invalid expressions", "[slim]")
 
     slim::Parser parser(tc.tokens);
     CHECK_THROWS(parser.ParseExpression());
+}
+
+TEST_CASE("parse valid programs", "[slim]")
+{
+    auto entry = GENERATE(testutils::dir("libs/slim/test/parse/pass"));
+    REQUIRE(entry.is_regular_file());
+
+    std::ifstream ifs(entry.path(), std::ios::binary);
+    ifs >> std::noskipws;
+
+    REQUIRE(ifs.is_open());
+
+    slim::Lexer lex(
+        slim::patterns,
+        std::istream_iterator<char>(ifs),
+        std::istream_iterator<char>()
+    );
+
+    slim::Parser parser(lex);
+    CHECK_NOTHROW(parser.Parse());
 }
