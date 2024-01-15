@@ -289,15 +289,10 @@ namespace slim
         std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
 
         // Optionally parse default assignment
+        std::unique_ptr<ast::Expr> expr = nullptr;
         if (check(TokenType::OpAssign))
         {
-            return std::make_unique<ast::PropertyDecl>(
-                start,
-                std::move(tags),
-                std::move(type),
-                std::move(identifier),
-                ParseExpression()
-            );
+            expr = ParseExpression();
         }
 
         expect(TokenType::Semicolon);
@@ -306,7 +301,8 @@ namespace slim
             start,
             std::move(tags),
             std::move(type),
-            std::move(identifier)
+            std::move(identifier),
+            std::move(expr)
         );
     }
 
