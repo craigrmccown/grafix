@@ -15,6 +15,9 @@
 // sizeof(utf8::Glyph), or 4 bytes.
 const int defaultTokenBufferSize = 20;
 
+// Restrict token buffer size to 4KiB, plus overhead
+const int maxTokenBufferSize = 1024;
+
 namespace slim
 {
     // TODO: Move definition to source file
@@ -108,7 +111,13 @@ namespace slim
             const std::vector<std::string> &patterns,
             ByteIterator begin,
             ByteIterator end
-        ) : shouldAdvance(true), col(0), line(0), input(begin, end)
+        )
+            : shouldAdvance(true)
+            // Initialize to -1 because nothing has been consumed from the
+            // input. The first glyph consumed should be at col == 0.
+            , col(-1)
+            , line(1)
+            , input(begin, end)
         {
             std::vector<std::unique_ptr<regex::Node>> exprs;
             exprs.reserve(patterns.size());
@@ -140,27 +149,13 @@ namespace slim
             bool tokenStarted = false;
 
             // Respect shouldAdvance by short circuiting here
-            while (!shouldAdvance || input.Next(g))
+            while (!shouldAdvance || next())
             {
-                bool newline = isNewline(g), whitespace = isWhitespace(g);
-
-                // Perform bookkeeping so that we can output line/column numbers
-                // on error
-                if (newline)
-                {
-                    col = 0;
-                    line++;
-                }
-                else if (shouldAdvance)
-                {
-                    col++;
-                }
-
                 shouldAdvance = true;
 
                 // Always discard whitespace and assume end of token. This means
                 // that patterns containing whitespace can never be matched.
-                if (newline || whitespace)
+                if (isNewline(g) || isWhitespace(g))
                 {
                     // Discard all leading whitespace before trying to match a
                     // token
@@ -201,6 +196,16 @@ namespace slim
                     {
                         fail("Unexpected character");
                     }
+                }
+
+                // Set a hard limit on the size for a single token
+                if (tokBuf.size() > maxTokenBufferSize)
+                {
+                    fail(
+                        "Token exceeds maximum length of " +
+                        std::to_string(maxTokenBufferSize) +
+                        " characters"
+                    );
                 }
 
                 tokBuf.push_back(g);
@@ -257,7 +262,29 @@ namespace slim
 
             std::vector<utf8::Glyph> data(tokBuf.begin(), tokBuf.end());
             tokBuf.clear();
-            token = Token{ .i = i, .line = line, .col = col, .data = data };
+            token = Token{
+                .i = i,
+                .line = line,
+                .col = col - (int)data.size(),
+                .data = data
+            };
+        }
+
+        bool next()
+        {
+            // Perform bookkeeping so that we can output line/column numbers
+            // on error
+            if (isNewline(g))
+            {
+                col = 0;
+                line++;
+            }
+            else
+            {
+                col++;
+            }
+
+            return input.Next(g);
         }
     };
 }

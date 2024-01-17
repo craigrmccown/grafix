@@ -1,4 +1,5 @@
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
@@ -56,6 +57,39 @@ TEST_CASE("simple language tokenization", "[slim]")
     {
         CHECK(expected[i].first == token.i);
         CHECK(expected[i].second == token.ToString());
+        i++;
+    }
+
+    CHECK_FALSE(lex.Next(token));
+}
+
+TEST_CASE("token line and column numbers", "[slim]")
+{
+    std::vector<std::string> patterns {"red", "green", "blue", ";"};
+    std::string input = "red green;\nblue green red;\ngreen;";
+
+    // {token, line, column}
+    std::vector<std::tuple<int, int, int>> expected = {
+        {0, 1, 0},
+        {1, 1, 4},
+        {3, 1, 9},
+        {2, 2, 0},
+        {1, 2, 5},
+        {0, 2, 11},
+        {3, 2, 14},
+        {1, 3, 0},
+        {3, 3, 5},
+    };
+
+    slim::Lexer lex(patterns, input.begin(), input.end());
+
+    int i = 0;
+    slim::Token token;
+    while (lex.Next(token))
+    {
+        CHECK(std::get<0>(expected[i]) == token.i);
+        CHECK(std::get<1>(expected[i]) == token.line);
+        CHECK(std::get<2>(expected[i]) == token.col);
         i++;
     }
 
