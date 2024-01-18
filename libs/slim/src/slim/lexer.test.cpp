@@ -61,6 +61,7 @@ TEST_CASE("simple language tokenization", "[slim]")
     }
 
     CHECK_FALSE(lex.Next(token));
+    CHECK(i == expected.size());
 }
 
 TEST_CASE("token line and column numbers", "[slim]")
@@ -91,6 +92,43 @@ TEST_CASE("token line and column numbers", "[slim]")
         CHECK(std::get<1>(expected[i]) == token.line);
         CHECK(std::get<2>(expected[i]) == token.col);
         i++;
+    }
+
+    CHECK_FALSE(lex.Next(token));
+    CHECK(i == expected.size());
+}
+
+TEST_CASE("token pattern and input including whitespace", "[slim]")
+{
+    std::vector<std::string> patterns {"\".*\""};
+    std::string input = "  \"hello, world!    :) \"";
+    slim::Lexer lex(patterns, input.begin(), input.end());
+
+    slim::Token token;
+    REQUIRE(lex.Next(token));
+    CHECK(token.i == 0);
+    CHECK_FALSE(lex.Next(token));
+}
+
+TEST_CASE("unmatched characters", "[slim]")
+{
+    std::vector<std::string> patterns {"a", "b", "c", "e"};
+    std::string input = "ab c  d  e";
+    std::vector<int> expected = {0, 1, 2, -1, 3};
+    slim::Lexer lex(patterns, input.begin(), input.end());
+
+    slim::Token token;
+    for (int i = 0; i < expected.size(); i++)
+    {
+        if (expected[i] == -1)
+        {
+            CHECK_THROWS(lex.Next(token));
+        }
+        else
+        {
+            REQUIRE(lex.Next(token));
+            CHECK(token.i == expected[i]);
+        }
     }
 
     CHECK_FALSE(lex.Next(token));

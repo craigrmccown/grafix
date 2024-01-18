@@ -146,49 +146,34 @@ namespace slim
         bool Next(Token &token)
         {
             dfa::State *curr = machine->GetHead();
-            bool tokenStarted = false;
 
             // Respect shouldAdvance by short circuiting here
             while (!shouldAdvance || next())
             {
                 shouldAdvance = true;
+                bool newline = isNewline(g);
+                dfa::State *next;
 
-                // Always discard whitespace and assume end of token. This means
-                // that patterns containing whitespace can never be matched.
-                if (isNewline(g) || isWhitespace(g))
+                // Always discard newlines and assume end of token, disallowing
+                // tokens that contain newlines, even if a pattern would accept
+                // them. For all other cases, attempt to transition to the next
+                // state.
+                if (newline || !(next = curr->GoTo(alpha->IndexOf(g))))
                 {
-                    // Discard all leading whitespace before trying to match a
-                    // token
-                    if (!tokenStarted) continue;
+                    // For convenience, newlines and whitespace that come before
+                    // a token are discarded so that whitespace can be used to
+                    // separate tokens without needing special parser rules.
+                    // Greedily consume and skip newlines and whitespace as long
+                    // as no input has been matched.
+                    if (tokBuf.size() == 0 && (newline || isWhitespace(g))) continue;
 
-                    // Whitespace can be used to separate all tokens. Therefore,
-                    // when we encounter trailing whitespace, we are finished
-                    // matching the current token
+                    // Only attempt to produce a token when we fail to match the
+                    // input. This policy produces the longest matching
+                    // sequence.
                     if (curr->token >= 0)
                     {
-                        produceToken(token, curr->token);
-                        return true;
-                    }
-                    else
-                    {
-                        fail("Unexpected character");
-                    }
-                }
-
-                // If we reach this point, we're ready to start matching
-                tokenStarted = true;
-                int iAlphabet = alpha->IndexOf(g);
-
-                // We only check for a match when we encounter an unmatched
-                // character. This means that tokens are produced based on the
-                // longest matching sequence.
-                dfa::State *next = curr->GoTo(iAlphabet);
-
-                if (!next)
-                {
-                    if (curr->token >= 0)
-                    {
-                        shouldAdvance = false;
+                        // Newlines should always be eaten
+                        shouldAdvance = newline;
                         produceToken(token, curr->token);
                         return true;
                     }
