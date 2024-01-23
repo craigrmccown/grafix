@@ -37,6 +37,12 @@ namespace slim::ast
         std::unique_ptr<Expr> left, right;
     };
 
+    class AssignmentExpr : public BinaryExpr
+    {
+        public:
+        using BinaryExpr::BinaryExpr;
+    };
+
     class BooleanExpr : public BinaryExpr
     {
         public:

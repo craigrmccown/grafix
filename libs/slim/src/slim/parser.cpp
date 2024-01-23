@@ -88,7 +88,20 @@ namespace slim
 
     std::unique_ptr<ast::Expr> Parser::ParseExpression()
     {
-        return pOrExpr();
+        return pAssignmentExpr();
+    }
+
+    std::unique_ptr<ast::Expr> Parser::pAssignmentExpr()
+    {
+        std::unique_ptr<ast::Expr> expr = pOrExpr();
+
+        while (is(TokenType::OpAssign))
+        {
+            Token op = advance();
+            expr = std::make_unique<ast::AssignmentExpr>(op, std::move(expr), pOrExpr());
+        }
+
+        return expr;
     }
 
     std::unique_ptr<ast::Expr> Parser::pOrExpr()

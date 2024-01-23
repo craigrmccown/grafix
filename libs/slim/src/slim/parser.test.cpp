@@ -417,6 +417,24 @@ TEST_CASE("valid expressions", "[slim]")
                 makeToken(slim::TokenType::CloseParen, ")"),
             },
             .debug = "(id{vec3} i{1} i{2} i{3})",
+        },
+        TestCase {
+            .tokens = {
+                makeToken(slim::TokenType::Identifier, "foo"),
+                makeToken(slim::TokenType::OpAssign, "="),
+                makeToken(slim::TokenType::NumericLiteral, "5"),
+            },
+            .debug = "(= id{foo} i{5})",
+        },
+        TestCase {
+            .tokens = {
+                makeToken(slim::TokenType::Identifier, "foo"),
+                makeToken(slim::TokenType::Dot, "."),
+                makeToken(slim::TokenType::Identifier, "bar"),
+                makeToken(slim::TokenType::OpAssign, "="),
+                makeToken(slim::TokenType::Identifier, "baz")
+            },
+            .debug = "(= (. id{foo} id{bar}) id{baz})",
         }
     );
 

@@ -28,6 +28,7 @@ namespace slim
         bool check(TokenType);
         Token expect(TokenType);
 
+        std::unique_ptr<ast::Expr> pAssignmentExpr();
         std::unique_ptr<ast::Expr> pOrExpr();
         std::unique_ptr<ast::Expr> pAndExpr();
         std::unique_ptr<ast::Expr> pEqualityExpr();
