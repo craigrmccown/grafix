@@ -121,6 +121,26 @@ namespace slim::ast
         return ss.str();
     }
 
+    DeclStat::DeclStat(
+        Token token,
+        std::unique_ptr<DataType> type,
+        std::unique_ptr<Identifier> identifier,
+        std::unique_ptr<Expr> initializer
+    )
+        : Statement(token)
+        , type(std::move(type))
+        , identifier(std::move(identifier))
+        , initializer(std::move(initializer))
+    { }
+
+    ExprStat::ExprStat(
+        Token token,
+        std::unique_ptr<Expr> expr
+    )
+        : Statement(token)
+        , expr(std::move(expr))
+    { }
+
     Tag::Tag(Token token, std::unique_ptr<StringLiteral> meta)
         : Node(token)
         , meta(std::move(meta))
@@ -129,15 +149,11 @@ namespace slim::ast
     PropertyDecl::PropertyDecl(
         Token token,
         std::vector<std::unique_ptr<Tag>> tags,
-        std::unique_ptr<DataType> type,
-        std::unique_ptr<Identifier> identifier,
-        std::unique_ptr<Expr> initializer
+        std::unique_ptr<DeclStat> decl
     )
         : Node(token)
         , tags(std::move(tags))
-        , type(std::move(type))
-        , identifier(std::move(identifier))
-        , initializer(std::move(initializer))
+        , decl(std::move(decl))
     { }
 
     SharedDecl::SharedDecl(

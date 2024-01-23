@@ -136,6 +136,42 @@ namespace slim::ast
         std::vector<std::unique_ptr<Expr>> args;
     };
 
+    class Statement : public Node
+    {
+        public:
+        using Node::Node;
+    };
+
+    class ExprStat : public Statement
+    {
+        public:
+        ExprStat(Token token, std::unique_ptr<Expr> expr);
+
+        private:
+        std::unique_ptr<Expr> expr;
+    };
+
+    class ReturnStat : public ExprStat
+    {
+        using ExprStat::ExprStat;
+    };
+
+    class DeclStat : public Statement
+    {
+        public:
+        DeclStat(
+            Token token,
+            std::unique_ptr<DataType> type,
+            std::unique_ptr<Identifier> identifier,
+            std::unique_ptr<Expr> initializer = nullptr
+        );
+
+        private:
+        std::unique_ptr<DataType> type;
+        std::unique_ptr<Identifier> identifier;
+        std::unique_ptr<Expr> initializer;
+    };
+
     class Tag : public Node
     {
         public:
@@ -151,16 +187,12 @@ namespace slim::ast
         PropertyDecl(
             Token token,
             std::vector<std::unique_ptr<Tag>> tags,
-            std::unique_ptr<DataType> type,
-            std::unique_ptr<Identifier> identifier,
-            std::unique_ptr<Expr> initializer = nullptr
+            std::unique_ptr<DeclStat> decl
         );
 
         private:
         std::vector<std::unique_ptr<Tag>> tags;
-        std::unique_ptr<DataType> type;
-        std::unique_ptr<Identifier> identifier;
-        std::unique_ptr<Expr> initializer;
+        std::unique_ptr<DeclStat> decl;
     };
 
     class SharedDecl : public Node

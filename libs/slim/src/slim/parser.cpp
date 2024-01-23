@@ -291,6 +291,51 @@ namespace slim
         return expr;
     }
 
+    std::unique_ptr<ast::Statement> Parser::pStatement()
+    {
+        if (is(TokenType::DataType)) return pDeclStat();
+        else if (is(TokenType::KeywordReturn)) return pReturnStat();
+        else return pExprStat();
+    }
+
+    std::unique_ptr<ast::ReturnStat> Parser::pReturnStat()
+    {
+        Token start = expect(TokenType::KeywordReturn);
+        std::unique_ptr<ast::Expr> expr = ParseExpression();
+        expect(TokenType::Semicolon);
+        return std::make_unique<ast::ReturnStat>(start, std::move(expr));
+    }
+
+    std::unique_ptr<ast::ExprStat> Parser::pExprStat()
+    {
+        Token start = current;
+        std::unique_ptr<ast::Expr> expr = ParseExpression();
+        expect(TokenType::Semicolon);
+        return std::make_unique<ast::ExprStat>(start, std::move(expr));
+    }
+
+    std::unique_ptr<ast::DeclStat> Parser::pDeclStat()
+    {
+        Token type = expect(TokenType::DataType);
+        Token identifier = expect(TokenType::Identifier);
+
+        // Optionally parse default assignment
+        std::unique_ptr<ast::Expr> expr = nullptr;
+        if (check(TokenType::OpAssign))
+        {
+            expr = ParseExpression();
+        }
+
+        expect(TokenType::Semicolon);
+
+        return std::make_unique<ast::DeclStat>(
+            type,
+            std::make_unique<ast::DataType>(type),
+            std::make_unique<ast::Identifier>(identifier),
+            std::move(expr)
+        );
+    }
+
     std::unique_ptr<ast::Tag> Parser::pTag()
     {
         assert(is(TokenType::TagIdentifier));
@@ -325,31 +370,20 @@ namespace slim
         // First parse tags, if any
         std::vector<std::unique_ptr<ast::Tag>> tags = pTagList();
 
-        // Keyword, data type, and identifier are always required
+        // Keyword is always required
         expect(TokenType::KeywordProperty);
-        std::unique_ptr<ast::DataType> type = std::make_unique<ast::DataType>(expect(TokenType::DataType));
-        std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
 
-        // Optionally parse default assignment
-        std::unique_ptr<ast::Expr> expr = nullptr;
-        if (check(TokenType::OpAssign))
-        {
-            expr = ParseExpression();
-        }
-
-        expect(TokenType::Semicolon);
-
+        // The rest is identical to a declaration statement
         return std::make_unique<ast::PropertyDecl>(
             start,
             std::move(tags),
-            std::move(type),
-            std::move(identifier),
-            std::move(expr)
+            pDeclStat()
         );
     }
 
     std::unique_ptr<ast::SharedDecl> Parser::pSharedDecl()
     {
+        // Shared declarations do not allow initializers
         Token start = expect(TokenType::KeywordShared);
         std::unique_ptr<ast::DataType> type = std::make_unique<ast::DataType>(expect(TokenType::DataType));
         std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));

@@ -9,6 +9,7 @@ namespace slim
         "property",
         "shared",
         "feature",
+        "return",
         "=",
         "\\|\\|",
         "&&",
