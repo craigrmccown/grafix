@@ -222,4 +222,24 @@ namespace slim::ast
         std::unique_ptr<Identifier> identifier;
         std::vector<std::unique_ptr<PropertyDecl>> decls;
     };
+
+    class ShaderBlock : public Node
+    {
+        public:
+        enum ShaderType
+        {
+            Vertex,
+            Fragment
+        };
+
+        ShaderBlock(
+            Token token,
+            ShaderType type,
+            std::vector<std::unique_ptr<ast::Statement>> stats
+        );
+
+        private:
+        ShaderType type;
+        std::vector<std::unique_ptr<ast::Statement>> stats;
+    };
 }

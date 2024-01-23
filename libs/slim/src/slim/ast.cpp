@@ -175,4 +175,14 @@ namespace slim::ast
         , identifier(std::move(identifier))
         , decls(std::move(decls))
     { }
+
+    ShaderBlock::ShaderBlock(
+        Token token,
+        ShaderType type,
+        std::vector<std::unique_ptr<ast::Statement>> stats
+    )
+        : Node(token)
+        , type(type)
+        , stats(std::move(stats))
+    { }
 }

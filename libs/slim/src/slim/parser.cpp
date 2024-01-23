@@ -31,6 +31,10 @@ namespace slim
             {
                 pSharedDecl();
             }
+            else if (is(TokenType::KeywordShader))
+            {
+                pShaderBlock();
+            }
             else
             {
                 fail("Unexpected token: " + std::to_string(current.i));
@@ -406,5 +410,31 @@ namespace slim
         }
 
         return std::make_unique<ast::FeatureBlock>(start, std::move(identifier), std::move(decls));
+    }
+
+    std::unique_ptr<ast::ShaderBlock> Parser::pShaderBlock()
+    {
+        Token start = expect(TokenType::KeywordShader);
+        Token type = expect(TokenType::ShaderType);
+
+        // Enforced by pattern definition, check for debug purposes
+        assert(type.ToString() == "fragment" || type.ToString() == "vertex");
+
+        expect(TokenType::OpenBrace);
+
+        std::vector<std::unique_ptr<ast::Statement>> stats;
+
+        while (!check(TokenType::CloseBrace))
+        {
+            stats.push_back(pStatement());
+        }
+
+        return std::make_unique<ast::ShaderBlock>(
+            start,
+            type.ToString() == "vertex"
+                ? ast::ShaderBlock::Vertex
+                : ast::ShaderBlock::Fragment,
+            std::move(stats)
+        );
     }
 }
