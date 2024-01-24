@@ -10,6 +10,7 @@ namespace slim
         "shared",
         "feature",
         "shader",
+        "require",
         "return",
         "=",
         "\\|\\|",

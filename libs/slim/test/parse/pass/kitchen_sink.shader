@@ -19,7 +19,10 @@ shader vertex {
 }
 
 shader fragment {
-    color = color * texture(tex, uv).rgb;
+    require texture {
+        color = color * texture(tex, uv).rgb;
+    }
+
     color = color * dot(-sunDir, vec3(normal));
     return color;
 }

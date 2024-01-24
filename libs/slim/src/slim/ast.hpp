@@ -242,4 +242,18 @@ namespace slim::ast
         ShaderType type;
         std::vector<std::unique_ptr<ast::Statement>> stats;
     };
+
+    class RequireBlock : public Statement
+    {
+        public:
+        RequireBlock(
+            Token token,
+            std::unique_ptr<ast::Identifier> identifier,
+            std::vector<std::unique_ptr<ast::Statement>> stats
+        );
+
+        private:
+        std::unique_ptr<ast::Identifier> identifier;
+        std::vector<std::unique_ptr<ast::Statement>> stats;
+    };
 }

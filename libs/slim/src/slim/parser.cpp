@@ -298,6 +298,7 @@ namespace slim
     std::unique_ptr<ast::Statement> Parser::pStatement()
     {
         if (is(TokenType::DataType)) return pDeclStat();
+        else if (is(TokenType::KeywordRequire)) return pRequireBlock();
         else if (is(TokenType::KeywordReturn)) return pReturnStat();
         else return pExprStat();
     }
@@ -389,17 +390,21 @@ namespace slim
     {
         // Shared declarations do not allow initializers
         Token start = expect(TokenType::KeywordShared);
-        std::unique_ptr<ast::DataType> type = std::make_unique<ast::DataType>(expect(TokenType::DataType));
-        std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
+        Token type = expect(TokenType::DataType);
+        Token identifier = expect(TokenType::Identifier);
         expect(TokenType::Semicolon);
 
-        return std::make_unique<ast::SharedDecl>(start, std::move(type), std::move(identifier));
+        return std::make_unique<ast::SharedDecl>(
+            start,
+            std::make_unique<ast::DataType>(std::move(type)),
+            std::make_unique<ast::Identifier>(std::move(identifier))
+        );
     }
 
     std::unique_ptr<ast::FeatureBlock> Parser::pFeatureBlock()
     {
         Token start = expect(TokenType::KeywordFeature);
-        std::unique_ptr<ast::Identifier> identifier = std::make_unique<ast::Identifier>(expect(TokenType::Identifier));
+        Token identifier = expect(TokenType::Identifier);
         expect(TokenType::OpenBrace);
 
         std::vector<std::unique_ptr<ast::PropertyDecl>> decls;
@@ -409,7 +414,11 @@ namespace slim
             decls.push_back(pPropertyDecl());
         }
 
-        return std::make_unique<ast::FeatureBlock>(start, std::move(identifier), std::move(decls));
+        return std::make_unique<ast::FeatureBlock>(
+            start,
+            std::make_unique<ast::Identifier>(identifier),
+            std::move(decls)
+        );
     }
 
     std::unique_ptr<ast::ShaderBlock> Parser::pShaderBlock()
@@ -434,6 +443,26 @@ namespace slim
             type.ToString() == "vertex"
                 ? ast::ShaderBlock::Vertex
                 : ast::ShaderBlock::Fragment,
+            std::move(stats)
+        );
+    }
+
+    std::unique_ptr<ast::RequireBlock> Parser::pRequireBlock()
+    {
+        Token start = expect(TokenType::KeywordRequire);
+        Token identifier = expect(TokenType::Identifier);
+        expect(TokenType::OpenBrace);
+
+        std::vector<std::unique_ptr<ast::Statement>> stats;
+
+        while (!check(TokenType::CloseBrace))
+        {
+            stats.push_back(pStatement());
+        }
+
+        return std::make_unique<ast::RequireBlock>(
+            start,
+            std::make_unique<ast::Identifier>(identifier),
             std::move(stats)
         );
     }

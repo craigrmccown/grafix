@@ -10,6 +10,7 @@ namespace slim
         KeywordShared,
         KeywordFeature,
         KeywordShader,
+        KeywordRequire,
         KeywordReturn,
         OpAssign,
         OpOr,

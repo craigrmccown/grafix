@@ -185,4 +185,14 @@ namespace slim::ast
         , type(type)
         , stats(std::move(stats))
     { }
+
+    RequireBlock::RequireBlock(
+        Token token,
+        std::unique_ptr<ast::Identifier> identifier,
+        std::vector<std::unique_ptr<ast::Statement>> stats
+    )
+        : Statement(token)
+        , identifier(std::move(identifier))
+        , stats(std::move(stats))
+    { }
 }

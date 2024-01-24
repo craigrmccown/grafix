@@ -49,5 +49,6 @@ namespace slim
         std::unique_ptr<ast::SharedDecl> pSharedDecl();
         std::unique_ptr<ast::FeatureBlock> pFeatureBlock();
         std::unique_ptr<ast::ShaderBlock> pShaderBlock();
+        std::unique_ptr<ast::RequireBlock> pRequireBlock();
     };
 }
