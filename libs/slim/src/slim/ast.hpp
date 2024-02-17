@@ -7,10 +7,21 @@
 
 namespace slim::ast
 {
+    // Forward declarations to break dependency cycle
+    class Visitor;
+    class Traverser;
+
     class Node
     {
         public:
         Node(Token token);
+
+        // Implements the visitor pattern. Each implementing class should
+        // optionally call its corresponding visitor method.
+        virtual void Dispatch(Visitor &visitor) const = 0;
+
+        // Performs a depth-first pre and post order traversal
+        virtual void Traverse(Traverser &traverser) const;
 
         protected:
         Token token;
@@ -31,6 +42,8 @@ namespace slim::ast
     {
         public:
         BinaryExpr(Token token, std::unique_ptr<Expr> left, std::unique_ptr<Expr> right);
+
+        void Traverse(Traverser &traverser) const override;
         std::string Debug() override;
 
         protected:
@@ -41,30 +54,40 @@ namespace slim::ast
     {
         public:
         using BinaryExpr::BinaryExpr;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class BooleanExpr : public BinaryExpr
     {
         public:
         using BinaryExpr::BinaryExpr;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class ComparisonExpr : public BinaryExpr
     {
         public:
         using BinaryExpr::BinaryExpr;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class ArithmeticExpr : public BinaryExpr
     {
         public:
         using BinaryExpr::BinaryExpr;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class IndexAccess : public BinaryExpr
     {
         public:
         using BinaryExpr::BinaryExpr;
+
+        void Dispatch(Visitor &visitor) const override;
         std::string Debug() override;
     };
 
@@ -72,6 +95,9 @@ namespace slim::ast
     {
         public:
         UnaryExpr(Token token, std::unique_ptr<Expr> operand);
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
         std::string Debug() override;
 
         private:
@@ -82,6 +108,8 @@ namespace slim::ast
     {
         public:
         using Expr::Expr;
+
+        void Dispatch(Visitor &visitor) const override;
         std::string Debug() override;
     };
 
@@ -89,6 +117,8 @@ namespace slim::ast
     {
         public:
         using Expr::Expr;
+
+        void Dispatch(Visitor &visitor) const override;
         std::string Debug() override;
     };
 
@@ -96,6 +126,8 @@ namespace slim::ast
     {
         public:
         using Expr::Expr;
+
+        void Dispatch(Visitor &visitor) const override;
         std::string Debug() override;
     };
 
@@ -106,18 +138,25 @@ namespace slim::ast
     {
         public:
         using Node::Node;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class DataType : public Node
     {
         public:
         using Node::Node;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class PropertyAccess : public Expr
     {
         public:
         PropertyAccess(Token token, std::unique_ptr<Expr> accessed, std::unique_ptr<Identifier> property);
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
         std::string Debug() override;
 
         private:
@@ -129,6 +168,9 @@ namespace slim::ast
     {
         public:
         FunctionCall(Token token, std::unique_ptr<Expr> fn, std::vector<std::unique_ptr<Expr>> args);
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
         std::string Debug() override;
 
         private:
@@ -140,12 +182,18 @@ namespace slim::ast
     {
         public:
         using Node::Node;
+
+        // Ensure destructor of subclass is called when deleted
+        virtual ~Statement() = default;
     };
 
     class ExprStat : public Statement
     {
         public:
         ExprStat(Token token, std::unique_ptr<Expr> expr);
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
 
         private:
         std::unique_ptr<Expr> expr;
@@ -154,6 +202,8 @@ namespace slim::ast
     class ReturnStat : public ExprStat
     {
         using ExprStat::ExprStat;
+
+        void Dispatch(Visitor &visitor) const override;
     };
 
     class DeclStat : public Statement
@@ -166,6 +216,9 @@ namespace slim::ast
             std::unique_ptr<Expr> initializer = nullptr
         );
 
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
+
         private:
         std::unique_ptr<DataType> type;
         std::unique_ptr<Identifier> identifier;
@@ -176,6 +229,9 @@ namespace slim::ast
     {
         public:
         Tag(Token token, std::unique_ptr<StringLiteral> meta = nullptr);
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
 
         private:
         std::unique_ptr<StringLiteral> meta;
@@ -189,6 +245,9 @@ namespace slim::ast
             std::vector<std::unique_ptr<Tag>> tags,
             std::unique_ptr<DeclStat> decl
         );
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
 
         private:
         std::vector<std::unique_ptr<Tag>> tags;
@@ -204,6 +263,9 @@ namespace slim::ast
             std::unique_ptr<Identifier> identifier
         );
 
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
+
         private:
         std::unique_ptr<DataType> type;
         std::unique_ptr<Identifier> identifier;
@@ -217,6 +279,9 @@ namespace slim::ast
             std::unique_ptr<Identifier> identifier,
             std::vector<std::unique_ptr<PropertyDecl>> decls
         );
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
 
         private:
         std::unique_ptr<Identifier> identifier;
@@ -238,6 +303,9 @@ namespace slim::ast
             std::vector<std::unique_ptr<ast::Statement>> stats
         );
 
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
+
         private:
         ShaderType type;
         std::vector<std::unique_ptr<ast::Statement>> stats;
@@ -252,8 +320,45 @@ namespace slim::ast
             std::vector<std::unique_ptr<ast::Statement>> stats
         );
 
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
+
         private:
         std::unique_ptr<ast::Identifier> identifier;
         std::vector<std::unique_ptr<ast::Statement>> stats;
+    };
+
+    class Visitor
+    {
+        public:
+        virtual void VisitAssignmentExpr(const AssignmentExpr &node) = 0;
+        virtual void VisitBooleanExpr(const BooleanExpr &node) = 0;
+        virtual void VisitComparisonExpr(const ComparisonExpr &node) = 0;
+        virtual void VisitArithmeticExpr(const ArithmeticExpr &node) = 0;
+        virtual void VisitIndexAccess(const IndexAccess &node) = 0;
+        virtual void VisitUnaryExpr(const UnaryExpr &node) = 0;
+        virtual void VisitIdentifier(const Identifier &node) = 0;
+        virtual void VisitNumericLiteral(const NumericLiteral &node) = 0;
+        virtual void VisitBooleanLiteral(const BooleanLiteral &node) = 0;
+        virtual void VisitStringLiteral(const StringLiteral &node) = 0;
+        virtual void VisitDataType(const DataType &node) = 0;
+        virtual void VisitPropertyAccess(const PropertyAccess &node) = 0;
+        virtual void VisitFunctionCall(const FunctionCall &node) = 0;
+        virtual void VisitExprStat(const ExprStat &node) = 0;
+        virtual void VisitReturnStat(const ReturnStat &node) = 0;
+        virtual void VisitDeclStat(const DeclStat &node) = 0;
+        virtual void VisitTag(const Tag &node) = 0;
+        virtual void VisitPropertyDecl(const PropertyDecl &node) = 0;
+        virtual void VisitSharedDecl(const SharedDecl &node) = 0;
+        virtual void VisitFeatureBlock(const FeatureBlock &node) = 0;
+        virtual void VisitShaderBlock(const ShaderBlock &node) = 0;
+        virtual void VisitRequireBlock(const RequireBlock &node) = 0;
+    };
+
+    class Traverser
+    {
+        public:
+        virtual void Pre(const Node &node) = 0;
+        virtual void Post(const Node &node) = 0;
     };
 }
