@@ -321,6 +321,36 @@ namespace slim::ast
         virtual void VisitRequireBlock(const RequireBlock &node) = 0;
     };
 
+    // A Visitor implementation that does nothing. Other Visitor implementations
+    // can inherit from this class and override specific methods to selectively
+    // process AST nodes. Provided for convenience.
+    class NoopVisitor : public Visitor
+    {
+        public:
+        virtual void VisitAssignmentExpr(const ast::AssignmentExpr &node) override;
+        virtual void VisitBooleanExpr(const ast::BooleanExpr &node) override;
+        virtual void VisitComparisonExpr(const ast::ComparisonExpr &node) override;
+        virtual void VisitArithmeticExpr(const ast::ArithmeticExpr &node) override;
+        virtual void VisitIndexAccess(const ast::IndexAccess &node) override;
+        virtual void VisitUnaryExpr(const ast::UnaryExpr &node) override;
+        virtual void VisitIdentifier(const ast::Identifier &node) override;
+        virtual void VisitNumericLiteral(const ast::NumericLiteral &node) override;
+        virtual void VisitBooleanLiteral(const ast::BooleanLiteral &node) override;
+        virtual void VisitStringLiteral(const ast::StringLiteral &node) override;
+        virtual void VisitDataType(const ast::DataType &node) override;
+        virtual void VisitPropertyAccess(const ast::PropertyAccess &node) override;
+        virtual void VisitFunctionCall(const ast::FunctionCall &node) override;
+        virtual void VisitExprStat(const ast::ExprStat &node) override;
+        virtual void VisitReturnStat(const ast::ReturnStat &node) override;
+        virtual void VisitDeclStat(const ast::DeclStat &node) override;
+        virtual void VisitTag(const ast::Tag &node) override;
+        virtual void VisitPropertyDecl(const ast::PropertyDecl &node) override;
+        virtual void VisitSharedDecl(const ast::SharedDecl &node) override;
+        virtual void VisitFeatureBlock(const ast::FeatureBlock &node) override;
+        virtual void VisitShaderBlock(const ast::ShaderBlock &node) override;
+        virtual void VisitRequireBlock(const ast::RequireBlock &node) override;
+    };
+
     class Traverser
     {
         public:

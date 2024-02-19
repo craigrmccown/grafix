@@ -431,4 +431,27 @@ namespace slim::ast
 
         traverser.Post(*this);
     }
+
+    void NoopVisitor::VisitAssignmentExpr(const ast::AssignmentExpr &node) { }
+    void NoopVisitor::VisitBooleanExpr(const ast::BooleanExpr &node) { }
+    void NoopVisitor::VisitComparisonExpr(const ast::ComparisonExpr &node) { }
+    void NoopVisitor::VisitArithmeticExpr(const ast::ArithmeticExpr &node) { }
+    void NoopVisitor::VisitIndexAccess(const ast::IndexAccess &node) { }
+    void NoopVisitor::VisitUnaryExpr(const ast::UnaryExpr &node) { }
+    void NoopVisitor::VisitIdentifier(const ast::Identifier &node) { }
+    void NoopVisitor::VisitNumericLiteral(const ast::NumericLiteral &node) { }
+    void NoopVisitor::VisitBooleanLiteral(const ast::BooleanLiteral &node) { }
+    void NoopVisitor::VisitStringLiteral(const ast::StringLiteral &node) { }
+    void NoopVisitor::VisitDataType(const ast::DataType &node) { }
+    void NoopVisitor::VisitPropertyAccess(const ast::PropertyAccess &node) { }
+    void NoopVisitor::VisitFunctionCall(const ast::FunctionCall &node) { }
+    void NoopVisitor::VisitExprStat(const ast::ExprStat &node) { }
+    void NoopVisitor::VisitReturnStat(const ast::ReturnStat &node) { }
+    void NoopVisitor::VisitDeclStat(const ast::DeclStat &node) { }
+    void NoopVisitor::VisitTag(const ast::Tag &node) { }
+    void NoopVisitor::VisitPropertyDecl(const ast::PropertyDecl &node) { }
+    void NoopVisitor::VisitSharedDecl(const ast::SharedDecl &node) { }
+    void NoopVisitor::VisitFeatureBlock(const ast::FeatureBlock &node) { }
+    void NoopVisitor::VisitShaderBlock(const ast::ShaderBlock &node) { }
+    void NoopVisitor::VisitRequireBlock(const ast::RequireBlock &node) { }
 }
