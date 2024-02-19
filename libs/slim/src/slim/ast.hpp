@@ -26,7 +26,7 @@ namespace slim::ast
         const Token token;
 
         private:
-        static uint32_t counter;
+        inline static uint32_t counter;
     };
 
     struct Expr : public Node
