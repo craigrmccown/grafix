@@ -22,7 +22,11 @@ namespace slim::ast
         // Performs a depth-first pre and post order traversal
         virtual void Traverse(Traverser &traverser) const;
 
+        const uint32_t ordinal;
         const Token token;
+
+        private:
+        static uint32_t counter;
     };
 
     struct Expr : public Node

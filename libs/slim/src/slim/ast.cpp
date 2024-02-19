@@ -5,7 +5,7 @@
 
 namespace slim::ast
 {
-    Node::Node(Token token) : token(token) { }
+    Node::Node(Token token) : token(token), ordinal(Node::counter++) { }
 
     // Implement leaf node traversal by default. Non-leaf classes should
     // override
