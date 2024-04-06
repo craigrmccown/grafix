@@ -7,6 +7,7 @@ add_library(slim STATIC
     src/slim/parser.cpp
     src/slim/regex.cpp
     src/slim/tokens.cpp
+    src/slim/types.cpp
 )
 target_include_directories(slim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -18,6 +19,7 @@ add_executable(slim_test
     src/slim/nfa.test.cpp
     src/slim/parser.test.cpp
     src/slim/regex.test.cpp
+    src/slim/types.test.cpp
     src/slim/utf8.test.cpp
 )
 target_link_libraries(slim_test PRIVATE Catch2WithMain testutils slim)

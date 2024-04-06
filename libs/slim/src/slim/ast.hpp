@@ -11,6 +11,11 @@ namespace slim::ast
     class Visitor;
     class Traverser;
 
+    // Base for all AST node types. Nodes should be considered immutable, with
+    // const, public members. Metadata associated with each node should be
+    // maintained by post-processing steps rather than mutable annotations on
+    // nodes themselves. For this purpose, each node holds an ordinal that can
+    // be used to uniquely identify it.
     struct Node
     {
         Node(Token token);
@@ -22,6 +27,7 @@ namespace slim::ast
         // Performs a depth-first pre and post order traversal
         virtual void Traverse(Traverser &traverser) const;
 
+        // Can be used as a unique identifier for each node
         const uint32_t ordinal;
         const Token token;
 
