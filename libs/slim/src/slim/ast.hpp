@@ -41,6 +41,16 @@ namespace slim::ast
         inline static uint32_t counter;
     };
 
+    struct Program : public Node
+    {
+        Program(Token token, std::vector<std::unique_ptr<Node>> children);
+
+        void Dispatch(Visitor &visitor) const override;
+        void Traverse(Traverser &traverser) const override;
+
+        const std::vector<std::unique_ptr<Node>> children;
+    };
+
     struct Expr : public Node
     {
         using Node::Node;
@@ -158,7 +168,7 @@ namespace slim::ast
     {
         FunctionCall(
             Token token,
-            std::unique_ptr<Expr> fn,
+            std::string name,
             std::vector<std::unique_ptr<Expr>> args
         );
 
@@ -166,8 +176,8 @@ namespace slim::ast
         void Traverse(Traverser &traverser) const override;
         std::string Debug() const override;
 
+        const std::string name;
         const std::vector<std::unique_ptr<Expr>> args;
-        std::unique_ptr<Expr> fn;
     };
 
     struct ExprStat : public Node
@@ -290,6 +300,7 @@ namespace slim::ast
     class Visitor
     {
         public:
+        virtual void VisitProgram(const Program &node) = 0;
         virtual void VisitBinaryExpr(const BinaryExpr &node) = 0;
         virtual void VisitUnaryExpr(const UnaryExpr &node) = 0;
         virtual void VisitVariableReference(const VariableReference &node) = 0;
@@ -316,6 +327,7 @@ namespace slim::ast
     class NoopVisitor : public Visitor
     {
         public:
+        virtual void VisitProgram(const Program &node) override;
         virtual void VisitBinaryExpr(const ast::BinaryExpr &node) override;
         virtual void VisitUnaryExpr(const ast::UnaryExpr &node) override;
         virtual void VisitVariableReference(const ast::VariableReference &node) override;

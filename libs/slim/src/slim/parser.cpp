@@ -15,31 +15,36 @@ namespace slim
         tokens.Next(current);
     }
 
-    void Parser::Parse()
+    std::unique_ptr<ast::Program> Parser::Parse()
     {
+        Token tok = current;
+        std::vector<std::unique_ptr<ast::Node>> children;
+
         while (current.i != EOF)
         {
             if (is(TokenType::KeywordProperty) || is(TokenType::TagIdentifier))
             {
-                pPropertyDecl();
+                children.push_back(pPropertyDecl());
             }
             else if (is(TokenType::KeywordFeature))
             {
-                pFeatureBlock();
+                children.push_back(pFeatureBlock());
             }
             else if (is(TokenType::KeywordShared))
             {
-                pSharedDecl();
+                children.push_back(pSharedDecl());
             }
             else if (is(TokenType::KeywordShader))
             {
-                pShaderBlock();
+                children.push_back(pShaderBlock());
             }
             else
             {
                 fail("Unexpected token: " + std::to_string(current.i));
             }
         }
+
+        return std::make_unique<ast::Program>(tok, std::move(children));
     }
 
     void Parser::fail(const std::string &message) const
@@ -68,7 +73,6 @@ namespace slim
         advance();
         return true;
     }
-
 
     Token Parser::expect(TokenType type)
     {
@@ -257,11 +261,6 @@ namespace slim
                 );
                 expect(TokenType::CloseBracket);
             }
-            else if (is(TokenType::OpenParen))
-            {
-                Token open = advance();
-                expr = std::make_unique<ast::FunctionCall>(open, std::move(expr), pArgList());
-            }
             else if (is(TokenType::Dot))
             {
                 Token dot = advance();
@@ -328,19 +327,33 @@ namespace slim
         else if (is(TokenType::Identifier))
         {
             Token tok = advance();
-            expr = std::make_unique<ast::VariableReference>(tok, tok.ToString());
+
+            if (is(TokenType::OpenParen))
+            {
+                Token openParen = advance();
+
+                expr = std::make_unique<ast::FunctionCall>(
+                    openParen,
+                    tok.ToString(),
+                    pArgList()
+                );
+            }
+            else
+            {
+                expr = std::make_unique<ast::VariableReference>(tok, tok.ToString());
+            }
         }
         else if (is(TokenType::DataType))
         {
             Token dataType = advance();
-            Token openParen = current;
-            expect(TokenType::OpenParen);
+            Token openParen = expect(TokenType::OpenParen);
 
-            // Coerce data type token into a variable reference - built in data
-            // type functions will be prepopulated into the global symbol table
+            // Treat data type token as a regular function name - built in type
+            // conversion functions will be prepopulated into the global symbol
+            // table
             expr = std::make_unique<ast::FunctionCall>(
                 openParen,
-                std::make_unique<ast::VariableReference>(dataType, dataType.ToString()),
+                dataType.ToString(),
                 pArgList()
             );
         }
@@ -356,6 +369,7 @@ namespace slim
 
     std::unique_ptr<ast::Node> Parser::pStatement()
     {
+        // TODO: Differentiate between type constructor and declaration
         if (is(TokenType::DataType)) return pDeclStat();
         else if (is(TokenType::KeywordRequire)) return pRequireBlock();
         else if (is(TokenType::KeywordReturn)) return pReturnStat();

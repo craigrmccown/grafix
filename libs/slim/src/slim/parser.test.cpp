@@ -269,7 +269,7 @@ TEST_CASE("valid expressions", "[slim]")
                 makeToken(slim::TokenType::IntLiteral, "16"),
                 makeToken(slim::TokenType::CloseParen, ")"),
             },
-            .debug = "(var{sqrt} i{16})",
+            .debug = "(sqrt i{16})",
         },
         TestCase {
             .tokens = {
@@ -287,7 +287,7 @@ TEST_CASE("valid expressions", "[slim]")
                 makeToken(slim::TokenType::IntLiteral, "7"),
                 makeToken(slim::TokenType::CloseParen, ")"),
             },
-            .debug = "(- (var{max} i{5} i{10}) (var{min} i{2} i{7}))",
+            .debug = "(- (max i{5} i{10}) (min i{2} i{7}))",
         },
         TestCase {
             .tokens = {
@@ -304,7 +304,7 @@ TEST_CASE("valid expressions", "[slim]")
                 makeToken(slim::TokenType::IntLiteral, "3"),
                 makeToken(slim::TokenType::CloseParen, ")"),
             },
-            .debug = "(* (var{abs} (- i{7})) (var{pow} i{2} i{3}))",
+            .debug = "(* (abs (- i{7})) (pow i{2} i{3}))",
         },
         TestCase {
             .tokens = {
@@ -395,15 +395,13 @@ TEST_CASE("valid expressions", "[slim]")
                 makeToken(slim::TokenType::CloseBracket, "]"),
                 makeToken(slim::TokenType::Dot, "."),
                 makeToken(slim::TokenType::Identifier, "foo"),
-                makeToken(slim::TokenType::OpenParen, "("),
-                makeToken(slim::TokenType::CloseParen, ")"),
                 makeToken(slim::TokenType::OpenBracket, "["),
                 makeToken(slim::TokenType::Identifier, "i"),
                 makeToken(slim::TokenType::OpAdd, "+"),
                 makeToken(slim::TokenType::IntLiteral, "1"),
                 makeToken(slim::TokenType::CloseBracket, "]"),
             },
-            .debug = "([] ((. ([] var{arr} i{1}) foo)) (+ var{i} i{1}))",
+            .debug = "([] (. ([] var{arr} i{1}) foo) (+ var{i} i{1}))",
         },
         TestCase {
             .tokens = {
@@ -416,7 +414,7 @@ TEST_CASE("valid expressions", "[slim]")
                 makeToken(slim::TokenType::IntLiteral, "3"),
                 makeToken(slim::TokenType::CloseParen, ")"),
             },
-            .debug = "(var{vec3} i{1} i{2} i{3})",
+            .debug = "(vec3 i{1} i{2} i{3})",
         },
         TestCase {
             .tokens = {
