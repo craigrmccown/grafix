@@ -4,6 +4,7 @@ add_library(slim STATIC
     src/slim/ast.cpp
     src/slim/dfa.cpp
     src/slim/nfa.cpp
+    src/slim/operators.cpp
     src/slim/parser.cpp
     src/slim/regex.cpp
     src/slim/tokens.cpp

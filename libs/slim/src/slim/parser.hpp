@@ -39,7 +39,7 @@ namespace slim
         std::unique_ptr<ast::Expr> pPostfixExpr();
         std::vector<std::unique_ptr<ast::Expr>> pArgList();
         std::unique_ptr<ast::Expr> pValueExpr();
-        std::unique_ptr<ast::Statement> pStatement();
+        std::unique_ptr<ast::Node> pStatement();
         std::unique_ptr<ast::ExprStat> pExprStat();
         std::unique_ptr<ast::ReturnStat> pReturnStat();
         std::unique_ptr<ast::DeclStat> pDeclStat();

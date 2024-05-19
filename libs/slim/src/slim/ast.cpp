@@ -1,7 +1,8 @@
 #include <memory>
-#include <sstream>
+#include <string>
 #include "ast.hpp"
 #include "lexer.hpp"
+#include "operators.hpp"
 
 namespace slim::ast
 {
@@ -17,9 +18,20 @@ namespace slim::ast
 
     BinaryExpr::BinaryExpr(
         Token token,
+        operators::Operator op,
         std::unique_ptr<Expr> left,
         std::unique_ptr<Expr> right
-    ) : Expr(token), left(std::move(left)), right(std::move(right)) { }
+    )
+        : Expr(token)
+        , op(op)
+        , left(std::move(left))
+        , right(std::move(right))
+    { }
+
+    void BinaryExpr::Dispatch(Visitor &visitor) const
+    {
+        visitor.VisitBinaryExpr(*this);
+    }
 
     void BinaryExpr::Traverse(Traverser &traverser) const
     {
@@ -31,59 +43,20 @@ namespace slim::ast
 
     std::string BinaryExpr::Debug() const
     {
-        std::stringstream ss;
-        ss
-            << "("
-            << token.ToString()
-            << " "
-            << left->Debug()
-            << " "
-            << right->Debug()
-            << ")";
-        return ss.str();
-    }
-
-    void AssignmentExpr::Dispatch(Visitor &visitor) const
-    {
-        visitor.VisitAssignmentExpr(*this);
-    }
-
-    void BooleanExpr::Dispatch(Visitor &visitor) const
-    {
-        visitor.VisitBooleanExpr(*this);
-    }
-
-    void ComparisonExpr::Dispatch(Visitor &visitor) const
-    {
-        visitor.VisitComparisonExpr(*this);
-    }
-
-    void ArithmeticExpr::Dispatch(Visitor &visitor) const
-    {
-        visitor.VisitArithmeticExpr(*this);
-    }
-
-    std::string IndexAccess::Debug() const
-    {
-        std::stringstream ss;
-        ss
-            << "([] "
-            << left->Debug()
-            << " "
-            << right->Debug()
-            << ")";
-        return ss.str();
-    }
-
-    void IndexAccess::Dispatch(Visitor &visitor) const
-    {
-        visitor.VisitIndexAccess(*this);
+        return
+            "(" + operators::toString(op) + " " +
+            left->Debug() + " " + right->Debug() + ")";
     }
 
     UnaryExpr::UnaryExpr(
         Token token,
+        operators::Operator op,
         std::unique_ptr<Expr> operand
-    ) : Expr(token), operand(std::move(operand)) { }
+    )
+        : Expr(token)
+        , op(op)
+        , operand(std::move(operand))
+    { }
 
     void UnaryExpr::Dispatch(Visitor &visitor) const
     {
@@ -99,29 +72,26 @@ namespace slim::ast
 
     std::string UnaryExpr::Debug() const
     {
-       std::stringstream ss;
-        ss
-            << "("
-            << token.ToString()
-            << " "
-            << operand->Debug()
-            << ")";
-        return ss.str();
+        return
+            "(" + operators::toString(op) + " " +
+            operand->Debug() + ")";
     }
 
-    void Identifier::Dispatch(Visitor &visitor) const
+    VariableReference::VariableReference(Token token, std::string name)
+        : Expr(token)
+        , name(name)
+        { }
+
+    void VariableReference::Dispatch(Visitor &visitor) const
     {
-        visitor.VisitIdentifier(*this);
+        visitor.VisitVariableReference(*this);
     }
 
-    std::string Identifier::Debug() const
+    std::string VariableReference::Debug() const
     {
-        std::stringstream ss;
-        ss << "id{" << token.ToString() << "}";
-        return ss.str();
+        return "var{" + name + "}";
     }
 
-    
     IntLiteral::IntLiteral(Token token, int32_t value)
         : Expr(token)
         , value(value)
@@ -173,44 +143,31 @@ namespace slim::ast
         visitor.VisitStringLiteral(*this);
     }
 
-    void DataType::Dispatch(Visitor &visitor) const
-    {
-        visitor.VisitDataType(*this);
-    }
-
-    PropertyAccess::PropertyAccess(
+    FieldAccess::FieldAccess(
         Token token,
         std::unique_ptr<Expr> accessed,
-        std::unique_ptr<Identifier> property
+        std::string field
     )
         : Expr(token)
         , accessed(std::move(accessed))
-        , property(std::move(property))
+        , field(field)
     { }
 
-    void PropertyAccess::Dispatch(Visitor &visitor) const
+    void FieldAccess::Dispatch(Visitor &visitor) const
     {
-        visitor.VisitPropertyAccess(*this);
+        visitor.VisitFieldAccess(*this);
     }
 
-    void PropertyAccess::Traverse(Traverser &traverser) const
+    void FieldAccess::Traverse(Traverser &traverser) const
     {
         traverser.Pre(*this);
         accessed->Traverse(traverser);
-        property->Traverse(traverser);
         traverser.Post(*this);
     }
 
-    std::string PropertyAccess::Debug() const
+    std::string FieldAccess::Debug() const
     {
-        std::stringstream ss;
-        ss
-            << "(. "
-            << accessed->Debug()
-            << " "
-            << property->Debug()
-            << ")";
-        return ss.str();
+        return "(. " + accessed->Debug() + " " + field + ")";
     }
 
     FunctionCall::FunctionCall(
@@ -243,25 +200,23 @@ namespace slim::ast
 
     std::string FunctionCall::Debug() const
     {
-        std::stringstream ss;
-        ss << "(" << fn->Debug();
+        std::string s = "(" + fn->Debug();
         for (const std::unique_ptr<Expr>& arg : args)
         {
-            ss << " " << arg->Debug();
+            s += " " + arg->Debug();
         }
-        ss << ")";
-        return ss.str();
+        return s + ")";
     }
 
     DeclStat::DeclStat(
         Token token,
-        std::unique_ptr<DataType> type,
-        std::unique_ptr<Identifier> identifier,
+        std::string type,
+        std::string name,
         std::unique_ptr<Expr> initializer
     )
-        : Statement(token)
+        : Node(token)
         , type(std::move(type))
-        , identifier(std::move(identifier))
+        , name(std::move(name))
         , initializer(std::move(initializer))
     { }
 
@@ -273,8 +228,6 @@ namespace slim::ast
     void DeclStat::Traverse(Traverser &traverser) const
     {
         traverser.Pre(*this);
-        type->Traverse(traverser);
-        identifier->Traverse(traverser);
         initializer->Traverse(traverser);
         traverser.Post(*this);
     }
@@ -283,7 +236,7 @@ namespace slim::ast
         Token token,
         std::unique_ptr<Expr> expr
     )
-        : Statement(token)
+        : Node(token)
         , expr(std::move(expr))
     { }
 
@@ -324,11 +277,12 @@ namespace slim::ast
     PropertyDecl::PropertyDecl(
         Token token,
         std::vector<std::unique_ptr<Tag>> tags,
-        std::unique_ptr<DeclStat> decl
+        std::string type,
+        std::string name,
+        std::unique_ptr<Expr> initializer
     )
-        : Node(token)
+        : DeclStat(token, std::move(type), std::move(name), std::move(initializer))
         , tags(std::move(tags))
-        , decl(std::move(decl))
     { }
 
     void PropertyDecl::Dispatch(Visitor &visitor) const
@@ -345,40 +299,22 @@ namespace slim::ast
             tag->Traverse(traverser);
         }
 
-        decl->Traverse(traverser);
+        DeclStat::Traverse(traverser);
         traverser.Post(*this);
     }
-
-    SharedDecl::SharedDecl(
-        Token token,
-        std::unique_ptr<DataType> type,
-        std::unique_ptr<Identifier> identifier
-    )
-        : Node(token)
-        , type(std::move(type))
-        , identifier(std::move(identifier))
-    { }
 
     void SharedDecl::Dispatch(Visitor &visitor) const
     {
         visitor.VisitSharedDecl(*this);
     }
 
-    void SharedDecl::Traverse(Traverser &traverser) const
-    {
-        traverser.Pre(*this);
-        type->Traverse(traverser);
-        identifier->Traverse(traverser);
-        traverser.Post(*this);
-    }
-
     FeatureBlock::FeatureBlock(
         Token token,
-        std::unique_ptr<Identifier> identifier,
+        std::string name,
         std::vector<std::unique_ptr<PropertyDecl>> decls
     )
         : Node(token)
-        , identifier(std::move(identifier))
+        , name(name)
         , decls(std::move(decls))
     { }
 
@@ -390,7 +326,6 @@ namespace slim::ast
     void FeatureBlock::Traverse(Traverser &traverser) const
     {
         traverser.Pre(*this);
-        identifier->Traverse(traverser);
 
         for (const std::unique_ptr<PropertyDecl> &decl : decls)
         {
@@ -403,7 +338,7 @@ namespace slim::ast
     ShaderBlock::ShaderBlock(
         Token token,
         ShaderType type,
-        std::vector<std::unique_ptr<ast::Statement>> stats
+        std::vector<std::unique_ptr<ast::Node>> stats
     )
         : Node(token)
         , type(type)
@@ -419,7 +354,7 @@ namespace slim::ast
     {
         traverser.Pre(*this);
 
-        for (const std::unique_ptr<Statement> &stat : stats)
+        for (const std::unique_ptr<Node> &stat : stats)
         {
             stat->Traverse(traverser);
         }
@@ -429,11 +364,11 @@ namespace slim::ast
 
     RequireBlock::RequireBlock(
         Token token,
-        std::unique_ptr<ast::Identifier> identifier,
-        std::vector<std::unique_ptr<ast::Statement>> stats
+        std::string feature,
+        std::vector<std::unique_ptr<ast::Node>> stats
     )
-        : Statement(token)
-        , identifier(std::move(identifier))
+        : Node(token)
+        , feature(feature)
         , stats(std::move(stats))
     { }
 
@@ -445,9 +380,8 @@ namespace slim::ast
     void RequireBlock::Traverse(Traverser &traverser) const
     {
         traverser.Pre(*this);
-        identifier->Traverse(traverser);
 
-        for (const std::unique_ptr<Statement> &stat : stats)
+        for (const std::unique_ptr<Node> &stat : stats)
         {
             stat->Traverse(traverser);
         }
@@ -455,19 +389,14 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
-    void NoopVisitor::VisitAssignmentExpr(const ast::AssignmentExpr &node) { }
-    void NoopVisitor::VisitBooleanExpr(const ast::BooleanExpr &node) { }
-    void NoopVisitor::VisitComparisonExpr(const ast::ComparisonExpr &node) { }
-    void NoopVisitor::VisitArithmeticExpr(const ast::ArithmeticExpr &node) { }
-    void NoopVisitor::VisitIndexAccess(const ast::IndexAccess &node) { }
+    void NoopVisitor::VisitBinaryExpr(const ast::BinaryExpr &node) { }
     void NoopVisitor::VisitUnaryExpr(const ast::UnaryExpr &node) { }
-    void NoopVisitor::VisitIdentifier(const ast::Identifier &node) { }
+    void NoopVisitor::VisitVariableReference(const ast::VariableReference &node) { }
     void NoopVisitor::VisitIntLiteral(const ast::IntLiteral &node) { }
     void NoopVisitor::VisitFloatLiteral(const ast::FloatLiteral &node) { }
     void NoopVisitor::VisitBooleanLiteral(const ast::BooleanLiteral &node) { }
     void NoopVisitor::VisitStringLiteral(const ast::StringLiteral &node) { }
-    void NoopVisitor::VisitDataType(const ast::DataType &node) { }
-    void NoopVisitor::VisitPropertyAccess(const ast::PropertyAccess &node) { }
+    void NoopVisitor::VisitFieldAccess(const ast::FieldAccess &node) { }
     void NoopVisitor::VisitFunctionCall(const ast::FunctionCall &node) { }
     void NoopVisitor::VisitExprStat(const ast::ExprStat &node) { }
     void NoopVisitor::VisitReturnStat(const ast::ReturnStat &node) { }

@@ -1,10 +1,10 @@
 #include <memory>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include "ast.hpp"
 #include "lexer.hpp"
+#include "operators.hpp"
 #include "parser.hpp"
 #include "tokens.hpp"
 
@@ -97,7 +97,12 @@ namespace slim
         while (is(TokenType::OpAssign))
         {
             Token op = advance();
-            expr = std::make_unique<ast::AssignmentExpr>(op, std::move(expr), pOrExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::Assign,
+                std::move(expr),
+                pOrExpr()
+            );
         }
 
         return expr;
@@ -110,7 +115,12 @@ namespace slim
         while (is(TokenType::OpOr))
         {
             Token op = advance();
-            expr = std::make_unique<ast::BooleanExpr>(op, std::move(expr), pAndExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::Or,
+                std::move(expr),
+                pAndExpr()
+            );
         }
 
         return expr;
@@ -123,7 +133,12 @@ namespace slim
         while (is(TokenType::OpAnd))
         {
             Token op = advance();
-            expr = std::make_unique<ast::BooleanExpr>(op, std::move(expr), pEqualityExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::And,
+                std::move(expr),
+                pEqualityExpr()
+            );
         }
 
         return expr;
@@ -136,7 +151,12 @@ namespace slim
         while (is(TokenType::OpEq) || is(TokenType::OpNeq))
         {
             Token op = advance();
-            expr = std::make_unique<ast::ComparisonExpr>(op, std::move(expr), pComparisonExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::fromString(op.ToString()),
+                std::move(expr),
+                pComparisonExpr()
+            );
         }
 
         return expr;
@@ -154,7 +174,12 @@ namespace slim
         )
         {
             Token op = advance();
-            expr = std::make_unique<ast::ComparisonExpr>(op, std::move(expr), pAddExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::fromString(op.ToString()),
+                std::move(expr),
+                pAddExpr()
+            );
         }
 
         return expr;
@@ -167,7 +192,12 @@ namespace slim
         while (is(TokenType::OpAdd) || is(TokenType::OpSub))
         {
             Token op = advance();
-            expr = std::make_unique<ast::ArithmeticExpr>(op, std::move(expr), pMulExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::fromString(op.ToString()),
+                std::move(expr),
+                pMulExpr()
+            );
         }
 
         return expr;
@@ -184,7 +214,12 @@ namespace slim
         )
         {
             Token op = advance();
-            expr = std::make_unique<ast::ArithmeticExpr>(op, std::move(expr), pPrefixExpr());
+            expr = std::make_unique<ast::BinaryExpr>(
+                op,
+                operators::fromString(op.ToString()),
+                std::move(expr),
+                pPrefixExpr()
+            );
         }
 
         return expr;
@@ -195,7 +230,11 @@ namespace slim
         if (is(TokenType::OpSub) || is(TokenType::OpBang))
         {
             Token op = advance();
-            return std::make_unique<ast::UnaryExpr>(op, pPostfixExpr());
+            return std::make_unique<ast::UnaryExpr>(
+                op,
+                operators::fromString(op.ToString()),
+                pPostfixExpr()
+            );
         }
 
         return pPostfixExpr();
@@ -210,7 +249,12 @@ namespace slim
             if (is(TokenType::OpenBracket))
             {
                 Token open = advance();
-                expr = std::make_unique<ast::IndexAccess>(open, std::move(expr), ParseExpression());
+                expr = std::make_unique<ast::BinaryExpr>(
+                    open,
+                    operators::Index,
+                    std::move(expr),
+                    ParseExpression()
+                );
                 expect(TokenType::CloseBracket);
             }
             else if (is(TokenType::OpenParen))
@@ -223,7 +267,7 @@ namespace slim
                 Token dot = advance();
                 Token identifier = current;
                 expect(TokenType::Identifier);
-                expr = std::make_unique<ast::PropertyAccess>(dot, std::move(expr), std::make_unique<ast::Identifier>(identifier));
+                expr = std::make_unique<ast::FieldAccess>(dot, std::move(expr), identifier.ToString());
             }
             else
             {
@@ -283,7 +327,8 @@ namespace slim
         }
         else if (is(TokenType::Identifier))
         {
-            expr = std::make_unique<ast::Identifier>(advance());
+            Token tok = advance();
+            expr = std::make_unique<ast::VariableReference>(tok, tok.ToString());
         }
         else if (is(TokenType::DataType))
         {
@@ -291,9 +336,13 @@ namespace slim
             Token openParen = current;
             expect(TokenType::OpenParen);
 
-            // Coerce data type token into an identifier - built in data type
-            // functions will be prepopulated into the global symbol table
-            expr = std::make_unique<ast::FunctionCall>(openParen, std::make_unique<ast::Identifier>(dataType), pArgList());
+            // Coerce data type token into a variable reference - built in data
+            // type functions will be prepopulated into the global symbol table
+            expr = std::make_unique<ast::FunctionCall>(
+                openParen,
+                std::make_unique<ast::VariableReference>(dataType, dataType.ToString()),
+                pArgList()
+            );
         }
         else
         {
@@ -305,7 +354,7 @@ namespace slim
         return expr;
     }
 
-    std::unique_ptr<ast::Statement> Parser::pStatement()
+    std::unique_ptr<ast::Node> Parser::pStatement()
     {
         if (is(TokenType::DataType)) return pDeclStat();
         else if (is(TokenType::KeywordRequire)) return pRequireBlock();
@@ -345,8 +394,8 @@ namespace slim
 
         return std::make_unique<ast::DeclStat>(
             type,
-            std::make_unique<ast::DataType>(type),
-            std::make_unique<ast::Identifier>(identifier),
+            type.ToString(),
+            identifier.ToString(),
             std::move(expr)
         );
     }
@@ -380,7 +429,7 @@ namespace slim
     {
         // The token marking this property declaration will either be a tag
         // identifier or the property keyword if no tags are present.
-        Token start = current;
+        Token keywordOrTag = current;
 
         // First parse tags, if any
         std::vector<std::unique_ptr<ast::Tag>> tags = pTagList();
@@ -389,32 +438,37 @@ namespace slim
         expect(TokenType::KeywordProperty);
 
         // The rest is identical to a declaration statement
+        std::unique_ptr<ast::DeclStat> decl = pDeclStat();
+
         return std::make_unique<ast::PropertyDecl>(
-            start,
+            keywordOrTag,
             std::move(tags),
-            pDeclStat()
+            decl->type,
+            decl->name,
+            std::move(decl->initializer)
         );
     }
 
     std::unique_ptr<ast::SharedDecl> Parser::pSharedDecl()
     {
         // Shared declarations do not allow initializers
-        Token start = expect(TokenType::KeywordShared);
+        Token keyword = expect(TokenType::KeywordShared);
         Token type = expect(TokenType::DataType);
         Token identifier = expect(TokenType::Identifier);
         expect(TokenType::Semicolon);
 
         return std::make_unique<ast::SharedDecl>(
-            start,
-            std::make_unique<ast::DataType>(std::move(type)),
-            std::make_unique<ast::Identifier>(std::move(identifier))
+            keyword,
+            type.ToString(),
+            identifier.ToString(),
+            nullptr
         );
     }
 
     std::unique_ptr<ast::FeatureBlock> Parser::pFeatureBlock()
     {
-        Token start = expect(TokenType::KeywordFeature);
-        Token identifier = expect(TokenType::Identifier);
+        Token keyword = expect(TokenType::KeywordFeature);
+        Token name = expect(TokenType::Identifier);
         expect(TokenType::OpenBrace);
 
         std::vector<std::unique_ptr<ast::PropertyDecl>> decls;
@@ -425,15 +479,15 @@ namespace slim
         }
 
         return std::make_unique<ast::FeatureBlock>(
-            start,
-            std::make_unique<ast::Identifier>(identifier),
+            keyword,
+            name.ToString(),
             std::move(decls)
         );
     }
 
     std::unique_ptr<ast::ShaderBlock> Parser::pShaderBlock()
     {
-        Token start = expect(TokenType::KeywordShader);
+        Token keyword = expect(TokenType::KeywordShader);
         Token type = expect(TokenType::ShaderType);
 
         // Enforced by pattern definition, check for debug purposes
@@ -441,7 +495,7 @@ namespace slim
 
         expect(TokenType::OpenBrace);
 
-        std::vector<std::unique_ptr<ast::Statement>> stats;
+        std::vector<std::unique_ptr<ast::Node>> stats;
 
         while (!check(TokenType::CloseBrace))
         {
@@ -449,7 +503,7 @@ namespace slim
         }
 
         return std::make_unique<ast::ShaderBlock>(
-            start,
+            keyword,
             type.ToString() == "vertex"
                 ? ast::ShaderBlock::Vertex
                 : ast::ShaderBlock::Fragment,
@@ -459,11 +513,11 @@ namespace slim
 
     std::unique_ptr<ast::RequireBlock> Parser::pRequireBlock()
     {
-        Token start = expect(TokenType::KeywordRequire);
-        Token identifier = expect(TokenType::Identifier);
+        Token keyword = expect(TokenType::KeywordRequire);
+        Token feature = expect(TokenType::Identifier);
         expect(TokenType::OpenBrace);
 
-        std::vector<std::unique_ptr<ast::Statement>> stats;
+        std::vector<std::unique_ptr<ast::Node>> stats;
 
         while (!check(TokenType::CloseBrace))
         {
@@ -471,8 +525,8 @@ namespace slim
         }
 
         return std::make_unique<ast::RequireBlock>(
-            start,
-            std::make_unique<ast::Identifier>(identifier),
+            keyword,
+            feature.ToString(),
             std::move(stats)
         );
     }
