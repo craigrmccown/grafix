@@ -110,20 +110,36 @@ namespace slim::ast
         std::string Debug() override;
     };
 
-    struct NumericLiteral : public Expr
+    struct IntLiteral : public Expr
     {
-        using Expr::Expr;
+        IntLiteral(Token token, int32_t value);
 
         void Dispatch(Visitor &visitor) const override;
         std::string Debug() override;
+
+        const int32_t value;
+    };
+
+    struct FloatLiteral : public Expr
+    {
+        FloatLiteral(Token token, std::string value);
+
+        void Dispatch(Visitor &visitor) const override;
+        std::string Debug() override;
+
+        // We never need to access the value of a float, so store as a string to
+        // avoid any possible floating point precision loss
+        const std::string value;
     };
 
     struct BooleanLiteral : public Expr
     {
-        using Expr::Expr;
+        BooleanLiteral(Token token, bool value);
 
         void Dispatch(Visitor &visitor) const override;
         std::string Debug() override;
+
+        const bool value;
     };
 
     // As expressions can only produce numerical values, string literals do not
@@ -310,7 +326,8 @@ namespace slim::ast
         virtual void VisitIndexAccess(const IndexAccess &node) = 0;
         virtual void VisitUnaryExpr(const UnaryExpr &node) = 0;
         virtual void VisitIdentifier(const Identifier &node) = 0;
-        virtual void VisitNumericLiteral(const NumericLiteral &node) = 0;
+        virtual void VisitIntLiteral(const IntLiteral &node) = 0;
+        virtual void VisitFloatLiteral(const FloatLiteral &node) = 0;
         virtual void VisitBooleanLiteral(const BooleanLiteral &node) = 0;
         virtual void VisitStringLiteral(const StringLiteral &node) = 0;
         virtual void VisitDataType(const DataType &node) = 0;
@@ -340,7 +357,8 @@ namespace slim::ast
         virtual void VisitIndexAccess(const ast::IndexAccess &node) override;
         virtual void VisitUnaryExpr(const ast::UnaryExpr &node) override;
         virtual void VisitIdentifier(const ast::Identifier &node) override;
-        virtual void VisitNumericLiteral(const ast::NumericLiteral &node) override;
+        virtual void VisitIntLiteral(const ast::IntLiteral &node) override;
+        virtual void VisitFloatLiteral(const ast::FloatLiteral &node) override;
         virtual void VisitBooleanLiteral(const ast::BooleanLiteral &node) override;
         virtual void VisitStringLiteral(const ast::StringLiteral &node) override;
         virtual void VisitDataType(const ast::DataType &node) override;

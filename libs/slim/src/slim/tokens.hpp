@@ -39,7 +39,8 @@ namespace slim
         ShaderType,
         DataType,
         BoolLiteral,
-        NumericLiteral,
+        IntLiteral,
+        FloatLiteral,
         StringLiteral,
         Identifier,
         TagIdentifier

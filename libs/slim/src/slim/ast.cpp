@@ -121,17 +121,41 @@ namespace slim::ast
         return ss.str();
     }
 
-    void NumericLiteral::Dispatch(Visitor &visitor) const
+    
+    IntLiteral::IntLiteral(Token token, int32_t value)
+        : Expr(token)
+        , value(value)
+        { }
+
+    void IntLiteral::Dispatch(Visitor &visitor) const
     {
-        visitor.VisitNumericLiteral(*this);
+        visitor.VisitIntLiteral(*this);
     }
 
-    std::string NumericLiteral::Debug()
+    std::string IntLiteral::Debug()
     {
-        std::stringstream ss;
-        ss << "i{" << token.ToString() << "}";
-        return ss.str();
+        return "i{" + std::to_string(value) + "}";
     }
+
+    FloatLiteral::FloatLiteral(Token token, std::string value)
+        : Expr(token)
+        , value(value)
+        { }
+
+    std::string FloatLiteral::Debug()
+    {
+        return "f{" + value + "}";
+    }
+
+    void FloatLiteral::Dispatch(Visitor &visitor) const
+    {
+        visitor.VisitFloatLiteral(*this);
+    }
+
+    BooleanLiteral::BooleanLiteral(Token token, bool value)
+        : Expr(token)
+        , value(value)
+        { }
 
     void BooleanLiteral::Dispatch(Visitor &visitor) const
     {
@@ -140,9 +164,8 @@ namespace slim::ast
 
     std::string BooleanLiteral::Debug()
     {
-        std::stringstream ss;
-        ss << "b{" << token.ToString() << "}";
-        return ss.str();
+        std::string s = value ? "true" : "false";
+        return "b{" + s + "}";
     }
 
     void StringLiteral::Dispatch(Visitor &visitor) const
@@ -439,7 +462,8 @@ namespace slim::ast
     void NoopVisitor::VisitIndexAccess(const ast::IndexAccess &node) { }
     void NoopVisitor::VisitUnaryExpr(const ast::UnaryExpr &node) { }
     void NoopVisitor::VisitIdentifier(const ast::Identifier &node) { }
-    void NoopVisitor::VisitNumericLiteral(const ast::NumericLiteral &node) { }
+    void NoopVisitor::VisitIntLiteral(const ast::IntLiteral &node) { }
+    void NoopVisitor::VisitFloatLiteral(const ast::FloatLiteral &node) { }
     void NoopVisitor::VisitBooleanLiteral(const ast::BooleanLiteral &node) { }
     void NoopVisitor::VisitStringLiteral(const ast::StringLiteral &node) { }
     void NoopVisitor::VisitDataType(const ast::DataType &node) { }

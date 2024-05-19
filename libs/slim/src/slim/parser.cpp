@@ -260,11 +260,26 @@ namespace slim
 
         if (is(TokenType::BoolLiteral))
         {
-            expr = std::make_unique<ast::BooleanLiteral>(advance());
+            Token tok = advance();
+            expr = std::make_unique<ast::BooleanLiteral>(
+                tok,
+                tok.ToString() == "true"
+            );
         }
-        else if (is(TokenType::NumericLiteral))
+        else if (is(TokenType::IntLiteral))
         {
-            expr = std::make_unique<ast::NumericLiteral>(advance());
+            Token tok = advance();
+            expr = std::make_unique<ast::IntLiteral>(
+                tok,
+                // Assume tokenization always produces a valid integer string
+                // TODO: Check for overflow
+                std::stoi(tok.ToString())
+            );
+        }
+        else if (is(TokenType::FloatLiteral))
+        {
+            Token tok = advance();
+            expr = std::make_unique<ast::FloatLiteral>(tok, tok.ToString());
         }
         else if (is(TokenType::Identifier))
         {
