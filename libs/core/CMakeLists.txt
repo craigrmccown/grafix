@@ -3,9 +3,8 @@ add_library(core STATIC
     src/core/controls.cpp
     src/core/mouse.cpp
 )
-
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
+target_compile_options(core PRIVATE -Werror)
 target_link_libraries(core
     PRIVATE
         glad

@@ -35,7 +35,6 @@ namespace slim::regex
  
     struct Node {
         enum Kind {
-            Invalid,
             Literal,
             Wildcard,
             Range,

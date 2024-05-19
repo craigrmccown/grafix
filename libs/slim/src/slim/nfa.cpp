@@ -255,8 +255,6 @@ namespace slim::nfa
 
                 return Partial{ .head = s, .dangling = s->transitions };
             }
-            default:
-                throw std::logic_error("Unrecognized regex node kind");
         }
     }
 

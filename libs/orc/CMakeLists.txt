@@ -58,6 +58,7 @@ add_library(orc STATIC
     src/orc/shaders/skybox.vert.cpp
 )
 target_include_directories(orc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_options(orc PRIVATE -Werror)
 target_link_libraries(orc PRIVATE
     assimp
     glad
@@ -73,6 +74,7 @@ add_executable(orc_test
     src/orc/scene.test.cpp
     src/orc/shader.test.cpp
 )
+target_compile_options(orc_test PRIVATE -Werror)
 target_link_libraries(orc_test PRIVATE
     Catch2::Catch2
     glad

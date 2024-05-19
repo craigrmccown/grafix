@@ -43,8 +43,6 @@ namespace slim
             case regex::Node::OnePlus:
                 extractAlphabet(*expr.left, buf);
                 break;
-            default:
-                throw std::logic_error("Unrecognized regex node kind");
         }
     }
 

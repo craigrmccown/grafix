@@ -9,6 +9,7 @@ add_library(slim STATIC
     src/slim/tokens.cpp
     src/slim/types.cpp
 )
+target_compile_options(slim PRIVATE -Werror)
 target_include_directories(slim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Tests
@@ -22,5 +23,6 @@ add_executable(slim_test
     src/slim/types.test.cpp
     src/slim/utf8.test.cpp
 )
+target_compile_options(slim_test PRIVATE -Werror)
 target_link_libraries(slim_test PRIVATE Catch2WithMain testutils slim)
 catch_discover_tests(slim_test)
