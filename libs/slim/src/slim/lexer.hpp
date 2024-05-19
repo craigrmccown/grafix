@@ -88,6 +88,18 @@ namespace slim
 
             return ss.str();
         }
+
+        // Throws an error with a standard message format, including the token's
+        // line and column
+        void Throw(const std::string &message) const
+        {
+            std::stringstream ss;
+            ss
+                << "Error at " << line << ":" << col << ": "
+                << ToString() << "\n"
+                << "  " << message;
+            throw std::runtime_error(ss.str());
+        }
     };
 
     // Abstracts the lexer implementation. Allows the parser to consumer tokens

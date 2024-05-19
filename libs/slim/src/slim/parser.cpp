@@ -44,12 +44,7 @@ namespace slim
 
     void Parser::fail(const std::string &message) const
     {
-        std::stringstream ss;
-        ss
-            << "Error at " << current.line << ":" << current.col << ": "
-            << current.ToString() << "\n"
-            << "  " << message;
-        throw std::runtime_error(ss.str());
+        current.Throw(message);
     }
 
     bool Parser::is(TokenType type) const
