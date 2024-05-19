@@ -39,7 +39,7 @@ namespace slim::ast
     {
         using Node::Node;
 
-        virtual std::string Debug() = 0;
+        virtual std::string Debug() const = 0;
 
         // Ensure destructor of subclass is called when deleted
         virtual ~Expr() = default;
@@ -50,7 +50,7 @@ namespace slim::ast
         BinaryExpr(Token token, std::unique_ptr<Expr> left, std::unique_ptr<Expr> right);
 
         void Traverse(Traverser &traverser) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         const std::unique_ptr<Expr> left, right;
     };
@@ -88,7 +88,7 @@ namespace slim::ast
         using BinaryExpr::BinaryExpr;
 
         void Dispatch(Visitor &visitor) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
     };
 
     struct UnaryExpr : public Expr
@@ -97,7 +97,7 @@ namespace slim::ast
 
         void Dispatch(Visitor &visitor) const override;
         void Traverse(Traverser &traverser) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         const std::unique_ptr<Expr> operand;
     };
@@ -107,7 +107,7 @@ namespace slim::ast
         using Expr::Expr;
 
         void Dispatch(Visitor &visitor) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
     };
 
     struct IntLiteral : public Expr
@@ -115,7 +115,7 @@ namespace slim::ast
         IntLiteral(Token token, int32_t value);
 
         void Dispatch(Visitor &visitor) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         const int32_t value;
     };
@@ -125,7 +125,7 @@ namespace slim::ast
         FloatLiteral(Token token, std::string value);
 
         void Dispatch(Visitor &visitor) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         // We never need to access the value of a float, so store as a string to
         // avoid any possible floating point precision loss
@@ -137,7 +137,7 @@ namespace slim::ast
         BooleanLiteral(Token token, bool value);
 
         void Dispatch(Visitor &visitor) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         const bool value;
     };
@@ -165,7 +165,7 @@ namespace slim::ast
 
         void Dispatch(Visitor &visitor) const override;
         void Traverse(Traverser &traverser) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         const std::unique_ptr<Expr> accessed;
         const std::unique_ptr<Identifier> property;
@@ -177,7 +177,7 @@ namespace slim::ast
 
         void Dispatch(Visitor &visitor) const override;
         void Traverse(Traverser &traverser) const override;
-        std::string Debug() override;
+        std::string Debug() const override;
 
         const std::unique_ptr<Expr> fn;
         const std::vector<std::unique_ptr<Expr>> args;

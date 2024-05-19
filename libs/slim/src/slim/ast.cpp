@@ -29,7 +29,7 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
-    std::string BinaryExpr::Debug()
+    std::string BinaryExpr::Debug() const
     {
         std::stringstream ss;
         ss
@@ -63,7 +63,7 @@ namespace slim::ast
         visitor.VisitArithmeticExpr(*this);
     }
 
-    std::string IndexAccess::Debug()
+    std::string IndexAccess::Debug() const
     {
         std::stringstream ss;
         ss
@@ -97,7 +97,7 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
-    std::string UnaryExpr::Debug()
+    std::string UnaryExpr::Debug() const
     {
        std::stringstream ss;
         ss
@@ -114,7 +114,7 @@ namespace slim::ast
         visitor.VisitIdentifier(*this);
     }
 
-    std::string Identifier::Debug()
+    std::string Identifier::Debug() const
     {
         std::stringstream ss;
         ss << "id{" << token.ToString() << "}";
@@ -132,7 +132,7 @@ namespace slim::ast
         visitor.VisitIntLiteral(*this);
     }
 
-    std::string IntLiteral::Debug()
+    std::string IntLiteral::Debug() const
     {
         return "i{" + std::to_string(value) + "}";
     }
@@ -142,7 +142,7 @@ namespace slim::ast
         , value(value)
         { }
 
-    std::string FloatLiteral::Debug()
+    std::string FloatLiteral::Debug() const
     {
         return "f{" + value + "}";
     }
@@ -162,7 +162,7 @@ namespace slim::ast
         visitor.VisitBooleanLiteral(*this);
     }
 
-    std::string BooleanLiteral::Debug()
+    std::string BooleanLiteral::Debug() const
     {
         std::string s = value ? "true" : "false";
         return "b{" + s + "}";
@@ -201,7 +201,7 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
-    std::string PropertyAccess::Debug()
+    std::string PropertyAccess::Debug() const
     {
         std::stringstream ss;
         ss
@@ -241,7 +241,7 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
-    std::string FunctionCall::Debug()
+    std::string FunctionCall::Debug() const
     {
         std::stringstream ss;
         ss << "(" << fn->Debug();
