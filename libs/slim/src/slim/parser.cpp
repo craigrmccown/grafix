@@ -12,7 +12,10 @@ namespace slim
 {
     Parser::Parser(TokenIter &tokens) : tokens(tokens)
     {
-        tokens.Next(current);
+        // There is a 1-token lookahead, so advance twice to prime the current
+        // and next tokens
+        advance();
+        advance();
     }
 
     std::unique_ptr<ast::Program> Parser::Parse()
@@ -60,10 +63,13 @@ namespace slim
     Token Parser::advance()
     {
         Token tok = current;
-        if (!tokens.Next(current))
+        current = next;
+
+        if (!tokens.Next(next))
         {
-            current = Token{ .i = EOF };
+            next = Token{ .i = EOF };
         }
+
         return tok;
     }
 
@@ -87,6 +93,11 @@ namespace slim
         }
 
         return advance();
+    }
+
+    bool Parser::peekIs(TokenType type)
+    {
+        return next.i == type;
     }
 
     std::unique_ptr<ast::Expr> Parser::ParseExpression()
@@ -369,8 +380,7 @@ namespace slim
 
     std::unique_ptr<ast::Node> Parser::pStatement()
     {
-        // TODO: Differentiate between type constructor and declaration
-        if (is(TokenType::DataType)) return pDeclStat();
+        if (is(TokenType::DataType) && peekIs(TokenType::Identifier)) return pDeclStat();
         else if (is(TokenType::KeywordRequire)) return pRequireBlock();
         else if (is(TokenType::KeywordReturn)) return pReturnStat();
         else return pExprStat();

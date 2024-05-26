@@ -20,6 +20,7 @@ namespace slim
 
         private:
         Token current;
+        Token next;
         TokenIter &tokens;
 
         void fail(const std::string &message) const;
@@ -27,6 +28,7 @@ namespace slim
         Token advance();
         bool check(TokenType);
         Token expect(TokenType);
+        bool peekIs(TokenType);
 
         std::unique_ptr<ast::Expr> pAssignmentExpr();
         std::unique_ptr<ast::Expr> pOrExpr();

@@ -12,6 +12,9 @@ shared vec2 uv;
 shared vec3 normal;
 
 shader vertex {
+    vec4(0.0, 0.0, 0.0, 0.0);
+    int i = 0;
+
     normal = LOCAL_TO_WORLD_MX * vec4(V_NORMAL, 0.0);
     xyz = LOCAL_TO_WORLD_MX * vec4(V_NORMAL, 1.0);
     uv = V_UV;
