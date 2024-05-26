@@ -96,4 +96,79 @@ namespace slim::operators
 
         return (*it).second;
     }
+
+    bool supportsLeft(Operator op, const types::TypeRef &type)
+    {
+        if (std::holds_alternative<std::shared_ptr<types::Opaque>>(type))
+        {
+            // Opaque types cannot be operated on
+            return false;
+        }
+
+        switch (op)
+        {
+            case Operator::Assign:
+            case Operator::Eq:
+            case Operator::Neq:
+                return true;
+            case Operator::Or:
+            case Operator::And:
+            case Operator::Not:
+            {
+                auto p = std::get_if<std::shared_ptr<types::Scalar>>(&type);
+                return p && (*p)->type == types::Scalar::Bool;
+            }
+            case Operator::Gt:
+            case Operator::Lt:
+            case Operator::Ge:
+            case Operator::Le:
+            {
+                auto p = std::get_if<std::shared_ptr<types::Scalar>>(&type);
+                return p && types::isNumericType((*p)->type);
+            }
+            case Operator::Add:
+            case Operator::Sub:
+            case Operator::Mul:
+            case Operator::Div:
+            {
+                types::Scalar::Type sType;
+
+                if (auto p = std::get_if<std::shared_ptr<types::Scalar>>(&type))
+                {
+                    sType = (*p)->type;
+                }
+                else if (auto p = std::get_if<std::shared_ptr<types::Vector>>(&type))
+                {
+                    sType = (*p)->type;
+                }
+                else
+                {
+                    return false;
+                }
+
+                return types::isNumericType(sType);
+            }
+            case Operator::Mod:
+            {
+                auto p = std::get_if<std::shared_ptr<types::Scalar>>(&type);
+                return p && types::isIntegerType((*p)->type);
+            }
+            case Operator::Index:
+                return std::holds_alternative<std::shared_ptr<types::Vector>>(type);
+        }
+    }
+
+    bool supportsRight(Operator op, const types::TypeRef &type)
+    {
+        switch (op)
+        {
+            case Operator::Index:
+            {
+                auto p = std::get_if<std::shared_ptr<types::Scalar>>(&type);
+                return p && types::isIntegerType((*p)->type);
+            }
+            default:
+                return supportsLeft(op, type);
+        }
+    }
 }

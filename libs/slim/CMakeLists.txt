@@ -8,6 +8,7 @@ add_library(slim STATIC
     src/slim/parser.cpp
     src/slim/regex.cpp
     src/slim/tokens.cpp
+    src/slim/typecheck.cpp
     src/slim/types.cpp
 )
 target_compile_options(slim PRIVATE -Werror)
@@ -21,6 +22,7 @@ add_executable(slim_test
     src/slim/nfa.test.cpp
     src/slim/parser.test.cpp
     src/slim/regex.test.cpp
+    src/slim/typecheck.test.cpp
     src/slim/types.test.cpp
     src/slim/utf8.test.cpp
 )

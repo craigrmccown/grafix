@@ -95,8 +95,8 @@ namespace slim
         {
             std::stringstream ss;
             ss
-                << "Error at " << line << ":" << col << ": "
-                << ToString() << "\n"
+                << "Error at " << line << ":" << col << ": '"
+                << ToString() << "'\n"
                 << "  " << message;
             throw std::runtime_error(ss.str());
         }

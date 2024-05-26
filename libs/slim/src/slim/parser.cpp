@@ -369,6 +369,7 @@ namespace slim
 
     std::unique_ptr<ast::Node> Parser::pStatement()
     {
+        // TODO: Differentiate between type constructor and declaration
         if (is(TokenType::DataType)) return pDeclStat();
         else if (is(TokenType::KeywordRequire)) return pRequireBlock();
         else if (is(TokenType::KeywordReturn)) return pReturnStat();

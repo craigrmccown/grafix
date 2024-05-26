@@ -249,7 +249,7 @@ namespace slim::ast
     void DeclStat::Traverse(Traverser &traverser) const
     {
         traverser.Pre(*this);
-        initializer->Traverse(traverser);
+        if (initializer) initializer->Traverse(traverser);
         traverser.Post(*this);
     }
 
@@ -320,7 +320,7 @@ namespace slim::ast
             tag->Traverse(traverser);
         }
 
-        DeclStat::Traverse(traverser);
+        if (initializer) initializer->Traverse(traverser);
         traverser.Post(*this);
     }
 

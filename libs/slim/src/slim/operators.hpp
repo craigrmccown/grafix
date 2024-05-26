@@ -26,4 +26,6 @@ namespace slim::operators
 
     const std::string &toString(Operator op);
     Operator fromString(const std::string &s);
+    bool supportsLeft(Operator op, const types::TypeRef &type);
+    bool supportsRight(Operator op, const types::TypeRef &type);
 }
