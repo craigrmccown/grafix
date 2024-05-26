@@ -261,11 +261,6 @@ namespace slim
                 );
                 expect(TokenType::CloseBracket);
             }
-            else if (is(TokenType::OpenParen))
-            {
-                Token open = advance();
-                expr = std::make_unique<ast::FunctionCall>(open, std::move(expr), pArgList());
-            }
             else if (is(TokenType::Dot))
             {
                 Token dot = advance();
@@ -332,19 +327,33 @@ namespace slim
         else if (is(TokenType::Identifier))
         {
             Token tok = advance();
-            expr = std::make_unique<ast::VariableReference>(tok, tok.ToString());
+
+            if (is(TokenType::OpenParen))
+            {
+                Token openParen = advance();
+
+                expr = std::make_unique<ast::FunctionCall>(
+                    openParen,
+                    tok.ToString(),
+                    pArgList()
+                );
+            }
+            else
+            {
+                expr = std::make_unique<ast::VariableReference>(tok, tok.ToString());
+            }
         }
         else if (is(TokenType::DataType))
         {
             Token dataType = advance();
-            Token openParen = current;
-            expect(TokenType::OpenParen);
+            Token openParen = expect(TokenType::OpenParen);
 
-            // Coerce data type token into a variable reference - built in data
-            // type functions will be prepopulated into the global symbol table
+            // Treat data type token as a regular function name - built in type
+            // conversion functions will be prepopulated into the global symbol
+            // table
             expr = std::make_unique<ast::FunctionCall>(
                 openParen,
-                std::make_unique<ast::VariableReference>(dataType, dataType.ToString()),
+                dataType.ToString(),
                 pArgList()
             );
         }

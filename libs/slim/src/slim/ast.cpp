@@ -194,11 +194,11 @@ namespace slim::ast
 
     FunctionCall::FunctionCall(
         Token token,
-        std::unique_ptr<Expr> fn,
+        std::string name,
         std::vector<std::unique_ptr<Expr>> args
     )
         : Expr(token)
-        , fn(std::move(fn))
+        , name(std::move(name))
         , args(std::move(args))
     { }
 
@@ -210,7 +210,6 @@ namespace slim::ast
     void FunctionCall::Traverse(Traverser &traverser) const
     {
         traverser.Pre(*this);
-        fn->Traverse(traverser);
 
         for (const std::unique_ptr<Expr> &arg : args)
         {
@@ -222,7 +221,7 @@ namespace slim::ast
 
     std::string FunctionCall::Debug() const
     {
-        std::string s = "(" + fn->Debug();
+        std::string s = "(" + name;
         for (const std::unique_ptr<Expr>& arg : args)
         {
             s += " " + arg->Debug();

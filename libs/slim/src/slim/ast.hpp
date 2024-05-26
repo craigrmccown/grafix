@@ -168,7 +168,7 @@ namespace slim::ast
     {
         FunctionCall(
             Token token,
-            std::unique_ptr<Expr> fn,
+            std::string name,
             std::vector<std::unique_ptr<Expr>> args
         );
 
@@ -176,8 +176,8 @@ namespace slim::ast
         void Traverse(Traverser &traverser) const override;
         std::string Debug() const override;
 
+        const std::string name;
         const std::vector<std::unique_ptr<Expr>> args;
-        std::unique_ptr<Expr> fn;
     };
 
     struct ExprStat : public Node
