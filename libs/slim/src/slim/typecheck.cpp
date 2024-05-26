@@ -173,33 +173,21 @@ namespace slim::typecheck
 
     void PostorderVisitor::VisitFieldAccess(const ast::FieldAccess &node)
     {
-        types::TypeRef tAccessed = symbols.CurrentScope().Lookup(node.accessed->ordinal);
-        std::optional<types::TypeRef> tProp;
-
         // Because operators are understood to deal with typed values and field
         // access deals with a value and a name, provide a custom implementation
         // instead of modeling it as an operator
-        if (auto pVector = std::get_if<std::shared_ptr<types::Vector>>(&tAccessed))
-        {
-            tProp = (*pVector)->AccessProperty(node.field);
-        }
-        else
-        {
-            node.token.Throw(
-                "Type '" + types::getTypeName(tAccessed) +
-                "' does not support property access"
-            );
-        }
+        types::TypeRef tAccessed = symbols.CurrentScope().Lookup(node.accessed->ordinal);
+        std::optional<types::TypeRef> tField = types::swizzle(tAccessed, types, node.field);
 
-        if (!tProp)
+        if (!tField)
         {
             node.token.Throw(
-                "Property '" + node.field + "' does not exist on type '" +
+                "Field '" + node.field + "' does not exist on type '" +
                 types::getTypeName(tAccessed) + "'"
             );
         }
 
-        symbols.CurrentScope().Annotate(node.ordinal, *tProp);
+        symbols.CurrentScope().Annotate(node.ordinal, *tField);
     }
 
     void PostorderVisitor::VisitFunctionCall(const ast::FunctionCall &node)

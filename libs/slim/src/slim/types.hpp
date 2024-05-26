@@ -52,7 +52,6 @@ namespace slim::types
         const u_int8_t length;
 
         const TypeRef &GetUnderlyingType() const;
-        std::optional<TypeRef> AccessProperty(const std::string &prop) const;
     };
 
     struct Function
@@ -81,12 +80,19 @@ namespace slim::types
     class TypeRegistry
     {
         public:
-        TypeRef Get(const std::string &name);
+        TypeRef Get(const std::string &name) const;
+        bool Has(const std::string &name) const;
         void Define(TypeRef type);
 
         private:
         std::map<std::string, TypeRef> types;
     };
+
+    std::optional<TypeRef> swizzle(
+        TypeRef type,
+        const TypeRegistry &types,
+        const std::string &s
+    );
 
     // Represents a lexical scope. Holds type information for unnamed
     // expressions, referred to by ID, and named expressions, referred to by

@@ -31,10 +31,21 @@ namespace slim::types
         }
     }
 
-    std::optional<TypeRef> Vector::AccessProperty(const std::string &prop) const
+    static std::string getVectorTypeName(Vector vec)
     {
-        // TODO: Implement swizzling
-        return std::nullopt;
+        std::string postfix = "vec" + std::to_string(vec.length);
+
+        switch (vec.type)
+        {
+            case types::Scalar::Bool:
+                return "b" + postfix;
+            case types::Scalar::Int:
+                return "i" + postfix;
+            case types::Scalar::Uint:
+                return "u" + postfix;
+            case types::Scalar::Float:
+                return postfix;
+        }
     }
 
     std::string getTypeName(TypeRef type)
@@ -63,19 +74,7 @@ namespace slim::types
         }
         else if (auto p = std::get_if<std::shared_ptr<Vector>>(&type))
         {
-            std::string postfix = "vec" + std::to_string((*p)->length);
-
-            switch ((*p)->type)
-            {
-                case types::Scalar::Bool:
-                    return "b" + postfix;
-                case types::Scalar::Int:
-                    return "i" + postfix;
-                case types::Scalar::Uint:
-                    return "u" + postfix;
-                case types::Scalar::Float:
-                    return postfix;
-            }
+            return getVectorTypeName(**p);
         }
         else if (auto p = std::get_if<std::shared_ptr<Function>>(&type))
         {
@@ -110,7 +109,7 @@ namespace slim::types
         return isIntegerType(type) || type == Scalar::Float;
     }
 
-    TypeRef TypeRegistry::Get(const std::string &name)
+    TypeRef TypeRegistry::Get(const std::string &name) const
     {
         auto it = types.find(name);
 
@@ -122,6 +121,11 @@ namespace slim::types
         }
 
         return (*it).second;
+    }
+
+    bool TypeRegistry::Has(const std::string &name) const
+    {
+        return types.find(name) != types.end();
     }
 
     void TypeRegistry::Define(TypeRef type)
@@ -136,6 +140,104 @@ namespace slim::types
         }
 
         types[name] = type;
+    }
+
+    static bool isValidSwizzleMask(const std::string &s)
+    {
+        uint8_t mask = 0;
+
+        // Check that all characters in the swizzle mask belong to the same
+        // grouping of valid characters. Note that no valid characters use
+        // variable length encoding, so we can iterate over each byte.
+        for (char c : s)
+        {
+            switch (c)
+            {
+                case 'x':
+                case 'y':
+                case 'z':
+                case 'w':
+                    mask = mask | 1;
+                    break;
+                case 'r':
+                case 'g':
+                case 'b':
+                case 'a':
+                    mask = mask | 2;
+                    break;
+                case 's':
+                case 't':
+                case 'p':
+                case 'q':
+                    mask = mask | 4;
+                    break;
+            }
+
+            // Check that only a single bit is set
+            if ((mask & (mask - 1)) != 0) return false;
+        }
+
+        return true;
+    }
+
+    static bool swizzleMaskInRange(const std::string &s, uint8_t length)
+    {
+        for (char c : s)
+        {
+            switch (c)
+            {
+                case 'x':
+                case 'r':
+                case 's':
+                    if (length < 1) return false;
+                    break;
+                case 'y':
+                case 'g':
+                case 't':
+                    if (length < 2) return false;
+                    break;
+                case 'z':
+                case 'b':
+                case 'p':
+                    if (length < 3) return false;
+                    break;
+                case 'w':
+                case 'a':
+                case 'q':
+                    if (length < 4) return false;
+                    break;
+            }
+        }
+
+        return true;
+    }
+
+    std::optional<TypeRef> swizzle(
+        TypeRef type,
+        const TypeRegistry &types,
+        const std::string &s
+    )
+    {
+        if (auto p = std::get_if<std::shared_ptr<Vector>>(&type))
+        {
+            if (!isValidSwizzleMask(s)) return std::nullopt;
+            else if (!swizzleMaskInRange(s, (*p)->length)) return std::nullopt;
+
+            u_int8_t length = s.length();
+
+            if (length == (*p)->length) return type;
+            else if (length == 1) return (*p)->GetUnderlyingType();
+
+            std::string typeName = getVectorTypeName(Vector{
+                .type = (*p)->type,
+                .length = length,
+            });
+
+            if (!types.Has(typeName)) return std::nullopt;
+            else return types.Get(typeName);
+        }
+
+        return std::nullopt;
     }
 
     Scope::Scope(Scope *parent) : parent(parent) { }
