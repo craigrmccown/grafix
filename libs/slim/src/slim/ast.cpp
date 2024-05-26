@@ -16,6 +16,28 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
+    Program::Program(Token token, std::vector<std::unique_ptr<Node>> children)
+        : Node(token)
+        , children(std::move(children))
+        { }
+
+    void Program::Dispatch(Visitor &visitor) const
+    {
+        visitor.VisitProgram(*this);
+    }
+
+    void Program::Traverse(Traverser &traverser) const
+    {
+        traverser.Pre(*this);
+
+        for (const std::unique_ptr<Node> &child : children)
+        {
+            child->Traverse(traverser);
+        }
+
+        traverser.Post(*this);
+    }
+
     BinaryExpr::BinaryExpr(
         Token token,
         operators::Operator op,
@@ -389,6 +411,7 @@ namespace slim::ast
         traverser.Post(*this);
     }
 
+    void NoopVisitor::VisitProgram(const ast::Program &node) { }
     void NoopVisitor::VisitBinaryExpr(const ast::BinaryExpr &node) { }
     void NoopVisitor::VisitUnaryExpr(const ast::UnaryExpr &node) { }
     void NoopVisitor::VisitVariableReference(const ast::VariableReference &node) { }

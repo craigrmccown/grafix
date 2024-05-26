@@ -15,31 +15,36 @@ namespace slim
         tokens.Next(current);
     }
 
-    void Parser::Parse()
+    std::unique_ptr<ast::Program> Parser::Parse()
     {
+        Token tok = current;
+        std::vector<std::unique_ptr<ast::Node>> children;
+
         while (current.i != EOF)
         {
             if (is(TokenType::KeywordProperty) || is(TokenType::TagIdentifier))
             {
-                pPropertyDecl();
+                children.push_back(pPropertyDecl());
             }
             else if (is(TokenType::KeywordFeature))
             {
-                pFeatureBlock();
+                children.push_back(pFeatureBlock());
             }
             else if (is(TokenType::KeywordShared))
             {
-                pSharedDecl();
+                children.push_back(pSharedDecl());
             }
             else if (is(TokenType::KeywordShader))
             {
-                pShaderBlock();
+                children.push_back(pShaderBlock());
             }
             else
             {
                 fail("Unexpected token: " + std::to_string(current.i));
             }
         }
+
+        return std::make_unique<ast::Program>(tok, std::move(children));
     }
 
     void Parser::fail(const std::string &message) const
@@ -68,7 +73,6 @@ namespace slim
         advance();
         return true;
     }
-
 
     Token Parser::expect(TokenType type)
     {
