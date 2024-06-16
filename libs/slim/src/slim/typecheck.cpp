@@ -177,7 +177,7 @@ namespace slim::typecheck
         // access deals with a value and a name, provide a custom implementation
         // instead of modeling it as an operator
         types::TypeRef tAccessed = symbols.CurrentScope().Lookup(node.accessed->ordinal);
-        std::optional<types::TypeRef> tField = types::swizzle(tAccessed, types, node.field);
+        std::optional<types::TypeRef> tField = types::swizzle(tAccessed, node.field);
 
         if (!tField)
         {

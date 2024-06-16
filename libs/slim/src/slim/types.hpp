@@ -51,7 +51,9 @@ namespace slim::types
         const Scalar::Type type;
         const u_int8_t length;
 
-        const TypeRef &GetUnderlyingType() const;
+        Vector(Scalar::Type type, u_int8_t length);
+
+        TypeRef GetUnderlyingType() const;
     };
 
     struct Function
@@ -64,12 +66,16 @@ namespace slim::types
         const std::vector<const std::vector<TypeRef>> overloads;
     };
 
-    // Scalar types can be referenced directly instead of only through a type
-    // registry
-    extern const TypeRef boolType;
-    extern const TypeRef intType;
-    extern const TypeRef uintType;
-    extern const TypeRef floatType;
+    // Scalar and vector types can be referenced directly instead of only
+    // through a type registry
+    extern const std::shared_ptr<Scalar> boolType;
+    extern const std::shared_ptr<Scalar> intType;
+    extern const std::shared_ptr<Scalar> uintType;
+    extern const std::shared_ptr<Scalar> floatType;
+    extern const std::array<std::shared_ptr<Vector>, 3> bVecTypes;
+    extern const std::array<std::shared_ptr<Vector>, 3> iVecTypes;
+    extern const std::array<std::shared_ptr<Vector>, 3> uVecTypes;
+    extern const std::array<std::shared_ptr<Vector>, 3> fVecTypes;
 
     std::string getTypeName(TypeRef type);
     bool isIntegerType(Scalar::Type type);
@@ -88,11 +94,7 @@ namespace slim::types
         std::map<std::string, TypeRef> types;
     };
 
-    std::optional<TypeRef> swizzle(
-        TypeRef type,
-        const TypeRegistry &types,
-        const std::string &s
-    );
+    std::optional<TypeRef> swizzle(TypeRef type, const std::string &s);
 
     // Represents a lexical scope. Holds type information for unnamed
     // expressions, referred to by ID, and named expressions, referred to by

@@ -9,14 +9,36 @@
 
 namespace slim::types
 {
-    const TypeRef boolType = std::make_shared<Scalar>(Scalar::Type::Bool);
-    const TypeRef intType = std::make_shared<Scalar>(Scalar::Type::Int);
-    const TypeRef uintType = std::make_shared<Scalar>(Scalar::Type::Uint);
-    const TypeRef floatType = std::make_shared<Scalar>(Scalar::Type::Float);
+    const std::shared_ptr<Scalar> boolType = std::make_shared<Scalar>(Scalar::Type::Bool);
+    const std::shared_ptr<Scalar> intType = std::make_shared<Scalar>(Scalar::Type::Int);
+    const std::shared_ptr<Scalar> uintType = std::make_shared<Scalar>(Scalar::Type::Uint);
+    const std::shared_ptr<Scalar> floatType = std::make_shared<Scalar>(Scalar::Type::Float);
+    const std::array<std::shared_ptr<Vector>, 3> bVecTypes = {
+        std::make_shared<Vector>(Scalar::Bool, 2),
+        std::make_shared<Vector>(Scalar::Bool, 3),
+        std::make_shared<Vector>(Scalar::Bool, 4),
+    };
+    const std::array<std::shared_ptr<Vector>, 3> iVecTypes = {
+        std::make_shared<Vector>(Scalar::Int, 2),
+        std::make_shared<Vector>(Scalar::Int, 3),
+        std::make_shared<Vector>(Scalar::Int, 4),
+    };
+    const std::array<std::shared_ptr<Vector>, 3> uVecTypes = {
+        std::make_shared<Vector>(Scalar::Uint, 2),
+        std::make_shared<Vector>(Scalar::Uint, 3),
+        std::make_shared<Vector>(Scalar::Uint, 4),
+    };
+    const std::array<std::shared_ptr<Vector>, 3> fVecTypes = {
+        std::make_shared<Vector>(Scalar::Float, 2),
+        std::make_shared<Vector>(Scalar::Float, 3),
+        std::make_shared<Vector>(Scalar::Float, 4),
+    };
 
     Scalar::Scalar(Type type) : type(type) { }
 
-    const TypeRef &Vector::GetUnderlyingType() const
+    Vector::Vector(Scalar::Type type, u_int8_t length) : type(type), length(length) { }
+
+    TypeRef Vector::GetUnderlyingType() const
     {
         switch (type)
         {
@@ -31,20 +53,44 @@ namespace slim::types
         }
     }
 
+    std::array<std::shared_ptr<Vector>, 3> getVectorTypes(Scalar::Type type)
+    {
+        switch (type)
+        {
+            case Scalar::Bool:
+                return bVecTypes;
+            case Scalar::Int:
+                return iVecTypes;
+            case Scalar::Uint:
+                return uVecTypes;
+            case Scalar::Float:
+                return fVecTypes;
+        }
+    }
+
+    std::shared_ptr<Vector> getVectorType(Scalar::Type type, u_int8_t length)
+    {
+        // There is an implicit dependency between the length of array types and
+        // their positions in the const arrays that hold them, which is codified
+        // in this assertion.
+        assert(length >= 2 && length <= 4);
+        return getVectorTypes(type)[length - 2];
+    }
+
     static std::string getVectorTypeName(Vector vec)
     {
-        std::string postfix = "vec" + std::to_string(vec.length);
+        std::string name = "vec" + std::to_string(vec.length);
 
         switch (vec.type)
         {
             case types::Scalar::Bool:
-                return "b" + postfix;
+                return "b" + name;
             case types::Scalar::Int:
-                return "i" + postfix;
+                return "i" + name;
             case types::Scalar::Uint:
-                return "u" + postfix;
+                return "u" + name;
             case types::Scalar::Float:
-                return postfix;
+                return name;
         }
     }
 
@@ -144,6 +190,8 @@ namespace slim::types
 
     static bool isValidSwizzleMask(const std::string &s)
     {
+        if (s.length() == 0 || s.length() > 4) return false;
+
         uint8_t mask = 0;
 
         // Check that all characters in the swizzle mask belong to the same
@@ -212,11 +260,7 @@ namespace slim::types
         return true;
     }
 
-    std::optional<TypeRef> swizzle(
-        TypeRef type,
-        const TypeRegistry &types,
-        const std::string &s
-    )
+    std::optional<TypeRef> swizzle(TypeRef type, const std::string &s)
     {
         if (auto p = std::get_if<std::shared_ptr<Vector>>(&type))
         {
@@ -228,13 +272,7 @@ namespace slim::types
             if (length == (*p)->length) return type;
             else if (length == 1) return (*p)->GetUnderlyingType();
 
-            std::string typeName = getVectorTypeName(Vector{
-                .type = (*p)->type,
-                .length = length,
-            });
-
-            if (!types.Has(typeName)) return std::nullopt;
-            else return types.Get(typeName);
+            return getVectorType((*p)->type, length);
         }
 
         return std::nullopt;
@@ -379,9 +417,9 @@ namespace slim::types
 
         // Scalar types are defined next, along with their corresponding vector
         // types and type constructor functions
-        const std::vector<TypeRef> scalarTypes = { boolType, intType, uintType, floatType };
+        const std::vector<const std::shared_ptr<Scalar>> scalarTypes = { boolType, intType, uintType, floatType };
 
-        for (const TypeRef &type : scalarTypes)
+        for (const std::shared_ptr<Scalar> &type : scalarTypes)
         {
             types.Define(type);
 
@@ -392,7 +430,7 @@ namespace slim::types
             std::vector<const std::vector<TypeRef>> overloads;
             overloads.reserve(scalarTypes.size() - 1);
 
-            for (const TypeRef &otherType : scalarTypes)
+            for (const auto &otherType : scalarTypes)
             {
                 if (otherType != type) overloads.push_back({ otherType });
             }
@@ -408,24 +446,15 @@ namespace slim::types
 
             // Every scalar type defines 3 corresponding vector types whose
             // lengths range from 2 to 4
-            std::shared_ptr<Vector> vecTypes[3];
+            auto vecTypes = getVectorTypes(type->type);
 
             for (int i = 0; i < 3; i++)
             {
                 // Define a vector type for each combination of scalar type and
                 // length
                 uint8_t length = i + 2;
-
-                std::shared_ptr<Vector> vecType = std::make_shared<Vector>(Vector{
-                    .type = std::get<std::shared_ptr<Scalar>>(type)->type,
-                    .length = length,
-                });
-
+                std::shared_ptr<Vector> vecType = vecTypes[i];
                 types.Define(vecType);
-
-                // Keep track of defined vector types of each length - they are
-                // needed to build type constructor function overloads
-                vecTypes[i] = vecType;
 
                 // Build the default constructor parameters for each vector
                 // type, which take the form of vecN(x0, ..., xN), where each
