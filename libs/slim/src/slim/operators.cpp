@@ -131,22 +131,18 @@ namespace slim::operators
             case Operator::Mul:
             case Operator::Div:
             {
-                types::Scalar::Type sType;
-
                 if (auto p = std::get_if<std::shared_ptr<types::Scalar>>(&type))
                 {
-                    sType = (*p)->type;
+                    return types::isNumericType((*p)->type);
                 }
                 else if (auto p = std::get_if<std::shared_ptr<types::Vector>>(&type))
                 {
-                    sType = (*p)->type;
+                    return types::isNumericType((*p)->type);
                 }
                 else
                 {
-                    return false;
+                    return std::holds_alternative<std::shared_ptr<types::Matrix>>(type);
                 }
-
-                return types::isNumericType(sType);
             }
             case Operator::Mod:
             {
@@ -154,7 +150,9 @@ namespace slim::operators
                 return p && types::isIntegerType((*p)->type);
             }
             case Operator::Index:
-                return std::holds_alternative<std::shared_ptr<types::Vector>>(type);
+                return
+                    std::holds_alternative<std::shared_ptr<types::Vector>>(type) ||
+                    std::holds_alternative<std::shared_ptr<types::Matrix>>(type);
         }
     }
 

@@ -35,6 +35,22 @@ namespace slim::typecheck
         );
     }
 
+    static std::optional<types::TypeRef> resolveMatVecMult(
+        const types::TypeRef &tLeft,
+        const types::TypeRef &tRight
+    )
+    {
+        if (auto m = std::get_if<std::shared_ptr<types::Matrix>>(&tLeft))
+        {
+            if (auto v = std::get_if<std::shared_ptr<types::Vector>>(&tRight))
+            {
+                if ((*m)->size == (*v)->length) return tRight;
+            }
+        }
+
+        return std::nullopt;
+    }
+
     static types::TypeRef resolveBinaryOperation(
         Token token,
         operators::Operator op,
@@ -74,21 +90,34 @@ namespace slim::typecheck
             case operators::Assign:
             case operators::Add:
             case operators::Sub:
-            case operators::Mul:
             case operators::Div:
             case operators::Mod:
-            {
                 if (tLeft != tRight)
                 {
                     throwIncompatibleTypes(token, tLeft, tRight);
                 }
 
                 return tLeft;
-            }
+            case operators::Mul:
+                // Multiplication is overloaded for matrix multiplication, so we
+                // handle it separately
+                if (tLeft == tRight) return tLeft;
+
+                // Vectors are interpreted as either row or column major when
+                // multiplied by matrices, depending on whether they are on the
+                // left or right
+                if (auto colMajor = resolveMatVecMult(tLeft, tRight)) return *colMajor;
+                if (auto rowMajor = resolveMatVecMult(tRight, tLeft)) return *rowMajor;
+
+                throwIncompatibleTypes(token, tLeft, tRight);
             case operators::Index:
                 if (auto p = std::get_if<std::shared_ptr<types::Vector>>(&tLeft))
                 {
                     return (*p)->GetUnderlyingType();
+                }
+                else if (auto p = std::get_if<std::shared_ptr<types::Matrix>>(&tLeft))
+                {
+                    return types::getVectorType(types::Scalar::Float, (*p)->size);
                 }
                 else
                 {

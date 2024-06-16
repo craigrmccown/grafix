@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <map>
 #include <memory>
 #include <optional>
@@ -12,12 +13,14 @@ namespace slim::types
     struct Opaque;
     struct Scalar;
     struct Vector;
+    struct Matrix;
     struct Function;
 
     using TypeRef = std::variant<
         std::shared_ptr<Opaque>,
         std::shared_ptr<Scalar>,
         std::shared_ptr<Vector>,
+        std::shared_ptr<Matrix>,
         std::shared_ptr<Function>
     >;
 
@@ -56,6 +59,11 @@ namespace slim::types
         TypeRef GetUnderlyingType() const;
     };
 
+    struct Matrix
+    {
+        const uint8_t size;
+    };
+
     struct Function
     {
         const TypeRef returnType;
@@ -77,9 +85,11 @@ namespace slim::types
     extern const std::array<std::shared_ptr<Vector>, 3> uVecTypes;
     extern const std::array<std::shared_ptr<Vector>, 3> fVecTypes;
 
+    std::shared_ptr<Vector> getVectorType(Scalar::Type type, u_int8_t length);
     std::string getTypeName(TypeRef type);
     bool isIntegerType(Scalar::Type type);
     bool isNumericType(Scalar::Type type);
+    std::optional<TypeRef> swizzle(TypeRef type, const std::string &s);
 
     // Holds system and user-defined types. Supports a nominal type system,
     // where each type is addressable by name. Type names are always global.
@@ -93,8 +103,6 @@ namespace slim::types
         private:
         std::map<std::string, TypeRef> types;
     };
-
-    std::optional<TypeRef> swizzle(TypeRef type, const std::string &s);
 
     // Represents a lexical scope. Holds type information for unnamed
     // expressions, referred to by ID, and named expressions, referred to by

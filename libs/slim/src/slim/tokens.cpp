@@ -37,7 +37,7 @@ namespace slim
         ",",
         ";",
         "(vertex|fragment)",
-        "(bool|int|uint|float|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|uvec2|uvec3|uvec4|vec2|vec3|vec4|sampler2D)",
+        "(bool|int|uint|float|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|uvec2|uvec3|uvec4|vec2|vec3|vec4|mat2|mat3|mat4|sampler2D)",
         "(true|false)",
         "[0-9]+",
         "[0-9]+\\.[0-9]+",

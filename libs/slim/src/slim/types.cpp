@@ -1,3 +1,4 @@
+#include <array>
 #include <map>
 #include <memory>
 #include <optional>
@@ -53,7 +54,7 @@ namespace slim::types
         }
     }
 
-    std::array<std::shared_ptr<Vector>, 3> getVectorTypes(Scalar::Type type)
+    static std::array<std::shared_ptr<Vector>, 3> getVectorTypes(Scalar::Type type)
     {
         switch (type)
         {
@@ -122,6 +123,10 @@ namespace slim::types
         {
             return getVectorTypeName(**p);
         }
+        else if (auto p = std::get_if<std::shared_ptr<Matrix>>(&type))
+        {
+            return "mat" + std::to_string((*p)->size);
+        }
         else if (auto p = std::get_if<std::shared_ptr<Function>>(&type))
         {
             std::string name = getTypeName((*p)->returnType) + " " + (*p)->name + "(";
@@ -153,39 +158,6 @@ namespace slim::types
     bool isNumericType(Scalar::Type type)
     {
         return isIntegerType(type) || type == Scalar::Float;
-    }
-
-    TypeRef TypeRegistry::Get(const std::string &name) const
-    {
-        auto it = types.find(name);
-
-        if (it == types.end())
-        {
-            throw std::runtime_error(
-                "Type with name '" + name + "' is not defined"
-            );
-        }
-
-        return (*it).second;
-    }
-
-    bool TypeRegistry::Has(const std::string &name) const
-    {
-        return types.find(name) != types.end();
-    }
-
-    void TypeRegistry::Define(TypeRef type)
-    {
-        std::string name = getTypeName(type);
-
-        if (types.find(name) != types.end())
-        {
-            throw std::runtime_error(
-                "Type with name '" + name + "' has already been defined"
-            );
-        }
-
-        types[name] = type;
     }
 
     static bool isValidSwizzleMask(const std::string &s)
@@ -276,6 +248,39 @@ namespace slim::types
         }
 
         return std::nullopt;
+    }
+
+    TypeRef TypeRegistry::Get(const std::string &name) const
+    {
+        auto it = types.find(name);
+
+        if (it == types.end())
+        {
+            throw std::runtime_error(
+                "Type with name '" + name + "' is not defined"
+            );
+        }
+
+        return (*it).second;
+    }
+
+    bool TypeRegistry::Has(const std::string &name) const
+    {
+        return types.find(name) != types.end();
+    }
+
+    void TypeRegistry::Define(TypeRef type)
+    {
+        std::string name = getTypeName(type);
+
+        if (types.find(name) != types.end())
+        {
+            throw std::runtime_error(
+                "Type with name '" + name + "' has already been defined"
+            );
+        }
+
+        types[name] = type;
     }
 
     Scope::Scope(Scope *parent) : parent(parent) { }
@@ -499,6 +504,43 @@ namespace slim::types
 
                 symbols.CurrentScope().Declare(fType->name, fType);
             }
+        }
+
+        // Define matrix types and constructor functions
+        std::array<TypeRef, 3> matTypes;
+
+        for (int i = 0; i < 3; i++)
+        {
+            uint8_t size = i + 2;
+            std::shared_ptr<Matrix> type = std::make_shared<Matrix>(Matrix{ .size = size });
+
+            types.Define(type);
+            matTypes[i] = type;
+        }
+
+        for (const TypeRef &type : matTypes)
+        {
+            // Every matrix type can be constructed from every other matrix
+            // type, where values will either be truncated or receive default
+            // values from the corresponding location in the identity matrix
+            std::vector<const std::vector<TypeRef>> overloads;
+            overloads.reserve(matTypes.size());
+
+            for (const TypeRef &otherType : matTypes)
+            {
+                overloads.push_back({ otherType });
+            }
+
+            // Matrix types can also be constructed from a single float vlaue,
+            // which will create a diagonal matrix using that value
+            auto fType = std::make_shared<Function>(Function{
+                .returnType = type,
+                .name = getTypeName(type),
+                .params = { types::floatType },
+                .overloads = overloads,
+            });
+
+            symbols.CurrentScope().Declare(fType->name, fType);
         }
 
         symbols.BeginScope();
