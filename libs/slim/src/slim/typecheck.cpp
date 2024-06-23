@@ -269,6 +269,26 @@ namespace slim::typecheck
         symbols.CurrentScope().Annotate(node.ordinal, (*pFunc)->returnType);
     }
 
+    void PostorderVisitor::VisitReturnStat(const ast::ReturnStat &node)
+    {
+        types::TypeRef tExpr = symbols.CurrentScope().Lookup(node.expr->ordinal);
+        std::optional<types::TypeRef> tReturn = symbols.CurrentScope().ReturnType();
+
+        if (!tReturn)
+        {
+            node.token.Throw("Return statement cannot appear outside of a function body");
+        }
+
+        if (tReturn != tExpr)
+        {
+            node.token.Throw(
+                "Return type does not match function definition, "
+                "expecting '" + types::getTypeName(*tReturn) +
+                "', got '" + types::getTypeName(tExpr) + "'"
+            );
+        }
+    }
+
     void PostorderVisitor::VisitDeclStat(const ast::DeclStat &node)
     {
         types::TypeRef tLeft = types.Get(node.type);
@@ -293,7 +313,7 @@ namespace slim::typecheck
 
     void PreorderVisitor::VisitShaderBlock(const ast::ShaderBlock &node)
     {
-        symbols.BeginScope();
+        symbols.BeginScope(types::fVecTypes[2]);
     }
 
     void PostorderVisitor::VisitShaderBlock(const ast::ShaderBlock &node)

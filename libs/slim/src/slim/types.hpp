@@ -86,10 +86,10 @@ namespace slim::types
     extern const std::array<std::shared_ptr<Vector>, 3> fVecTypes;
 
     std::shared_ptr<Vector> getVectorType(Scalar::Type type, u_int8_t length);
-    std::string getTypeName(TypeRef type);
+    std::string getTypeName(const TypeRef &type);
     bool isIntegerType(Scalar::Type type);
     bool isNumericType(Scalar::Type type);
-    std::optional<TypeRef> swizzle(TypeRef type, const std::string &s);
+    std::optional<TypeRef> swizzle(const TypeRef &type, const std::string &s);
 
     // Holds system and user-defined types. Supports a nominal type system,
     // where each type is addressable by name. Type names are always global.
@@ -111,25 +111,28 @@ namespace slim::types
     class Scope
     {
         public:
-        Scope(Scope *parent = nullptr);
+        Scope(Scope *parent = nullptr, std::optional<TypeRef> returnType = std::nullopt);
 
         // Associates an unnamed identifier with a type
-        void Annotate(uint32_t id, const TypeRef &type);
+        void Annotate(uint32_t id, TypeRef type);
 
         // Associates a named identifier with a type
-        void Declare(const std::string &sym, const TypeRef &type);
+        void Declare(const std::string &sym, TypeRef type);
 
         // Retrieves type information by ID. Does not attempt to find type
         // information in ancestor scopes.
-        const TypeRef &Lookup(uint32_t id) const;
+        const TypeRef Lookup(uint32_t id) const;
 
         // Retrieves type information by name. If the current scope has no entry
         // for the given name, ancestor scopes are queried until either the name
         // is found or the root scope is reached.
-        const TypeRef &Lookup(const std::string &sym) const;
+        const TypeRef Lookup(const std::string &sym) const;
+
+        std::optional<const TypeRef> ReturnType() const;
 
         private:
         Scope *parent;
+        std::optional<TypeRef> returnType;
         std::map<uint32_t, TypeRef> types;
         std::map<std::string, TypeRef> symbols;
     };
@@ -145,6 +148,7 @@ namespace slim::types
 
         // Creates a new child scope relative to the current scope
         void BeginScope();
+        void BeginScope(TypeRef returnType);
 
         // Ends the current scope and resets the current scope to its parent
         void EndScope();
@@ -165,7 +169,7 @@ namespace slim::types
         std::map<uint32_t, Scope*> associations;
         std::vector<Scope*> stack;
 
-        void pushScope(Scope *parent);
+        void pushScope(std::unique_ptr<Scope> scope);
     };
 
     // Registers symbols and types provided by the language runtime

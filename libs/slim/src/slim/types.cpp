@@ -95,7 +95,7 @@ namespace slim::types
         }
     }
 
-    std::string getTypeName(TypeRef type)
+    std::string getTypeName(const TypeRef &type)
     {
         if (auto p = std::get_if<std::shared_ptr<Opaque>>(&type))
         {
@@ -232,7 +232,7 @@ namespace slim::types
         return true;
     }
 
-    std::optional<TypeRef> swizzle(TypeRef type, const std::string &s)
+    std::optional<TypeRef> swizzle(const TypeRef &type, const std::string &s)
     {
         if (auto p = std::get_if<std::shared_ptr<Vector>>(&type))
         {
@@ -283,9 +283,17 @@ namespace slim::types
         types[name] = type;
     }
 
-    Scope::Scope(Scope *parent) : parent(parent) { }
+    Scope::Scope(Scope *parent, std::optional<TypeRef> returnType) : parent(parent)
+    {
+        if (returnType && ReturnType())
+        {
+            throw std::runtime_error("Cannot bind return type to scope - already within function scope");
+        }
 
-    void Scope::Annotate(uint32_t id, const TypeRef &type)
+        this->returnType = returnType;
+    }
+
+    void Scope::Annotate(uint32_t id, TypeRef type)
     {
         if (types.find(id) != types.end())
         {
@@ -299,10 +307,7 @@ namespace slim::types
         types[id] = type;
     }
 
-    void Scope::Declare(
-        const std::string &sym,
-        const TypeRef &type
-    )
+    void Scope::Declare(const std::string &sym, TypeRef type)
     {
         if (symbols.find(sym) != symbols.end())
         {
@@ -316,7 +321,7 @@ namespace slim::types
         symbols[sym] = type;
     }
 
-    const TypeRef &Scope::Lookup(uint32_t id) const
+    const TypeRef Scope::Lookup(uint32_t id) const
     {
         auto it = types.find(id);
 
@@ -332,14 +337,15 @@ namespace slim::types
         return (*it).second;
     }
 
-    const TypeRef &Scope::Lookup(const std::string &sym) const
+    const TypeRef Scope::Lookup(const std::string &sym) const
     {
         auto it = symbols.find(sym);
 
         if (it == symbols.end())
         {
             // The root scope has been reached, and the symbol was not found
-            if (parent == nullptr) {
+            if (parent == nullptr)
+            {
                 throw std::runtime_error("Symbol '" + sym + "' is not defined");
             }
 
@@ -350,14 +356,26 @@ namespace slim::types
         return (*it).second;
     }
 
+    std::optional<const TypeRef> Scope::ReturnType() const
+    {
+        if (returnType != std::nullopt) return returnType;
+        if (parent == nullptr) return std::nullopt;
+        return parent->ReturnType();
+    }
+
     SymbolTable::SymbolTable()
     {
-        pushScope(nullptr);
+        pushScope(std::make_unique<Scope>());
     }
 
     void SymbolTable::BeginScope()
     {
-        pushScope(&CurrentScope());
+        pushScope(std::make_unique<Scope>(&CurrentScope()));
+    }
+
+    void SymbolTable::BeginScope(TypeRef returnType)
+    {
+        pushScope(std::make_unique<Scope>(&CurrentScope(), returnType));
     }
 
     void SymbolTable::EndScope()
@@ -408,9 +426,9 @@ namespace slim::types
         return *(*it).second;
     }
 
-    void SymbolTable::pushScope(Scope *parent)
+    void SymbolTable::pushScope(std::unique_ptr<Scope> scope)
     {
-        scopes.push_back(std::make_unique<Scope>(parent));
+        scopes.push_back(std::move(scope));
         stack.push_back(&*scopes.back());
     }
 

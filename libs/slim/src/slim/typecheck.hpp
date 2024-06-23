@@ -33,6 +33,7 @@ namespace slim::typecheck
         void VisitBooleanLiteral(const ast::BooleanLiteral &node) override;
         void VisitFieldAccess(const ast::FieldAccess &node) override;
         void VisitFunctionCall(const ast::FunctionCall &node) override;
+        void VisitReturnStat(const ast::ReturnStat &node) override;
         void VisitDeclStat(const ast::DeclStat &node) override;
         void VisitPropertyDecl(const ast::PropertyDecl &node) override;
         void VisitSharedDecl(const ast::SharedDecl &node) override;
