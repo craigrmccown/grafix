@@ -9,6 +9,12 @@
 
 namespace slim::typecheck
 {
+    void run(
+        const ast::Node &ast,
+        types::SymbolTable &symbols,
+        types::TypeRegistry &types
+    );
+
     class PreorderVisitor : public ast::NoopVisitor
     {
         public:

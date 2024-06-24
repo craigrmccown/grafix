@@ -137,6 +137,17 @@ namespace slim::typecheck
         }
     }
 
+    void run(
+        const ast::Node &ast,
+        types::SymbolTable &symbols,
+        types::TypeRegistry &types
+    )
+    {
+        slim::types::initializeBuiltIns(symbols, types);
+        slim::typecheck::Traverser traverser(symbols, types);
+        ast.Traverse(traverser);
+    }
+
     PreorderVisitor::PreorderVisitor(
         types::SymbolTable &symbols,
         types::TypeRegistry &types

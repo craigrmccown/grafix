@@ -30,10 +30,7 @@ TEST_CASE("passes typechecking for correct types", "[typecheck]")
 
     slim::types::SymbolTable symbols;
     slim::types::TypeRegistry types;
-    slim::types::initializeBuiltIns(symbols, types);
-
-    slim::typecheck::Traverser traverser(symbols, types);
-    CHECK_NOTHROW(ast->Traverse(traverser));
+    CHECK_NOTHROW(slim::typecheck::run(*ast, symbols, types));
 }
 
 TEST_CASE("fails typechecking for incorrect types", "[typecheck]")
@@ -57,11 +54,8 @@ TEST_CASE("fails typechecking for incorrect types", "[typecheck]")
 
     slim::types::SymbolTable symbols;
     slim::types::TypeRegistry types;
-    slim::types::initializeBuiltIns(symbols, types);
-
-    slim::typecheck::Traverser traverser(symbols, types);
 
     // TODO: Use CHECK_THROWS_AS and check error types or return errors as value
     // instead of throwing
-    CHECK_THROWS(ast->Traverse(traverser));
+    CHECK_THROWS(slim::typecheck::run(*ast, symbols, types));
 }
